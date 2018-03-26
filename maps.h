@@ -1,6 +1,7 @@
 #pragma once
+#include<vector>
 
-int const map1[10][10] = {
+std::vector<std::vector<int>> map1 = {
 	{4, 4, 4, 4, 4, 2, 2, 2, 3, 3},
 	{4, 4, 4, 4, 4, 2, 2, 2, 2, 3},
 	{1, 1, 4, 4, 2, 2, 2, 2, 2, 3},

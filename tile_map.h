@@ -16,22 +16,25 @@ protected:
 	// the map. A vector of shared pointers to terrain tiles
 	std::vector<std::shared_ptr<TerrainTile>> map_;
 	// map dimensions (number of tiles)
-	int const width_;
-	int const height_;
+	int const map_width_;
+	int const map_height_;
+	// tile dimensions (number of console cells)
+	int const tile_width_;
+	int const tile_height_;
 	// width from edge of map that each player can set up in
 	int const set_up_width_;
 public:
 	// default ctor. makes empty map (just grass)
 	TileMap();
 	// ctor for loading premade map from 2d array
-	TileMap(const int(&map)[10][10]);
+	TileMap(std::vector<std::vector<int>> &map);
 	// dtor
 	~TileMap();
 
 	// Return number of rows
-	int get_height() const { return height_; } 
+	int get_height() const { return map_height_; } 
 	// Return number of columns
-	int get_width() const { return width_; } 
+	int get_width() const { return map_width_; } 
 	// Return position in array of element (m,n)
 	int index(int const m, int const n) const;
 	// returns the terrain tile at position i,j
