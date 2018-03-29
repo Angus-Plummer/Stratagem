@@ -5,7 +5,7 @@
 class WaterTile : public TerrainTile {
 public:
 	// ctor
-	WaterTile();
+	WaterTile(std::weak_ptr<TileMap> map, COORD const map_coords);
 	// dtor
 	~WaterTile();
 };

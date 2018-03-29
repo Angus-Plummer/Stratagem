@@ -4,7 +4,7 @@ class ForestTile :
 	public TerrainTile
 {
 public:
-	ForestTile();
+	ForestTile(std::weak_ptr<TileMap> map, COORD const map_coords);
 	~ForestTile();
 };
 

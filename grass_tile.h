@@ -5,7 +5,7 @@
 class GrassTile : public TerrainTile {
 public:
 	// ctor
-	GrassTile();
+	GrassTile(std::weak_ptr<TileMap> map, COORD const map_coords);
 	// dtor
 	~GrassTile();
 };

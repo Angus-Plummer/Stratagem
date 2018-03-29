@@ -4,7 +4,7 @@ class MountainTile :
 	public TerrainTile
 {
 public:
-	MountainTile();
+	MountainTile(std::weak_ptr<TileMap> map, COORD const map_coords);
 	~MountainTile();
 };
 
