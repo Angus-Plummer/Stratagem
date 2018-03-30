@@ -1,8 +1,11 @@
 #include "stdafx.h"
 #include "game_object.h"
+#include "screen.h"
+#include "map.h"
 
 
-GameObject::GameObject() : selected_(false), highlighted_(false){
+GameObject::GameObject(Map* map) : parent_map_(map), selected_(false), highlighted_(false){
+
 }
 
 GameObject::~GameObject(){}
@@ -12,12 +15,11 @@ int GameObject::get_colour_scheme() const {
 	if (selected_) {
 		return selected_colour_scheme_;
 	}
-	else if (highlighted_) {
+	if (highlighted_) {
 		return highlighted_colour_scheme_;
 	}
-	else {
-		return default_colour_scheme_;
-	}
+	// if neither then return default colour scheme
+	return default_colour_scheme_;
 }
 
 // selected and deselect
@@ -28,3 +30,4 @@ void GameObject::set_selected(bool selected) {
 void GameObject::set_highlighted(bool highlighted) {
 	highlighted_ = highlighted;
 }
+

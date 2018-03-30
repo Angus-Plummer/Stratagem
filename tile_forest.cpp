@@ -1,15 +1,17 @@
 #include "stdafx.h"
-#include "forest_tile.h"
+#include "tile_forest.h"
 
 
-ForestTile::ForestTile(std::weak_ptr<TileMap> map, COORD const map_coords) : TerrainTile(map, map_coords) {
+ForestTile::ForestTile(Map* map, COORD const map_coords) : Tile(map, map_coords) {
 // member data for tiles
 type_ = "forest";
 marker_ = char(176);// char(237);
 default_colour_scheme_ = 32;
 selected_colour_scheme_ = 160;
-def_modifier_ = 1.5;
-atk_modifier_ = 1;
+highlighted_colour_scheme_ = 47;
+move_cost_ = 2;
+def_modifier_ = 1;
+atk_modifier_ = 0;
 }
 
 
