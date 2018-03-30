@@ -1,12 +1,5 @@
 #pragma once
-#include "map.h"
-#include "unit.h"
-#include "raw_maps.h"
-
-#include<vector>
-#include<iostream>
-#include<Windows.h>
-#include<WindowsX.h>
+#include "stdafx.h"
 
 class Screen {
 protected:

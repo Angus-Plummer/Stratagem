@@ -1,11 +1,11 @@
 #pragma once
-#include<memory>
+
+#include "stdafx.h"
 #include "game_object.h"
-#include "tile_grass.h"
-#include "tile_forest.h"
-#include "tile_mountain.h"
-#include "tile_water.h"
-class Tile; //forward declare TerrainTile
+
+// forward declarations
+class Tile;
+
 
 class Unit : public GameObject {
 protected:
@@ -13,21 +13,26 @@ protected:
 	int max_hp_;
 	int current_hp_;
 	// armor value
-	double armour_;
+	int armour_;
 	// magic armour value;
-	double magic_resistance_;
+	int magic_resistance_;
 	// maximum move distance
 	int move_range_;
 	// default attack damage
 	int attack_damage_;
 	// default attack range
 	int attack_range_;
-	bool can_move_; // whether unit has/hasnt moved yet
+	bool moved_this_turn_; // whether unit has/hasnt moved yet
+	bool attacked_this_turn_; // whether unit has/hasnt attacked yet
+	bool selecting_movement_; // true if unit is currently selected for movement
+	bool selecting_attack_; // true if unit is currently selected for attacking
 	bool alive_; // whether unit is alive or not
-	bool team_; // what team the unit belongs to
+	int team_; // what team the unit belongs to
+
+	int selected_colour_scheme_; // colour scheme when selected
 
 public:
-	Unit(Map* map, bool team);
+	Unit(GameInstance* game, Map* map, int team);
 	virtual ~Unit();
 
 	// accessor functions
@@ -39,13 +44,21 @@ public:
 	double get_armour() const { return armour_; }
 	int get_move_distance() const { return move_range_; }
 	bool is_alive() const { return alive_; }
-	bool get_team() const { return team_; }
+	int get_team() const { return team_; }
+
+	// select this unit
+	void SelectUnit();
+	// deselect this unit
+	void DeselectUnit();
+
+	// attack another unit
+	void Attack(Unit*target) const;
 
 	// get tile unit is currently on
 	Tile* GetTile() const;
 
-	// checks if target unit is adjacent to this unit
-	bool IsAdjacent(Unit* const target) const;
+	// checks how many tiles away another unit is
+	int DistanceTo(Unit* const target) const;
 
 	// check if unit can traverse a given terrain
 	bool virtual CanTraverse(Tile* const terrain_tile) const = 0;
@@ -53,9 +66,9 @@ public:
 	// move unit to a new coordinate. 
 	void set_map_coords(COORD const new_pos);
 
-	// attack another unit
-	void virtual Attack(Unit*target) const = 0;
-
-	void Render(Screen &display) const;
+	// renders the unit on a screen
+	void Render(Screen const &display) const;
+	
+	// returns a vector of pointers to the tiles that can me reached by this unit
+	std::vector<Tile*> ReachableTiles() const;
 };
-

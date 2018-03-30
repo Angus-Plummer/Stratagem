@@ -1,5 +1,6 @@
-#include<memory>
-#include<vector>
+#pragma once
+
+#include "stdafx.h"
 #include "tile.h"
 
 // class for path finding (connects tiles together in sequences)

@@ -1,8 +1,12 @@
 #include "unit_knight.h"
 #include "tile.h"
+#include "tile_grass.h"
+#include "tile_forest.h"
+#include "tile_mountain.h"
+#include "tile_water.h"
 
 
-Knight::Knight(Map* map, bool team) : Unit(map, team) {
+Knight::Knight(GameInstance* game, Map* map, int team) : Unit(game, map, team) {
 	// knight stats
 	max_hp_ = 30;
 	armour_ = 2;
@@ -20,15 +24,6 @@ Knight::Knight(Map* map, bool team) : Unit(map, team) {
 Knight::~Knight(){
 }
 
-// function to attack a target
-void Knight::Attack(Unit* target) const {
-	// only attack if target is adjacent
-	if (IsAdjacent(target) && target->get_team() != team_) {
-		// add attack modifier and apply the damage
-		int attack_modifier = GetTile()->get_atk_modifier();
-		target->ApplyPhysicalDamage(attack_damage_ + attack_modifier);
-	}
-}
 // returns true if the knight can cross the terrain. (knight cant enter water or mountains)
 bool Knight::CanTraverse(Tile* const terrain_tile) const {
 	// if tile is a water tile then return false

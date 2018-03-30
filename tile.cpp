@@ -3,7 +3,7 @@
 #include "screen.h"
 #include "map.h"
 
-Tile::Tile(Map* map, COORD const map_coords) : GameObject(map){
+Tile::Tile(GameInstance* game, Map* map, COORD const map_coords) : GameObject(game, map), highlighted_(false){
 	// check if the coordinates are valid on the map
 	if (map_coords.X >= 0 && map_coords.X < map->get_map_width() && map_coords.Y >= 0 && map_coords.Y < map->get_map_width()) {
 		map_coords_ = map_coords;
@@ -16,8 +16,23 @@ Tile::Tile(Map* map, COORD const map_coords) : GameObject(map){
 
 Tile::~Tile() {};
 
+// get the colour scheme
+int Tile::get_colour_scheme() const {
+	if (highlighted_) {
+		return highlighted_colour_scheme_;
+	}
+	else {
+		return default_colour_scheme_;
+	}
+}
+
+// set and get highlighted
+void Tile::set_highlighted(bool const highlighted) {
+	highlighted_ = highlighted;
+}
+
 // render the tile
-void Tile::Render(Screen& display) const {
+void Tile::Render(Screen const &display) const {
 	int original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back later
 	// set colour scheme for tyle type
 	display.set_colour_scheme(get_colour_scheme());

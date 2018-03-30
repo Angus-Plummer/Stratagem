@@ -1,8 +1,12 @@
-#include "tile.h"
 #include "unit_archer.h"
+#include "tile.h"
+#include "tile_grass.h"
+#include "tile_forest.h"
+#include "tile_mountain.h"
+#include "tile_water.h"
 
 
-Archer::Archer(Map* map, bool team) : Unit(map, team) {
+Archer::Archer(GameInstance* game, Map* map, int team) : Unit(game, map, team) {
 	// knight stats
 	max_hp_ = 20;
 	armour_ = 1;
@@ -21,13 +25,6 @@ Archer::~Archer()
 {
 }
 
-// function to attack a target
-void Archer::Attack(Unit* target) const {
-	if (IsAdjacent(target) && target->get_team() != team_) {
-		int attack_modifier = GetTile()->get_atk_modifier();
-		target->ApplyPhysicalDamage(attack_damage_ + attack_modifier);
-	}
-}
 
 // returns true if unit can cross a terrain tile. ( archer cant cross water)
 bool Archer::CanTraverse(Tile* const terrain_tile) const {

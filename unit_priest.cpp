@@ -1,7 +1,11 @@
 #include "unit_priest.h"
 #include "tile.h"
+#include "tile_grass.h"
+#include "tile_forest.h"
+#include "tile_mountain.h"
+#include "tile_water.h"
 
-Priest::Priest(Map* map, bool team) : Unit(map, team) {
+Priest::Priest(GameInstance* game, Map* map, int team) : Unit(game, map, team) {
 	// knight stats
 	max_hp_ = 15;
 	armour_ = 0;
@@ -16,16 +20,6 @@ Priest::Priest(Map* map, bool team) : Unit(map, team) {
 }
 
 Priest::~Priest(){
-}
-
-// function to attack a target
-void Priest::Attack(Unit* target) const {
-	// only attack if adjacent
-	if (IsAdjacent(target) && target->get_team() != team_) {
-		// add modifier and apply damage
-		int attack_modifier = GetTile()->get_atk_modifier();
-		target->ApplyPhysicalDamage(attack_damage_ + attack_modifier);
-	}
 }
 
 // returns true if unit can cross a terrain tile. ( priest cant cross water)
