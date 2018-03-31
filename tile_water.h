@@ -6,7 +6,7 @@
 class WaterTile : public Tile {
 public:
 	// ctor
-	WaterTile(GameInstance* game, Map* map, COORD const map_coords);
+	WaterTile(Map &map, const COORD &map_coords);
 	// dtor
 	~WaterTile();
 };

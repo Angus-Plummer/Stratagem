@@ -1,10 +1,10 @@
 #pragma once
 
 #include "stdafx.h"
-#include "tile.h"
+// forward declaration
+class Tile;
 
 // class for path finding (connects tiles together in sequences)
-
 class MoveSequence{
 protected:
 	Tile* tile_; // pointer to this tile in chain
@@ -13,7 +13,7 @@ protected:
 	int estimated_left_; // heuristic for cost to reach destination
 public:
 	// ctor and dtor
-	MoveSequence(Tile* tile);
+	MoveSequence(Tile *tile);
 	~MoveSequence();
 	
 	// accessors and mutators for parent in chain
@@ -31,10 +31,10 @@ public:
 
 
 	// check if two move sequences point to the same map tile
-	bool operator==(MoveSequence const &rhs);
+	bool operator==(const MoveSequence &rhs);
 
 	// check which of two move sequence objects has lowest score
-	bool operator<(MoveSequence const &rhs);
+	bool operator<(const MoveSequence &rhs);
 
 	// copy assignment operator overloading
 	//void operator=(MoveSequence const &rhs);

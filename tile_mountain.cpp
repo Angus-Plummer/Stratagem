@@ -1,8 +1,7 @@
 #include "stdafx.h"
 #include "tile_mountain.h"
 
-
-MountainTile::MountainTile(GameInstance* game, Map* map, COORD const map_coords) : Tile(game, map, map_coords) {
+MountainTile::MountainTile(Map &map, const COORD &map_coords) : Tile(map, map_coords) {
 	// member data for tiles
 	type_ = "mountains";
 	//marker_[0] = '/'; marker_[1] = char(238); marker_[2] = '\\';

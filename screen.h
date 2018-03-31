@@ -18,7 +18,7 @@ protected:
 
 public:
 	// ctor takes an input width and height (in pixel units). It gets the handles and sets the correct input/output mode
-	Screen(int const width, int const height);
+	Screen(const int &width, const int &height);
 	~Screen();
 
 	// clears the screen
@@ -34,11 +34,11 @@ public:
 	int get_map_x_offset() const;
 	int get_map_y_offset() const;
 	// get and set the colour scheme
-	void set_colour_scheme(int const attribute) const;
+	void set_colour_scheme(const int &attribute) const;
 	int get_colour_scheme() const;
 
 	// get and set the position of the console cursor
-	void GoTo(int const x, int const y) const;
+	void GoTo(const int &x, const int &y) const;
 	COORD CursorPosition() const;
 
 	// gets the position of the mouse cursor (pixel location, relative to window)

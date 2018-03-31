@@ -1,12 +1,11 @@
 #include "unit_archer.h"
-#include "tile.h"
+
 #include "tile_grass.h"
 #include "tile_forest.h"
 #include "tile_mountain.h"
 #include "tile_water.h"
 
-
-Archer::Archer(GameInstance* game, Map* map, int team) : Unit(game, map, team) {
+Archer::Archer(const int &team) : Unit(team) {
 	// knight stats
 	max_hp_ = 20;
 	armour_ = 1;
@@ -27,9 +26,9 @@ Archer::~Archer()
 
 
 // returns true if unit can cross a terrain tile. ( archer cant cross water)
-bool Archer::CanTraverse(Tile* const terrain_tile) const {
+bool Archer::CanTraverse(const Tile *terrain_tile) const {
 	// if tile is water tile then return false
-	if (dynamic_cast<WaterTile*>(terrain_tile)) {
+	if (dynamic_cast<WaterTile*>(const_cast<Tile*>(terrain_tile))) {
 		return false;
 	}
 	// otherwise return true

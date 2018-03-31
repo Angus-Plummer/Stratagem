@@ -3,6 +3,9 @@
 #include "stdafx.h"
 #include "game_object.h"
 
+// forward declarations
+class Map;
+
 // Abstract base class for terrain tile types
 class Tile : public GameObject {
 protected:
@@ -12,10 +15,12 @@ protected:
 	int atk_modifier_; // additive attack modifier. Affects damage dealt by a unit on this tile.
 	int highlighted_colour_scheme_; // colour scheme when highlighted
 	bool highlighted_; // if tile is currently highlighted for movement then this is true, otherwise false
+	// pointer to the map that this tile belongs to
+	Map* parent_map_;
 
 public:
 	// default ctor, has weak pointer to the tile map to avoid circular referancing
-	Tile(GameInstance* game, Map* map, COORD const map_coords);
+	Tile(Map &map, const COORD &map_coords);
 	// dtor
 	virtual ~Tile();
 
@@ -23,14 +28,14 @@ public:
 	int get_move_cost() const { return move_cost_; }
 	int get_def_modifier() const { return def_modifier_; }
 	int get_atk_modifier() const { return atk_modifier_; }
-	void set_highlighted(bool const highglighted);
+	void set_highlighted(const bool &highglighted);
 	bool get_highlighted() const { return highlighted_; }
 
 	// get the colour scheme (highlighted scheme if highlighted is true)
 	int get_colour_scheme() const;
 
 	// render the tile on a screen
-	void Render(Screen const &display) const;
+	void Render() const;
 
 	
 };

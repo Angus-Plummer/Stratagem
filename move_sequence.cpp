@@ -1,8 +1,9 @@
 #include "move_sequence.h"
+#include "tile.h"
 
 
 
-MoveSequence::MoveSequence(Tile* const tile) : tile_(tile){
+MoveSequence::MoveSequence(Tile *tile) : tile_(tile){
 	parent_ = nullptr;
 	cost_to_here_ = 0;
 	estimated_left_ = 0;
@@ -43,12 +44,12 @@ void MoveSequence::Update() {
 }
 
 // check if two move sequences point to the same map tile
-bool MoveSequence::operator==(MoveSequence const &rhs){
+bool MoveSequence::operator==(const MoveSequence &rhs){
 	return (tile_ == rhs.tile_);
 }
 
 // check which of two move sequence objects has lowest score
-bool MoveSequence::operator<(MoveSequence const &rhs) {
+bool MoveSequence::operator<(const MoveSequence &rhs) {
 	return ( cost_to_here_ < rhs.cost_to_here_);
 }
 

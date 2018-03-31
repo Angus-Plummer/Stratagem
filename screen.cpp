@@ -2,7 +2,7 @@
 #include "screen.h"
 
 
-Screen::Screen(int const width, int const height) : console_window_(GetConsoleWindow()),
+Screen::Screen(const int &width, const int &height) : console_window_(GetConsoleWindow()),
 													standard_in_handle_(GetStdHandle(STD_INPUT_HANDLE)),
 													standard_out_handle_(GetStdHandle(STD_OUTPUT_HANDLE)),
 													tile_width_(6), tile_height_(3),
@@ -83,7 +83,7 @@ int Screen::get_map_y_offset() const { return map_y_offset_; }
 
 
 // get and set the position of the console cursor
-void Screen::GoTo(int const x, int const y) const {
+void Screen::GoTo(const int &x, const int &y) const {
 	std::cout.flush();
 	COORD coord = { (SHORT)x, (SHORT)y };
 	SetConsoleCursorPosition(standard_out_handle_, coord);
@@ -140,7 +140,7 @@ COORD Screen::MouseDownPosition() const {
 }
 
 // sets the colour scheme to input arg value
-void Screen::set_colour_scheme(int const attribute) const {
+void Screen::set_colour_scheme(const int &attribute) const {
 	// if fails to do function then exit
 	if (!SetConsoleTextAttribute(standard_out_handle_, attribute)) {
 		exit(1);

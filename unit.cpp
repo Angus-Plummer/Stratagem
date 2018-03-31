@@ -1,14 +1,16 @@
 #include "unit.h"
 #include "game_instance.h"
-#include "map.h"
 #include "screen.h"
+#include "map.h"
 #include "tile.h"
 #include "move_sequence.h"
 
+#define action_movement 0
+#define action_attack 1
 
 // ctor
-Unit::Unit(GameInstance* game, Map* map, int team): GameObject(game, map), team_(team), alive_(true), moved_this_turn_(false), 
-													attacked_this_turn_(false), selecting_movement_(false), selecting_attack_(false){
+Unit::Unit(const int &team): GameObject(), team_(team), alive_(true), moved_this_turn_(false), 
+								attacked_this_turn_(false), selecting_movement_(false), selecting_attack_(false){
 	if (team_ == 1) {
 		default_colour_scheme_ = 31;
 		selected_colour_scheme_ = 191;
@@ -25,7 +27,7 @@ Unit::~Unit()
 }
 
 // set new current hp value
-void Unit::set_current_hp(int const hp) {  // will set to 0 if < 0 and max_hp if > max_hp
+void Unit::set_current_hp(const int &hp) {  // will set to 0 if < 0 and max_hp if > max_hp
 	if (hp > max_hp_) {
 		current_hp_ = max_hp_;
 	}
@@ -38,33 +40,52 @@ void Unit::set_current_hp(int const hp) {  // will set to 0 if < 0 and max_hp if
 	}
 }
 // apply a damage value, this is modified linearly by the terrain and armour of the unit
-void Unit::ApplyPhysicalDamage(int const dmg) {
-	int terrain_modifier = parent_map_->GetTile(map_coords_)->get_def_modifier();
+void Unit::ApplyPhysicalDamage(const int &dmg) {
+	int terrain_modifier = GameInstance::instance().get_map().GetTile(map_coords_)->get_def_modifier();
 	int received_damage = dmg - armour_ - terrain_modifier; //
 	set_current_hp(current_hp_ - received_damage);
 	
 }
-void Unit::ApplyHeal(int const heal) {
+void Unit::ApplyHeal(const int &heal) {
 	set_current_hp(current_hp_ + heal);
 }
 
 // select this unit
 void Unit::SelectUnit() {
-	the_game_->SelectUnit(this);
+	GameInstance::instance().SelectUnit(this);
 	if (!moved_this_turn_) {
 		selecting_movement_ = true;
-		// mark possible actions: movement...
+		ShowPossibleAction(action_movement);
 	}
 }
 // deselect this unit
 void Unit::DeselectUnit() {
+	// set selection flags to false
 	selecting_movement_ = false;
 	selecting_attack_ = false;
-	// unmark movement tiles...
+	// reset the map tiles to remove highlighted movement tiles
+	GameInstance::instance().get_map().ResetTiles();
+	GameInstance::instance().get_map().Render();
+}
+
+void Unit::ShowPossibleAction(const int &action_type) {
+	// if the action type is movement...
+	if (action_type == action_movement) {
+		// create a vector containing the tiles that can be reached
+		std::vector<Tile*> move_tiles = ReachableTiles();
+		// highlight these tiles and render them
+		for (auto tile_iter = move_tiles.begin(); tile_iter != move_tiles.end(); tile_iter++) {
+			// ignore the tile currently occupied by the unit
+			if ((*tile_iter) != GetTile()) {
+				(*tile_iter)->set_highlighted(true);
+				(*tile_iter)->Render();
+			}
+		}
+	}
 }
 
 // function to attack a target
-void Unit::Attack(Unit* target) const {
+void Unit::Attack(Unit *target) const {
 	// only attack if adjacent
 	if (DistanceTo(target) <= attack_range_ && target->get_team() != team_) {
 		// add modifier and apply damage
@@ -75,21 +96,22 @@ void Unit::Attack(Unit* target) const {
 
 // get tile unit is currently on
 Tile* Unit::GetTile() const {
-	return parent_map_->GetTile(map_coords_);
+	return GameInstance::instance().get_map().GetTile(map_coords_);
 }
 
 // finds distance to target unit
-int Unit::DistanceTo(Unit* const target) const {
+int Unit::DistanceTo(const Unit *target) const {
 	return (map_coords_.X - target->get_map_coords().X) + (map_coords_.Y - target->get_map_coords().Y);
 }
 
 // move unit to a new coordinate
-void Unit::set_map_coords(COORD const new_pos) {
+void Unit::set_map_coords(const COORD &new_pos) {
 	// need to check if the new coordinate is valid ( on the game map )
 	map_coords_ = new_pos;
 }
 
-void Unit::Render(Screen const &display) const {
+void Unit::Render() const {
+	Screen display = GameInstance::instance().get_display();
 	int original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back late
 	// set colour scheme of unit
 	display.set_colour_scheme(default_colour_scheme_);
@@ -126,7 +148,7 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 		open.erase(current_iter);
 		// clear the vector of adjacent tiles and fill for the current tile
 		adjacent_tiles.clear();
-		adjacent_tiles = parent_map_->AdjacentTo(current->get_tile()->get_map_coords());
+		adjacent_tiles = GameInstance::instance().get_map().AdjacentTo(current->get_tile());
 		// go through this vector
 		for (auto iter = adjacent_tiles.begin(); iter != adjacent_tiles.end(); iter++) {
 			// make a MoveSequence object from this adjacent tile and make its parent the currently inspected
@@ -144,9 +166,9 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 						// if cost to reach it is less than max possible add it to the reachable tiles and the open set
 						if (adjacent.get_cost() <= move_range_) {
 							// if there is a unit on the tile..
-							if (parent_map_->UnitPresent(adjacent.get_tile()->get_map_coords())) {
+							if (GameInstance::instance().get_map().UnitPresent(adjacent.get_tile()->get_map_coords())) {
 								// friendly unit -> can move through but not end on. non-friendly then neither
-								if (team_ == parent_map_->GetUnit(adjacent.get_tile()->get_map_coords())->get_team()) {
+								if (team_ == GameInstance::instance().get_map().GetUnit( adjacent.get_tile()->get_map_coords() )->get_team()) {
 									open.push_back(adjacent);
 								}
 							}

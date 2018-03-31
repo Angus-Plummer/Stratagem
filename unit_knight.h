@@ -4,8 +4,7 @@
 
 class Knight : public Unit {
 public:
-	Knight(GameInstance* game, Map* map, int team);
+	Knight(const int &team);
 	~Knight();
-	void Attack(Unit* target) const;
-	bool CanTraverse(Tile* const terrain_tile) const;
+	bool CanTraverse(const Tile *terrain_tile) const;
 };

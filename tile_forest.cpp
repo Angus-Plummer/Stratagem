@@ -1,8 +1,7 @@
 #include "stdafx.h"
 #include "tile_forest.h"
 
-
-ForestTile::ForestTile(GameInstance* game, Map* map, COORD const map_coords) : Tile(game, map, map_coords) {
+ForestTile::ForestTile(Map &map, const COORD &map_coords) : Tile(map, map_coords) {
 // member data for tiles
 type_ = "forest";
 marker_ = char(176);// char(237);
