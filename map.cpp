@@ -94,6 +94,22 @@ Tile* Map::GetTile(const COORD &position) const {
 	}
 }
 
+// returns the tile at a console coordinate
+Tile* Map::GetTileFromConsoleCoord(const COORD &position) const {
+	Screen display = GameInstance::instance().get_display();
+	COORD map_location;	// corresponding map tile
+	// correct for map offset and convert into tile location
+	map_location.X = (position.X - display.get_map_x_offset()) / display.get_tile_width();
+	map_location.Y = (position.Y - display.get_map_y_offset()) / display.get_tile_height();
+	// if tile is on the map..
+	if (map_location.X >= 0 && map_location.X < map_width_ && map_location.Y >= 0 && map_location.Y < map_height_) {
+		// return the tile
+		return GetTile(map_location);
+	}
+	// if found nothing at location then returns a null pointer
+	return nullptr;
+}
+
 // Renders the map on a screen
 void Map::Render() const {
 	Screen display = GameInstance::instance().get_display();
@@ -171,23 +187,15 @@ Unit* Map::GetUnit(const COORD &position) const {
 	return nullptr;
 }
 
-// select an object on the map
+// select an object on the map using right mouse button down
 Tile* Map::SelectTile() const {
 	Screen display = GameInstance::instance().get_display();
 	// get location of mouse down ({-1,-1} if no mouse down detected)
 	COORD event_location = display.MouseDownPosition();
 	if (event_location.X != -1 && event_location.Y != -1) {
-		COORD map_location;	// corresponding map tile
-		// correct event location offset and convert into tile location
-		map_location.X = (event_location.X - display.get_map_x_offset()) / display.get_tile_width();
-		map_location.Y = (event_location.Y - display.get_map_y_offset()) / display.get_tile_height();
-		// if tile is on the map..
-		if (map_location.X >= 0 && map_location.X < map_width_ && map_location.Y >= 0 && map_location.Y < map_height_) {
-			// return the tile
-			return GetTile(map_location);
-		}
+		return GetTileFromConsoleCoord(event_location); // return tile at the console coordinate position
 	}
-	// if found nothing at location of click then returns a null pointer
+	// if no click then return a null pointer
 	return nullptr;
 }
 
@@ -197,15 +205,12 @@ Unit* Map::SelectUnit() const {
 	// get location of mouse down ({-1,-1} if no mouse down detected)
 	COORD event_location = display.MouseDownPosition();
 	if (event_location.X != -1 && event_location.Y != -1) {
-		COORD map_location;	// corresponding map tile
-							// correct event location offset and convert into tile location
-		map_location.X = (event_location.X - display.get_map_x_offset()) / display.get_tile_width();
-		map_location.Y = (event_location.Y - display.get_map_y_offset()) / display.get_tile_height();
-		// if tile is on the map..
-		if (map_location.X >= 0 && map_location.X < map_width_ && map_location.Y >= 0 && map_location.Y < map_height_) {
+		// if there is a tile at this location then..
+		if (GetTileFromConsoleCoord(event_location)) {
 			// if there is a unit present on the tile then return the unit
-			return GetUnit(map_location);
+			return GetUnit(GetTileFromConsoleCoord(event_location)->get_map_coords()); // returns nullptr if no unit there, otherwise returns unit
 		}
+		
 	}
 	// if found nothing at location of click then returns a null pointer
 	return nullptr;

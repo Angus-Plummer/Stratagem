@@ -17,7 +17,7 @@ public:
 	std::string get_type() const { return type_; }
 	COORD get_map_coords() const { return map_coords_; }
 	char get_marker() const { return marker_; }
-	int get_colour_scheme() { return default_colour_scheme_; }
+	int get_colour_scheme() const { return default_colour_scheme_; }
 
 	// render the object on a screen
 	void virtual Render() const = 0;

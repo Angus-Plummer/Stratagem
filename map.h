@@ -38,8 +38,10 @@ public:
 	int get_map_height() const { return map_height_; } 
 	int get_map_width() const { return map_width_; }
 
-	// returns the terrain tile at position i,j
+	// returns the terrain tile a map coordinate
 	Tile* GetTile(const COORD &position) const;
+	// returns the tile at a console coordinate
+	Tile* GetTileFromConsoleCoord(const COORD &position) const;
 
 	// Renders the map on a screen
 	void Render() const;

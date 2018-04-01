@@ -5,6 +5,7 @@
 
 // forward declarations
 class Tile;
+class MoveSequence;
 
 
 class Unit : public GameObject {
@@ -57,7 +58,6 @@ public:
 	// marks the possible actions on the screen, depending on the type of action
 	void ShowPossibleAction(const int &action_type);
 
-
 	// attack another unit
 	void Attack(Unit*target) const;
 
@@ -73,6 +73,15 @@ public:
 	// renders the unit on a screen
 	void Render() const;
 	
-	// returns a vector of pointers to the tiles that can me reached by this unit
+	// returns a vector of pointers to the tiles (as movesequences) that can be reached by this unit
 	std::vector<Tile*> ReachableTiles() const;
+
+	MoveSequence GetMoveSequenceTo(const Tile *target_tile) const;
+
+	// animates the unit moving to an adjacent tile
+	void AnimateMovement(const Tile* target_tile) const;
+
+	// animate sequence of movements
+	void DoMoveSequence(const MoveSequence &moves);
+
 };

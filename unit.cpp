@@ -76,7 +76,7 @@ void Unit::ShowPossibleAction(const int &action_type) {
 		// highlight these tiles and render them
 		for (auto tile_iter = move_tiles.begin(); tile_iter != move_tiles.end(); tile_iter++) {
 			// ignore the tile currently occupied by the unit
-			if ((*tile_iter) != GetTile()) {
+			if (*tile_iter != GetTile()) {
 				(*tile_iter)->set_highlighted(true);
 				(*tile_iter)->Render();
 			}
@@ -126,8 +126,8 @@ void Unit::Render() const {
 // returns a vector of pointers to the tiles that are reachable by a given unit (ignores the tile it is currently on)
 std::vector<Tile*> Unit::ReachableTiles() const {
 	std::vector<Tile*> can_reach; // tiles that the unit can reach
-	std::vector<MoveSequence> closed; // tiles that have already been inspected
-	std::vector<MoveSequence> open; // tiles that have yet to be inspected
+	std::list<MoveSequence> closed; // tiles that have already been inspected
+	std::list<MoveSequence> open; // tiles that have yet to be inspected
 
 	// start with the tile the unit is currently on, add to the vector of open tiles
 	MoveSequence initial_tile(GetTile()); // maybe need to make a copy assignment operator to use this
@@ -192,4 +192,71 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 		}
 	}
 	return can_reach;
+}
+
+MoveSequence Unit::GetMoveSequenceTo(const Tile *target_tile) const {
+	// implement A* pathfinding using the MoveSequence class
+}
+
+// animates the unit moving to an adjacent tile (does not move unit to the tile, just animates it)
+void Unit::AnimateMovement(const Tile* target_tile) const {
+	Screen display = GameInstance::instance().get_display();
+	// save the colour scheme to reset at end of function
+	int initial_colour_scheme = display.get_colour_scheme();
+	// check tile is adjacent to tile currently stood on
+	std::vector<Tile*> adjacent_tiles = GameInstance::instance().get_map().AdjacentTo(GetTile()); // vector of adjacent tiles
+	// if target tile is in adjacent tiles then animate movement
+	if (std::find(adjacent_tiles.begin(), adjacent_tiles.end(), target_tile) != adjacent_tiles.end()) {
+		int x_delta = target_tile->get_map_coords().X - map_coords_.X;
+		int y_delta = target_tile->get_map_coords().Y - map_coords_.Y;
+		int num_step;
+		if (x_delta != 0) {
+			num_step = display.get_tile_width();
+		}
+		else {
+			num_step = display.get_tile_height();
+		}
+		// get initial console cursor location of the unit
+		COORD initial_pos = { (SHORT)(display.get_map_x_offset() + map_coords_.X * display.get_tile_width() + 2),  (SHORT)(display.get_map_y_offset() + map_coords_.Y * display.get_tile_height() + 1) };
+		COORD current_pos = initial_pos;
+		for (int step = 0; step <= num_step ; step++) {
+			// got to the current position of the unit marker and replace the console cell with the tile marker using the tile colour scheme
+			display.GoTo(current_pos.X, current_pos.Y); // got to current position
+			display.set_colour_scheme(GameInstance::instance().get_map().GetTileFromConsoleCoord(current_pos)->get_colour_scheme()); // set the tile colour scheme
+			std::cout << GameInstance::instance().get_map().GetTileFromConsoleCoord(current_pos)->get_marker(); //output the tile marker
+			// update the current tile position
+			current_pos.X = initial_pos.X + x_delta * step;
+			current_pos.Y = initial_pos.Y + y_delta * step;
+			// set cursor to new position, set colour scheme to unit colour scheme and output the units marker
+			display.GoTo(current_pos.X, current_pos.Y);
+			display.set_colour_scheme(get_colour_scheme());
+			std::cout << marker_;
+			// sleep for a short time so can actually see the movement
+			if (x_delta != 0) {
+				Sleep(50);
+			}
+			if (y_delta != 0) { // if moving in y direction sleep for twice as long because console cells are twice as high as they are wide
+				Sleep(100);
+			}
+		}
+	}
+	// set colour scheme back to what it was at start of function
+	display.set_colour_scheme(initial_colour_scheme);
+	// if target tile is not adjacent to the unit then throw error and do nothing
+}
+
+// animate sequence of movements
+void Unit::DoMoveSequence(const MoveSequence &moves) {
+	std::vector<Tile*> tile_sequence; // vector to hold pointers to the tiles moved through
+	MoveSequence current = moves; // the current move sequence object looked at, will move through the parent chain
+	// while the currently inspected movesequence object has a parent: add the current objects tile to the vector and set current to be its parent
+	while (current.get_parent()) { 
+		tile_sequence.push_back(current.get_tile());
+		current = *current.get_parent();
+	}
+	std::reverse(tile_sequence.begin(), tile_sequence.end()); // reverse the vector to get it in correct order
+	for (auto iter = tile_sequence.begin(); iter != tile_sequence.end(); iter++) {
+		AnimateMovement(*iter);
+		set_map_coords((*iter)->get_map_coords());
+	}
 }
