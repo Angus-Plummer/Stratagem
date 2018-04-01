@@ -33,7 +33,7 @@ public:
 	// get x and y offset of map
 	int get_map_x_offset() const;
 	int get_map_y_offset() const;
-	// get and set the colour scheme
+	// get and set the colour scheme of the console
 	void set_colour_scheme(const int &attribute) const;
 	int get_colour_scheme() const;
 
@@ -43,6 +43,7 @@ public:
 
 	// gets the position of the mouse cursor (pixel location, relative to window)
 	POINT MousePosition() const;
+
 	// gets the position of the mouse cursor if LMB is pressed down. (console cell location)
 	COORD MouseDownPosition() const;
 };

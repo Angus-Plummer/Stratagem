@@ -216,7 +216,7 @@ Unit* Map::SelectUnit() const {
 	return nullptr;
 }
 
-// returns vector of pointers to tile object that are adjacent to the location
+// returns vector of pointers to tiles that are adjacent to the location
 std::vector<Tile*> Map::AdjacentTo(const Tile *tile) const {
 	
 	COORD adjacent_position = tile->get_map_coords(); // COORD to hold coordinate of the adjacent tiles

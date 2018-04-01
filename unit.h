@@ -76,12 +76,12 @@ public:
 	// returns a vector of pointers to the tiles (as movesequences) that can be reached by this unit
 	std::vector<Tile*> ReachableTiles() const;
 
-	MoveSequence GetMoveSequenceTo(const Tile *target_tile) const;
+	std::vector<Tile*> GetTileSequenceTo(Tile *target_tile) const;
 
 	// animates the unit moving to an adjacent tile
 	void AnimateMovement(const Tile* target_tile) const;
 
-	// animate sequence of movements
-	void DoMoveSequence(const MoveSequence &moves);
+	// move through a sequence of tiles and animate it
+	void MoveTileSequence(const std::vector<Tile*> &moves);
 
 };

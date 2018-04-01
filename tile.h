@@ -34,6 +34,9 @@ public:
 	// get the colour scheme (highlighted scheme if highlighted is true)
 	int get_colour_scheme() const;
 
+	// function to check if two tiles are adjacent
+	bool AdjacencyTest(const Tile *test_tile);
+
 	// render the tile on a screen
 	void Render() const;
 

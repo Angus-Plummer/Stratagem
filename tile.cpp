@@ -33,6 +33,12 @@ void Tile::set_highlighted(bool const &highlighted) {
 	highlighted_ = highlighted;
 }
 
+// function to check if two tiles are adjacent
+bool Tile::AdjacencyTest(const Tile *test_tile) {
+	std::vector<Tile*> adjacent_tiles = GameInstance::instance().get_map().AdjacentTo(this);
+	return std::find(adjacent_tiles.begin(), adjacent_tiles.end(), test_tile) != adjacent_tiles.end();
+}
+
 // render the tile
 void Tile::Render() const {
 	Screen display = GameInstance::instance().get_display();

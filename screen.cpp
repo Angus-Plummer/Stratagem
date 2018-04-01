@@ -2,6 +2,7 @@
 #include "screen.h"
 
 
+
 Screen::Screen(const int &width, const int &height) : console_window_(GetConsoleWindow()),
 													standard_in_handle_(GetStdHandle(STD_INPUT_HANDLE)),
 													standard_out_handle_(GetStdHandle(STD_OUTPUT_HANDLE)),
@@ -125,15 +126,15 @@ POINT Screen::MousePosition() const {
 // gets the position of the mouse cursor if LMB is pressed down. (console cell location)
 COORD Screen::MouseDownPosition() const {
 	COORD position = { -1,-1 }; // defualt position, will be returned if no LMB down detected
-	DWORD cNumRead, i; //var to hold number of inputs detected and an interator value
-	INPUT_RECORD irInBuf[128]; // record of the inputs in the buffer
-							   // perform read of input and print error message if error occurs in function
-	if (!ReadConsoleInput(standard_in_handle_, irInBuf, 128, &cNumRead)) { std::cout << "Error reading console input\n"; }
+	DWORD num_read, i; //var to hold number of inputs detected and an interator value
+	INPUT_RECORD buffer_input_record[128]; // record of the inputs in the buffer
+	// perform read of input and print error message if error occurs in function
+	if (!ReadConsoleInput(standard_in_handle_, buffer_input_record, 128, &num_read)) { std::cout << "Error reading console input\n"; }
 	// iterate through the record of the input buffer
-	for (i = 0; i < cNumRead; i++) {
+	for (i = 0; i < num_read; i++) {
 		// if there is a LMB mouse down event then update the position COORD with its location
-		if (irInBuf[i].Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED) {
-			position = irInBuf[i].Event.MouseEvent.dwMousePosition;
+		if (buffer_input_record[i].Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED) {
+			position = buffer_input_record[i].Event.MouseEvent.dwMousePosition;
 		}
 	}
 	return position;

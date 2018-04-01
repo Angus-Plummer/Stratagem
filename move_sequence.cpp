@@ -3,10 +3,11 @@
 
 
 
-MoveSequence::MoveSequence(Tile *tile) : tile_(tile){
+MoveSequence::MoveSequence(Tile *tile) {//: tile_(tile){
+	tile_ = tile;
 	parent_ = nullptr;
 	cost_to_here_ = 0;
-	estimated_left_ = 0;
+	heuristic_to_target = 0;
 }
 
 
@@ -31,13 +32,25 @@ int MoveSequence::get_cost() const {
 	return cost_to_here_;
 }
 
+// get the score of the tile (cost to reach tile + heuristic to reach target tile)
+int MoveSequence::get_score() const {
+	return cost_to_here_ + heuristic_to_target;
+}
+
+// get the heuristic for this tile. uses manhattan distance
+void MoveSequence::set_heuristic_to(const Tile *target_tile) {
+	int x_delta = target_tile->get_map_coords().X - tile_->get_map_coords().X;
+	int y_delta = target_tile->get_map_coords().Y - tile_->get_map_coords().Y;
+	heuristic_to_target =  abs(x_delta) + abs(y_delta);
+}
+
 // update the cost to reach this tile
 void MoveSequence::Update() {
 	// if tile has a parent then its cost is parents cost + the tile movement cost
 	if (get_parent() != nullptr) {
 		cost_to_here_ = parent_->cost_to_here_+ tile_->get_move_cost();
 	}
-	// if it has not parent then it is the starting tile and thus has 0 cost
+	// if it has no parent then it is the starting tile and thus has 0 cost
 	else {
 		cost_to_here_ = 0;
 	}
@@ -49,9 +62,9 @@ bool MoveSequence::operator==(const MoveSequence &rhs){
 }
 
 // check which of two move sequence objects has lowest score
-bool MoveSequence::operator<(const MoveSequence &rhs) {
-	return ( cost_to_here_ < rhs.cost_to_here_);
-}
+//bool MoveSequence::operator<(const MoveSequence &rhs) {
+//	return ( cost_to_here_ < rhs.cost_to_here_);
+//}
 
 /*// copy assignment operator overloading
 void MoveSequence::operator=(MoveSequence const &rhs) {
