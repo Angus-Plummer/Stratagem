@@ -1,5 +1,5 @@
 #include "unit.h"
-#include "game_instance.h"
+#include "game.h"
 #include "screen.h"
 #include "map.h"
 #include "tile.h"
@@ -42,7 +42,7 @@ void Unit::set_current_hp(const int &hp) {  // will set to 0 if < 0 and max_hp i
 
 // apply a damage value, this is modified linearly by the terrain and armour of the unit
 void Unit::ApplyPhysicalDamage(const int &dmg) {
-	int terrain_modifier = GameInstance::instance().get_map().GetTile(map_coords_)->get_def_modifier();
+	int terrain_modifier = Game::instance().get_map().GetTile(map_coords_)->get_def_modifier();
 	int received_damage = dmg - armour_ - terrain_modifier; //
 	set_current_hp(current_hp_ - received_damage);
 	
@@ -55,7 +55,7 @@ void Unit::ApplyHeal(const int &heal) {
 
 // select this unit
 void Unit::SelectUnit() {
-	GameInstance::instance().SelectUnit(this);
+	Game::instance().SelectUnit(this);
 	if (!moved_this_turn_) {
 		selecting_movement_ = true;
 		ShowPossibleAction(action_movement);
@@ -68,23 +68,13 @@ void Unit::DeselectUnit() {
 	selecting_movement_ = false;
 	selecting_attack_ = false;
 	// reset the map tiles to remove highlighted movement tiles
-	GameInstance::instance().get_map().ResetTiles();
-	GameInstance::instance().get_map().Render();
+	ResetReachableTiles();
 }
 
 void Unit::ShowPossibleAction(const int &action_type) {
 	// if the action type is movement...
 	if (action_type == action_movement) {
-		// create a vector containing the tiles that can be reached
-		std::vector<Tile*> move_tiles = ReachableTiles();
-		// highlight these tiles and render them
-		for (auto tile_iter = move_tiles.begin(); tile_iter != move_tiles.end(); tile_iter++) {
-			// ignore the tile currently occupied by the unit
-			if (*tile_iter != GetTile()) {
-				(*tile_iter)->set_highlighted(true);
-				(*tile_iter)->Render();
-			}
-		}
+		HighlightReachableTiles();
 	}
 }
 
@@ -100,7 +90,7 @@ void Unit::Attack(Unit *target) const {
 
 // get tile unit is currently on
 Tile* Unit::GetTile() const {
-	return GameInstance::instance().get_map().GetTile(map_coords_);
+	return Game::instance().get_map().GetTile(map_coords_);
 }
 
 // finds distance to target unit
@@ -115,7 +105,7 @@ void Unit::set_map_coords(const COORD &new_pos) {
 }
 
 void Unit::Render() const {
-	Screen display = GameInstance::instance().get_display();
+	Screen display = Game::instance().get_display();
 	int original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back late
 	// set colour scheme of unit
 	display.set_colour_scheme(default_colour_scheme_);
@@ -126,6 +116,13 @@ void Unit::Render() const {
 	std::cout << marker_;
 	// revert to original colour scheme
 	display.set_colour_scheme(original_colour_scheme);
+}
+
+// returns true if the unit can legally reach the target tile in one movement
+bool Unit::CanReach(const Tile* target_tile) {
+	std::vector<Tile*> reachable_tiles = ReachableTiles(); // vector of tiles reachable by this unit
+	// iterates through the tiles, if still have not found after all in vector then this will return false
+	return std::find(reachable_tiles.begin(), reachable_tiles.end(), target_tile) != reachable_tiles.end();
 }
 
 // returns a vector of pointers to the tiles that are reachable by a given unit (ignores the tile it is currently on)
@@ -154,7 +151,7 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 		open.erase(current_iter);
 		// clear the vector of adjacent tiles and fill for the current tile
 		adjacent_tiles.clear();
-		adjacent_tiles = GameInstance::instance().get_map().AdjacentTo(current->get_tile());
+		adjacent_tiles = Game::instance().get_map().AdjacentTo(current->get_tile());
 		// go through this vector
 		for (auto iter = adjacent_tiles.begin(); iter != adjacent_tiles.end(); iter++) {
 			// make a MoveSequence object from this adjacent tile and make its parent the currently inspected
@@ -172,9 +169,9 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 						// if cost to reach it is less than max possible add it to the reachable tiles and the open set
 						if (adjacent.get_cost() <= move_range_) {
 							// if there is a unit on the tile..
-							if (GameInstance::instance().get_map().UnitPresent(adjacent.get_tile()->get_map_coords())) {
+							if (Game::instance().get_map().UnitPresent(adjacent.get_tile()->get_map_coords())) {
 								// friendly unit -> can move through but not end on. non-friendly then neither
-								if (team_ == GameInstance::instance().get_map().GetUnit( adjacent.get_tile()->get_map_coords() )->get_team()) {
+								if (team_ == Game::instance().get_map().GetUnit( adjacent.get_tile()->get_map_coords() )->get_team()) {
 									open.push_back(adjacent);
 								}
 							}
@@ -200,94 +197,37 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 	return can_reach;
 }
 
-// returns a vector of tiles that are in the sequence of valid move steps from the current tile to a target tile
-// 	// implements A* pathfinding using the MoveSequence class. Cannot return a movesequence object as the parent pointers would be invalid after function end
-std::vector<Tile*> Unit::GetTileSequenceTo(Tile *target_tile) const {
-	std::vector<Tile*> reachable_tiles = ReachableTiles(); // vector of tiles reachable by this unit
-	// if the target tile is not it the reachable tiles then return an error and exit, otherwise continue
-	if (std::find(reachable_tiles.begin(), reachable_tiles.end(), target_tile) == reachable_tiles.end()) {
-		exit(1);
-	}
-	std::list<MoveSequence> open; // tiles that will potentially be analysed
-	std::list<MoveSequence> closed; // tiles that have been analysed
-	MoveSequence initial_tile(GetTile()); // the tile current occupied by the unit
-	MoveSequence end_tile(target_tile);
-	// add the initial tile to the open set
-	initial_tile.set_heuristic_to(target_tile);
-	open.push_back(initial_tile);
-	// vector to hold tiles adjcent to inspected tile
-	std::vector<Tile*> adjacent_tiles;
-	bool found = false;
-	while (!found) {
-		// pointer to the current tile to be analysed is the one which has the lowest total estimated score so far
-		auto current_iter = std::min_element(open.begin(), open.end(), 
-			[](const MoveSequence &lhs, const MoveSequence &rhs) {return lhs.get_score() < rhs.get_score(); }); // lambda function for comparison of scores
-		// add the current tile to the closed set
-		closed.push_back(*current_iter);
-		// set pointer to the target MoveSequence object in the closed set. The set doesnt change when looping through neighbours so will stay valid
-		MoveSequence* current = &(*std::find(closed.begin(), closed.end(), *current_iter));
-		// remove the currently inspected tile from the open set as it will now be analysed
-		open.erase(current_iter);
-		// clear the vector of adjacent tiles and fill for the current tile
-		adjacent_tiles.clear();
-		adjacent_tiles = GameInstance::instance().get_map().AdjacentTo(current->get_tile());
-		// go through the tiles in the vector of adjacent tiles
-		for (auto iter = adjacent_tiles.begin(); iter != adjacent_tiles.end(); iter++) {
-			// make a MoveSequence object from this adjacent tile and make its parent the currently inspected tile
-			MoveSequence adjacent(*iter);
-			adjacent.set_parent(*current);
-			adjacent.set_heuristic_to(target_tile);
-			// check if this tile is the target tile
-			if (adjacent.get_tile() == end_tile.get_tile()) {
-				end_tile = adjacent;
-				found = true;
-			}
-			// see if this tile is already in the open and closed sets
-			bool in_open_set = std::find(open.begin(), open.end(), adjacent) != open.end();
-			bool in_closed_set = std::find(closed.begin(), closed.end(), adjacent) != closed.end();
-			// if this tile is not already in the closed set then proceed (if it is in closed set then it has already been analysed and shortest path to it found)
-			if (!in_closed_set) {
-				// if the tile can be traversed by the unit then proceed
-				if (CanTraverse(adjacent.get_tile())) {
-					if (!in_open_set) { // if not in open set
-						// if there is a unit on the tile..
-						if (GameInstance::instance().get_map().UnitPresent(adjacent.get_tile()->get_map_coords())) {
-							// friendly unit -> can move through, non-friendly then cant
-							if (team_ == GameInstance::instance().get_map().GetUnit(adjacent.get_tile()->get_map_coords())->get_team()) {
-								open.push_back(adjacent);
-							}
-						}
-						// if no unit on the tile then just add to reachable tiles and to open set
-						else {
-							open.push_back(adjacent);
-						}
-					}
-					else { // (in open set already)
-						   // pointer to object already in open set
-						MoveSequence* in_set = &*std::find(open.begin(), open.end(), adjacent);
-						// if adjacent tile costs less to reach from parent as currently inspected tile then update the parent of tile already in set
-						if (adjacent.get_score() < in_set->get_score()) {
-							in_set->set_parent(*current);
-						}
-					}
-				}
-			}
+// highlight the tiles that the unit can reach
+void Unit::HighlightReachableTiles() const {
+	std::vector<Tile*> reachable_tiles = ReachableTiles(); // vector of reachable tiles
+	for (auto iter = reachable_tiles.begin(); iter != reachable_tiles.end(); iter++) { // iterate through
+																					   // set to higlighted and render
+		(*iter)->set_highlighted(true);
+		(*iter)->Render();
+		// if tile has a unit on it then redraw the unit
+		if (Game::instance().get_map().UnitPresent( (*iter)->get_map_coords() ) ) {
+			Game::instance().get_map().GetUnit((*iter)->get_map_coords())->Render();
 		}
 	}
-	// make vector of tiles that is the order of moves to reach the final tile using the MoveSequence corresponding to the fnial tile
-	std::vector<Tile*> tile_sequence;
-	MoveSequence current = end_tile;
-	while (current.get_parent()) {
-		tile_sequence.push_back(current.get_tile());
-		current = *current.get_parent();
+}
+
+// unhighlight the tiles that the unit can reach
+void Unit::ResetReachableTiles() const {
+	std::vector<Tile*> reachable_tiles = ReachableTiles(); // vector of reachable tiles
+	for (auto iter = reachable_tiles.begin(); iter != reachable_tiles.end(); iter++) { // iterate through
+																					   // set to not higlighted and render
+		(*iter)->set_highlighted(false);
+		(*iter)->Render();
+		// if tile has a unit on it then redraw the unit
+		if (Game::instance().get_map().UnitPresent((*iter)->get_map_coords())) {
+			Game::instance().get_map().GetUnit((*iter)->get_map_coords())->Render();
+		}
 	}
-	std::reverse(tile_sequence.begin(), tile_sequence.end());
-	return tile_sequence;
 }
 
 // animates the unit moving to an adjacent tile (does not move unit to the tile, just animates it)
 void Unit::AnimateMovement(const Tile* target_tile) const {
-	Screen display = GameInstance::instance().get_display();
+	Screen display = Game::instance().get_display();
 	// save the colour scheme to reset at end of function
 	int initial_colour_scheme = display.get_colour_scheme();
 	// if target tile is in adjacent to tile unit is on then animate movement
@@ -308,8 +248,8 @@ void Unit::AnimateMovement(const Tile* target_tile) const {
 		for (int step = 0; step <= num_step ; step++) {
 			// got to the current position of the unit marker and replace the console cell with the tile marker using the tile colour scheme
 			display.GoTo(current_pos.X, current_pos.Y); // got to current position
-			display.set_colour_scheme(GameInstance::instance().get_map().GetTileFromConsoleCoord(current_pos)->get_colour_scheme()); // set the tile colour scheme
-			std::cout << GameInstance::instance().get_map().GetTileFromConsoleCoord(current_pos)->get_marker(); //output the tile marker
+			// render the tile at the current position
+			Game::instance().get_map().GetTileFromConsoleCoord(current_pos)->Render();
 			// update the current tile position
 			current_pos.X = initial_pos.X + x_delta * step;
 			current_pos.Y = initial_pos.Y + y_delta * step;
@@ -331,20 +271,98 @@ void Unit::AnimateMovement(const Tile* target_tile) const {
 	// if target tile is not adjacent to the unit then throw error and do nothing
 }
 
-// animate sequence of movements
-void Unit::MoveTileSequence(const std::vector<Tile*> &moves) {
-	bool valid = true; // bool to store check of validity of tile sequence
-	// check vector is in sequence of tiles that are adjacent to next member in sequence
-	for (auto iter = moves.begin(); iter != moves.end() - 1; iter++) { // end at one before end of vector as comparing tile with the next in sequence
-		if (!(*iter)->AdjacencyTest(*(iter + 1))) { // if the tile next in the sequence is not adjacent to the current one then throw an error and do nothing
-			valid = false; // set validity check to false
-			exit(1);
+// Move to a target tile (will not work for an invalid tile or when there is no legal movement to the tile)
+void Unit::MoveTo(Tile* target_tile) {
+	// if the target tile is not it the reachable tiles then return an error and exit, otherwise continue
+	if (!CanReach(target_tile)) {
+		exit(1);
+	}
+	// clear the highlighting of the tiles that the unit could reach as not necessary now
+	std::vector<Tile*> reachable_tiles = ReachableTiles();
+	for (auto iter = reachable_tiles.begin(); iter != reachable_tiles.end(); iter++) {
+		(*iter)->set_highlighted(false);
+		(*iter)->Render();
+	}
+
+	std::list<MoveSequence> open; // tiles that will potentially be analysed
+	std::list<MoveSequence> closed; // tiles that have been analysed
+	MoveSequence initial_tile(GetTile()); // the tile current occupied by the unit
+	MoveSequence end_tile(target_tile);
+	// add the initial tile to the open set
+	initial_tile.set_heuristic_to(target_tile);
+	open.push_back(initial_tile);
+	// vector to hold tiles adjcent to inspected tile
+	std::vector<Tile*> adjacent_tiles;
+	// keep iterating over this loop until end_tile has a parent, at that point the end tile must have been reached!
+	while (!end_tile.get_parent() ) {
+		// pointer to the current tile to be analysed is the one which has the lowest total estimated score so far
+		auto current_iter = std::min_element(open.begin(), open.end(),
+			[](const MoveSequence &lhs, const MoveSequence &rhs) {return lhs.get_score() < rhs.get_score(); }); // lambda function for comparison of scores
+																												// add the current tile to the closed set
+		closed.push_back(*current_iter);
+		// set pointer to the target MoveSequence object in the closed set. The set doesnt change when looping through neighbours so will stay valid
+		MoveSequence* current = &(*std::find(closed.begin(), closed.end(), *current_iter));
+		// remove the currently inspected tile from the open set as it will now be analysed
+		open.erase(current_iter);
+		// clear the vector of adjacent tiles and fill for the current tile
+		adjacent_tiles.clear();
+		adjacent_tiles = Game::instance().get_map().AdjacentTo(current->get_tile());
+		// go through the tiles in the vector of adjacent tiles
+		for (auto iter = adjacent_tiles.begin(); iter != adjacent_tiles.end(); iter++) {
+			// make a MoveSequence object from this adjacent tile and make its parent the currently inspected tile
+			MoveSequence adjacent(*iter);
+			adjacent.set_parent(*current);
+			adjacent.set_heuristic_to(target_tile);
+			// check if this tile is the target tile
+			if (adjacent.get_tile() == end_tile.get_tile()) {
+				end_tile = adjacent;
+			}
+			// see if this tile is already in the open and closed sets
+			bool in_open_set = std::find(open.begin(), open.end(), adjacent) != open.end();
+			bool in_closed_set = std::find(closed.begin(), closed.end(), adjacent) != closed.end();
+			// if this tile is not already in the closed set then proceed (if it is in closed set then it has already been analysed and shortest path to it found)
+			if (!in_closed_set) {
+				// if the tile can be traversed by the unit then proceed
+				if (CanTraverse(adjacent.get_tile())) {
+					if (!in_open_set) { // if not in open set
+										// if there is a unit on the tile..
+						if (Game::instance().get_map().UnitPresent(adjacent.get_tile()->get_map_coords())) {
+							// friendly unit -> can move through, non-friendly then cant
+							if (team_ == Game::instance().get_map().GetUnit(adjacent.get_tile()->get_map_coords())->get_team()) {
+								open.push_back(adjacent);
+							}
+						}
+						// if no unit on the tile then just add to reachable tiles and to open set
+						else {
+							open.push_back(adjacent);
+						}
+					}
+					else { // (in open set already)
+						   // pointer to object already in open set
+						MoveSequence* in_set = &*std::find(open.begin(), open.end(), adjacent);
+						// if adjacent tile costs less to reach from parent as currently inspected tile then update the parent of tile already in set
+						if (adjacent.get_score() < in_set->get_score()) {
+							in_set->set_parent(*current);
+						}
+					}
+				}
+			}
 		}
 	}
-	// if the tile sequence is valid then animate the sequence of tiles
-	for (auto iter = moves.begin(); iter != moves.end(); iter++) {
+	// we now have a move sequence which takes the unit from its current tile to the target tile...
+	// make vector of tiles that is the order of moves to reach the final tile using the MoveSequence corresponding to the fnial tile
+	std::vector<Tile*> tile_sequence;
+	MoveSequence current = end_tile;
+	while (current.get_parent()) {
+		tile_sequence.push_back(current.get_tile());
+		current = *current.get_parent();
+	}
+	std::reverse(tile_sequence.begin(), tile_sequence.end());
+
+	// Animate the sequence of tiles as separate tile movements
+	for (auto iter = tile_sequence.begin(); iter != tile_sequence.end(); iter++) {
 		// do the movement animation for moving to the tile
-		AnimateMovement(*iter); 
+		AnimateMovement(*iter);
 		// update the units map coordinates to the new position
 		set_map_coords((*iter)->get_map_coords());
 	}

@@ -47,6 +47,9 @@ public:
 	bool is_alive() const { return alive_; }
 	int get_team() const { return team_; }
 
+	// get if the unit can currently move
+	bool CanMove() const { return !moved_this_turn_; }
+
 	// move unit to a new coordinate. 
 	void set_map_coords(const COORD &new_pos);
 
@@ -72,16 +75,23 @@ public:
 
 	// renders the unit on a screen
 	void Render() const;
-	
+
+	// returns true if the unit can legally reach the target tile in one movement
+	bool CanReach(const Tile* target_tile);
+
 	// returns a vector of pointers to the tiles (as movesequences) that can be reached by this unit
 	std::vector<Tile*> ReachableTiles() const;
 
-	std::vector<Tile*> GetTileSequenceTo(Tile *target_tile) const;
+	// highlight the tiles that the unit can reach
+	void Unit::HighlightReachableTiles() const;
+
+	// unhighlight the tiles that the unit can reach
+	void Unit::ResetReachableTiles() const;
 
 	// animates the unit moving to an adjacent tile
 	void AnimateMovement(const Tile* target_tile) const;
 
-	// move through a sequence of tiles and animate it
-	void MoveTileSequence(const std::vector<Tile*> &moves);
+	// Move to a target tile (will not work for an invalid tile or when there is no legal movement to the tile)
+	void MoveTo(Tile* target_tile);
 
 };

@@ -7,10 +7,10 @@ class Screen;
 class Map;
 class Unit;
 
-class GameInstance{
+class Game{
 protected:
 	// there is one copy of the game instance and it is globally available through the static public function instance()
-	static GameInstance instance_;
+	static Game instance_;
 	// contains pointers to the game map, the display and the currently selected unit
 	Map* game_map_; 
 	Screen* display_;
@@ -23,12 +23,12 @@ protected:
 	// UIObject : actions menu
 public:
 	
-	GameInstance::GameInstance();	// default ctor
-	GameInstance(Screen &display); // ctor taking a screen as arg
-	~GameInstance(); // dtor
+	Game::Game();	// default ctor
+	Game(Screen &display); // ctor taking a screen as arg
+	~Game(); // dtor
 	
 	// global access to the current instance of the game
-	static GameInstance& instance() { return instance_; }
+	static Game& instance() { return instance_; }
 	
 	// get access to the current game map, display and selected unit
 	Screen& get_display() const { return *display_; }
@@ -38,7 +38,7 @@ public:
 	// select the target unit
 	void SelectUnit(Unit *unit);
 	// unselect the currently selected unit
-	void GameInstance::DeselectUnit();
+	void Game::DeselectUnit();
 
 	// load in a map from the 5 premade maps
 	void LoadMap(const int &map_id) const;
@@ -51,5 +51,7 @@ public:
 	// select a unit
 	void SelectUnitOnMap() const;
 
+	// handles a mouse down event (i.e. the user clicking somewhere on the screen)
+	void HandleMouseDown(const COORD &location);
 
 };

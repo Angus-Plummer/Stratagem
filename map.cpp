@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "map.h"
 
-#include "game_instance.h"
+#include "game.h"
 #include "screen.h"
 
 #include "unit.h"
@@ -86,9 +86,11 @@ void Map::LoadMap(const std::vector<std::vector<int>> &map) {
 
 // returns the tile at a given coordinate position
 Tile* Map::GetTile(const COORD &position) const {
+	// if position is on the map then return the tile
 	if (position.X >= 0 && position.X < map_width_ && position.Y >= 0 && position.Y < map_height_) {
 		return map_[position.X][position.Y];
 	}
+	// otherwise return a null pointer
 	else {
 		return nullptr;
 	}
@@ -96,7 +98,7 @@ Tile* Map::GetTile(const COORD &position) const {
 
 // returns the tile at a console coordinate
 Tile* Map::GetTileFromConsoleCoord(const COORD &position) const {
-	Screen display = GameInstance::instance().get_display();
+	Screen display = Game::instance().get_display();
 	COORD map_location;	// corresponding map tile
 	// correct for map offset and convert into tile location
 	map_location.X = (position.X - display.get_map_x_offset()) / display.get_tile_width();
@@ -112,7 +114,7 @@ Tile* Map::GetTileFromConsoleCoord(const COORD &position) const {
 
 // Renders the map on a screen
 void Map::Render() const {
-	Screen display = GameInstance::instance().get_display();
+	Screen display = Game::instance().get_display();
 	int tile_width = display.get_tile_width();
 	int tile_height = display.get_tile_height();
 	int map_x_offset = display.get_map_x_offset();
@@ -189,7 +191,7 @@ Unit* Map::GetUnit(const COORD &position) const {
 
 // select an object on the map using right mouse button down
 Tile* Map::SelectTile() const {
-	Screen display = GameInstance::instance().get_display();
+	Screen display = Game::instance().get_display();
 	// get location of mouse down ({-1,-1} if no mouse down detected)
 	COORD event_location = display.MouseDownPosition();
 	if (event_location.X != -1 && event_location.Y != -1) {
@@ -201,7 +203,7 @@ Tile* Map::SelectTile() const {
 
 // select a unit on the map using the mouse
 Unit* Map::SelectUnit() const {
-	Screen display = GameInstance::instance().get_display();
+	Screen display = Game::instance().get_display();
 	// get location of mouse down ({-1,-1} if no mouse down detected)
 	COORD event_location = display.MouseDownPosition();
 	if (event_location.X != -1 && event_location.Y != -1) {
