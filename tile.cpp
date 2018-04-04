@@ -5,9 +5,9 @@
 #include "screen.h"
 #include "map.h"
 
-Tile::Tile(Map &map, const COORD &map_coords) : GameObject(), parent_map_(&map), highlighted_(false){
+Tile::Tile(Map &map, const Coord &map_coords) : GameObject(), parent_map_(&map), highlighted_(false){
 	// check if the coordinates are valid on the map
-	if (map_coords.X >= 0 && map_coords.X < map.get_map_width() && map_coords.Y >= 0 && map_coords.Y < map.get_map_width()) {
+	if (map_coords.x >= 0 && map_coords.x < map.get_map_width() && map_coords.y >= 0 && map_coords.y < map.get_map_width()) {
 		map_coords_ = map_coords;
 	}
 	else {
@@ -48,8 +48,9 @@ void Tile::Render() const {
 	// iterate over console cells for tile width and height
 	for (int tile_j = 0; tile_j < display.get_tile_height(); tile_j++) {
 		for (int tile_i = 0; tile_i < display.get_tile_width(); tile_i++) {
+			Coord tile_component = { display.get_map_x_offset() + map_coords_.x * display.get_tile_width() + tile_i, display.get_map_y_offset() + map_coords_.y * display.get_tile_height() + tile_j };
 			// set console cursor position to given tile component
-			display.GoTo(display.get_map_x_offset() + map_coords_.X * display.get_tile_width() + tile_i, display.get_map_y_offset() + map_coords_.Y * display.get_tile_height() + tile_j);
+			display.GoTo(tile_component);
 			// output the tile marker
 			std::cout << marker_;
 		}

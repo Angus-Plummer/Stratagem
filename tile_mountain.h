@@ -6,7 +6,7 @@ class MountainTile :
 	public Tile
 {
 public:
-	MountainTile(Map &map, const COORD &map_coords);
+	MountainTile(Map &map, const Coord &map_coords);
 	~MountainTile();
 };
 

@@ -2,7 +2,7 @@
 #include "tile_grass.h"
 
 
-GrassTile::GrassTile(Map &map, const COORD &map_coords) : Tile(map, map_coords) {
+GrassTile::GrassTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) {
 	// member data for tiles
 	type_ = "plains";
 	marker_ = char(176);

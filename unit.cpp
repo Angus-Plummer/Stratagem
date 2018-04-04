@@ -43,7 +43,7 @@ void Unit::set_current_hp(const int &hp) {  // will set to 0 if < 0 and max_hp i
 // apply a damage value, this is modified linearly by the terrain and armour of the unit
 void Unit::ApplyPhysicalDamage(const int &dmg) {
 	int terrain_modifier = Game::instance().get_map().GetTile(map_coords_)->get_def_modifier();
-	int received_damage = dmg - armour_ - terrain_modifier; //
+	int received_damage = dmg - armour_ - terrain_modifier;
 	set_current_hp(current_hp_ - received_damage);
 	
 }
@@ -93,13 +93,13 @@ Tile* Unit::GetTile() const {
 	return Game::instance().get_map().GetTile(map_coords_);
 }
 
-// finds distance to target unit
+// finds distance to target unit (manhattan distance)
 int Unit::DistanceTo(const Unit *target) const {
-	return (map_coords_.X - target->get_map_coords().X) + (map_coords_.Y - target->get_map_coords().Y);
+	return abs(map_coords_.x - target->get_map_coords().x) + abs(map_coords_.y - target->get_map_coords().y);
 }
 
 // move unit to a new coordinate
-void Unit::set_map_coords(const COORD &new_pos) {
+void Unit::set_map_coords(const Coord &new_pos) {
 	// need to check if the new coordinate is valid ( on the game map )
 	map_coords_ = new_pos;
 }
@@ -110,8 +110,8 @@ void Unit::Render() const {
 	// set colour scheme of unit
 	display.set_colour_scheme(default_colour_scheme_);
 	// set console cursor position to given tile component
-	display.GoTo(display.get_map_x_offset() + map_coords_.X * display.get_tile_width() + (display.get_tile_width() / 2 ), 
-				 display.get_map_y_offset() + map_coords_.Y * display.get_tile_height() + (display.get_tile_height() / 2) );
+	display.GoTo( Coord( display.get_map_x_offset() + map_coords_.x * display.get_tile_width() + (display.get_tile_width() / 2 ) , 
+						 display.get_map_y_offset() + map_coords_.y * display.get_tile_height() + (display.get_tile_height() / 2) ) );
 	// output the tile marker
 	std::cout << marker_;
 	// revert to original colour scheme
@@ -232,8 +232,8 @@ void Unit::AnimateMovement(const Tile* target_tile) const {
 	int initial_colour_scheme = display.get_colour_scheme();
 	// if target tile is in adjacent to tile unit is on then animate movement
 	if (GetTile()->AdjacencyTest(target_tile)) {
-		int x_delta = target_tile->get_map_coords().X - map_coords_.X;
-		int y_delta = target_tile->get_map_coords().Y - map_coords_.Y;
+		int x_delta = target_tile->get_map_coords().x - map_coords_.x;
+		int y_delta = target_tile->get_map_coords().y - map_coords_.y;
 		int num_step;
 		if (x_delta != 0) {
 			num_step = display.get_tile_width();
@@ -242,19 +242,19 @@ void Unit::AnimateMovement(const Tile* target_tile) const {
 			num_step = display.get_tile_height();
 		}
 		// get initial console cursor location of the unit
-		COORD initial_pos = { (SHORT)(display.get_map_x_offset() + map_coords_.X * display.get_tile_width() + (display.get_tile_width() / 2)),  
-							  (SHORT)(display.get_map_y_offset() + map_coords_.Y * display.get_tile_height() + (display.get_tile_height() / 2)) };
-		COORD current_pos = initial_pos;
+		Coord initial_pos(display.get_map_x_offset() + map_coords_.x * display.get_tile_width() + (display.get_tile_width() / 2),  
+						  display.get_map_y_offset() + map_coords_.y * display.get_tile_height() + (display.get_tile_height() / 2));
+		Coord current_pos = initial_pos;
 		for (int step = 0; step <= num_step ; step++) {
 			// got to the current position of the unit marker and replace the console cell with the tile marker using the tile colour scheme
-			display.GoTo(current_pos.X, current_pos.Y); // got to current position
+			display.GoTo(current_pos); // got to current position
 			// render the tile at the current position
 			Game::instance().get_map().GetTileFromConsoleCoord(current_pos)->Render();
 			// update the current tile position
-			current_pos.X = initial_pos.X + x_delta * step;
-			current_pos.Y = initial_pos.Y + y_delta * step;
+			current_pos.x = initial_pos.x + x_delta * step;
+			current_pos.y = initial_pos.y + y_delta * step;
 			// set cursor to new position, set colour scheme to unit colour scheme and output the units marker
-			display.GoTo(current_pos.X, current_pos.Y);
+			display.GoTo(current_pos);
 			display.set_colour_scheme(get_colour_scheme());
 			std::cout << marker_;
 			// sleep for a short time so can actually see the movement

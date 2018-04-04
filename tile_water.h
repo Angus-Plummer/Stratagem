@@ -6,7 +6,7 @@
 class WaterTile : public Tile {
 public:
 	// ctor
-	WaterTile(Map &map, const COORD &map_coords);
+	WaterTile(Map &map, const Coord &map_coords);
 	// dtor
 	~WaterTile();
 };

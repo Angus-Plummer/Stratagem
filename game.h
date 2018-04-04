@@ -46,12 +46,12 @@ public:
 	void RenderMap() const;
 
 	// add a unit to the map
-	void AddUnit(Unit *unit, const COORD &pos);
+	void AddUnit(Unit *unit, const Coord &pos);
 
 	// select a unit
 	void SelectUnitOnMap() const;
 
 	// handles a mouse down event (i.e. the user clicking somewhere on the screen)
-	void HandleMouseDown(const COORD &location);
+	void HandleLeftMouseButtonDown(const Coord &location);
 
 };

@@ -6,7 +6,7 @@
 class GrassTile : public Tile {
 public:
 	// ctor
-	GrassTile(Map &map, const COORD &map_coords);
+	GrassTile(Map &map, const Coord &map_coords);
 	// dtor
 	~GrassTile();
 };

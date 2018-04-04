@@ -38,13 +38,13 @@ public:
 	int get_colour_scheme() const;
 
 	// get and set the position of the console cursor
-	void GoTo(const int &x, const int &y) const;
-	COORD CursorPosition() const;
+	void GoTo(const Coord &coord) const;
+	Coord CursorPosition() const;
 
 	// gets the position of the mouse cursor (pixel location, relative to window)
 	POINT MousePosition() const;
 
 	// gets the position of the mouse cursor if LMB is pressed down. (console cell location)
-	COORD MouseDownPosition() const;
+	Coord MouseDownPosition() const;
 };
 

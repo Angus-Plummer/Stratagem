@@ -39,8 +39,8 @@ int MoveSequence::get_score() const {
 
 // get the heuristic for this tile. uses manhattan distance
 void MoveSequence::set_heuristic_to(const Tile *target_tile) {
-	int x_delta = target_tile->get_map_coords().X - tile_->get_map_coords().X;
-	int y_delta = target_tile->get_map_coords().Y - tile_->get_map_coords().Y;
+	int x_delta = target_tile->get_map_coords().x - tile_->get_map_coords().x;
+	int y_delta = target_tile->get_map_coords().y - tile_->get_map_coords().y;
 	heuristic_to_target =  abs(x_delta) + abs(y_delta);
 }
 

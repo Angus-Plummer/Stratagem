@@ -6,7 +6,7 @@ class ForestTile :
 	public Tile
 {
 public:
-	ForestTile(Map &map, const COORD &map_coords);
+	ForestTile(Map &map, const Coord &map_coords);
 	~ForestTile();
 };
 

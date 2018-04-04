@@ -2,7 +2,6 @@
 #include "screen.h"
 
 
-
 Screen::Screen(const int &width, const int &height) : console_window_(GetConsoleWindow()),
 													standard_in_handle_(GetStdHandle(STD_INPUT_HANDLE)),
 													standard_out_handle_(GetStdHandle(STD_OUTPUT_HANDLE)),
@@ -84,20 +83,20 @@ int Screen::get_map_y_offset() const { return map_y_offset_; }
 
 
 // get and set the position of the console cursor
-void Screen::GoTo(const int &x, const int &y) const {
+void Screen::GoTo(const Coord &in_coord) const {
 	std::cout.flush();
-	COORD coord = { (SHORT)x, (SHORT)y };
+	COORD coord = { (SHORT)in_coord.x, (SHORT)in_coord.y };
 	SetConsoleCursorPosition(standard_out_handle_, coord);
 }
-COORD Screen::CursorPosition() const {
+Coord Screen::CursorPosition() const {
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
 	// attempt to get buffer info
 	if (GetConsoleScreenBufferInfo(standard_out_handle_, &buffer)) {
-		return buffer.dwCursorPosition;
+		return Coord(buffer.dwCursorPosition.X, buffer.dwCursorPosition.Y);
 	}
 	// if function fails then return -1, -1
 	else {
-		COORD fail = { -1, -1 };
+		Coord fail = { -1, -1 };
 		return fail;
 	}
 }
@@ -124,8 +123,8 @@ POINT Screen::MousePosition() const {
 	}
 }
 // gets the position of the mouse cursor if LMB is pressed down. (console cell location)
-COORD Screen::MouseDownPosition() const {
-	COORD position = { -1,-1 }; // defualt position, will be returned if no LMB down detected
+Coord Screen::MouseDownPosition() const {
+	Coord position = { -1,-1 }; // defualt position, will be returned if no LMB down detected
 	DWORD num_read, i; //var to hold number of inputs detected and an interator value
 	INPUT_RECORD buffer_input_record[128]; // record of the inputs in the buffer
 	// perform read of input and print error message if error occurs in function
@@ -134,7 +133,7 @@ COORD Screen::MouseDownPosition() const {
 	for (i = 0; i < num_read; i++) {
 		// if there is a LMB mouse down event then update the position COORD with its location
 		if (buffer_input_record[i].Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED) {
-			position = buffer_input_record[i].Event.MouseEvent.dwMousePosition;
+			position = { buffer_input_record[i].Event.MouseEvent.dwMousePosition.X, buffer_input_record[i].Event.MouseEvent.dwMousePosition.Y } ;
 		}
 	}
 	return position;

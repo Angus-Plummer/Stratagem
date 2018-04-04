@@ -69,7 +69,7 @@ void Game::RenderMap() const {
 }
 
 // add a unit to the map
-void Game::AddUnit(Unit *unit, const COORD &pos) {
+void Game::AddUnit(Unit *unit, const Coord &pos) {
 	game_map_->AddUnit(unit, pos);
 	if (unit->get_team() == 1) {
 		p1_units_.push_back(unit);
@@ -89,9 +89,9 @@ void Game::SelectUnitOnMap() const {
 }
 
 // handles a mouse down event (i.e. the user clicking somewhere on the screen)
-void Game::HandleMouseDown(const COORD &location) { // COORD location is in terms of console cells over whole display
-	// check for no mouse click returns a COORD of {-1, -1}
-	if (location.X == -1  && location.Y == -1  ) {
+void Game::HandleLeftMouseButtonDown(const Coord &location) { // Coord location is in terms of console cells over whole display
+	// check for no mouse click returns a Coord of {-1, -1}
+	if (location.x == -1  && location.y == -1  ) {
 		// throw error as should not be able to get here
 		exit(1);
 	}

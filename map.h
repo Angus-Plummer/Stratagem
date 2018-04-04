@@ -32,16 +32,16 @@ public:
 	// loads in a map in the form of a 2d vector of id numbers
 	void LoadMap(const std::vector<std::vector<int>> &map);
 	// adds a unit to the map
-	void AddUnit(Unit *new_unit, const COORD &position);
+	void AddUnit(Unit *new_unit, const Coord &position);
 
 	// Return number of rows and columns
 	int get_map_height() const { return map_height_; } 
 	int get_map_width() const { return map_width_; }
 
 	// returns the terrain tile a map coordinate
-	Tile* GetTile(const COORD &position) const;
+	Tile* GetTile(const Coord &position) const;
 	// returns the tile at a console coordinate
-	Tile* GetTileFromConsoleCoord(const COORD &position) const;
+	Tile* GetTileFromConsoleCoord(const Coord &position) const;
 
 	// Renders the map on a screen
 	void Render() const;
@@ -50,10 +50,10 @@ public:
 	void ResetTiles() const;
 
 	// returns true if a unit is present on a given tile
-	bool UnitPresent(const COORD &position) const;
+	bool UnitPresent(const Coord &position) const;
 
 	// returns the unit on a given tile (if there is one, else returns null pointer)
-	Unit* GetUnit(const COORD &position) const;
+	Unit* GetUnit(const Coord &position) const;
 
 	// select a tile on the map using the mouse
 	Tile* SelectTile() const;

@@ -5,7 +5,7 @@
 class GameObject{
 protected:
 	std::string type_; // string of name of tile type
-	COORD map_coords_; // coordinates of object on the game map
+	Coord map_coords_; // coordinates of object on the game map
 	char marker_; // representation of tile type as char for when printing map
 	int default_colour_scheme_; // default colour scheme of terminal output
 	
@@ -15,7 +15,7 @@ public:
 
 	// accessors
 	std::string get_type() const { return type_; }
-	COORD get_map_coords() const { return map_coords_; }
+	Coord get_map_coords() const { return map_coords_; }
 	char get_marker() const { return marker_; }
 	int get_colour_scheme() const { return default_colour_scheme_; }
 

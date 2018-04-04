@@ -5,6 +5,7 @@
 
 // forward declarations
 class Map;
+struct Coord;
 
 // Abstract base class for terrain tile types
 class Tile : public GameObject {
@@ -20,7 +21,7 @@ protected:
 
 public:
 	// default ctor, has weak pointer to the tile map to avoid circular referancing
-	Tile(Map &map, const COORD &map_coords);
+	Tile(Map &map, const Coord &map_coords);
 	// dtor
 	virtual ~Tile();
 

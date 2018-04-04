@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "tile_water.h"
 
-WaterTile::WaterTile(Map &map, const COORD &map_coords) : Tile(map, map_coords) {
+WaterTile::WaterTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) {
 	type_ = "water";
 	marker_ = char(176);
 	default_colour_scheme_ = 27;

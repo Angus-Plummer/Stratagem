@@ -7,7 +7,6 @@
 class Tile;
 class MoveSequence;
 
-
 class Unit : public GameObject {
 protected:
 	// max and current hp
@@ -51,7 +50,7 @@ public:
 	bool CanMove() const { return !moved_this_turn_; }
 
 	// move unit to a new coordinate. 
-	void set_map_coords(const COORD &new_pos);
+	void set_map_coords(const Coord &new_pos);
 
 	// select this unit
 	void SelectUnit();
