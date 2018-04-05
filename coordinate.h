@@ -16,27 +16,27 @@ struct Coord{
 	// addition
 	Coord& operator+=(const Coord &coord) { x += coord.x; y += coord.y; return *this; }
 	Coord& operator+=(const int &val) { x += val; y += val; return *this; }
-	Coord operator+(const Coord &coord) { return Coord(x + coord.x, y + coord.y); }
-	Coord operator+(const int &val) { return (Coord(x + val, y + val)); }
+	Coord operator+(const Coord &coord) const { return Coord(x + coord.x, y + coord.y); }
+	Coord operator+(const int &val) const { return (Coord(x + val, y + val)); }
 	// subtraction
 	Coord& operator-=(const Coord &coord) { x -= coord.x; y -= coord.y; return *this; }
 	Coord& operator-=(const int &val) { x -= val; y -= val; return *this; }
-	Coord operator-(const Coord &coord) { return Coord(x - coord.x, y - coord.y); }
-	Coord operator-(const int &val) { return (Coord(x - val, y - val)); }
+	Coord operator-(const Coord &coord) const { return Coord(x - coord.x, y - coord.y); }
+	Coord operator-(const int &val) const { return (Coord(x - val, y - val)); }
 	// multiplication
 	Coord& operator*=(const Coord &coord) { x *= coord.x; y *= coord.y; return *this; }
 	Coord& operator*=(const int &val) { x *= val; y *= val; return *this; }
-	Coord operator*(const Coord &coord) { return Coord(x * coord.x, y * coord.y); }
-	Coord operator*(const int &val) { return (Coord(x * val, y * val)); }
+	Coord operator*(const Coord &coord) const { return Coord(x * coord.x, y * coord.y); }
+	Coord operator*(const int &val) const { return (Coord(x * val, y * val)); }
 	// division, will round down
 	Coord& operator/=(const Coord &coord) { x /= coord.x; y /= coord.y; return *this; }
 	Coord& operator/=(const int &val) { x /= val; y /= val; return *this; }
-	Coord operator/(const Coord &coord) { return Coord(x / coord.x, y / coord.y); }
-	Coord operator/(const int &val) { return (Coord(x / val, y / val)); }
+	Coord operator/(const Coord &coord) const { return Coord(x / coord.x, y / coord.y); }
+	Coord operator/(const int &val) const { return (Coord(x / val, y / val)); }
 	// copy assignment
 	Coord& operator=(const Coord &coord) { x = coord.x; y = coord.y; return *this; }
 
-	// friend operator overloads
+	// friend operator overloads (defined in .cpp file)
 	friend bool operator==(const Coord &lhs, const Coord &rhs);
 	// inequality operator
 	friend bool operator!=(const Coord &lhs, const Coord &rhs);

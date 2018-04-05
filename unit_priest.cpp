@@ -14,7 +14,7 @@ Priest::Priest(const int &team) : Unit(team) {
 	// set hp
 	current_hp_ = max_hp_;
 	// game object properties
-	marker_ = 'P';
+	unit_marker_ = "Pr";
 	type_ = "priest";
 }
 

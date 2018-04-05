@@ -4,21 +4,12 @@
 #include "screen.h"
 
 
-// ctor for button without menu
+// ctor for button
 Button::Button(Coord location, std::string text, std::function<void()> function): 
 	UIObject(location), text_(text), result_(function), 
 	parent_menu_(nullptr), enabled_(true), disabled_colour_scheme_(8) // this colour scheme is grey on black
 {
 	width_ = text_.length(); // width is just the number of chars in the text
-	height_ = 1;
-	colour_scheme_ = 15; // white on black
-}
-// ctor for button with menu
-Button::Button(Coord rel_location, std::string text, std::function<void()> function, Menu* menu) : 
-	UIObject(menu->get_location() + rel_location), text_(text), result_(function), parent_menu_(menu),
-	enabled_(true), disabled_colour_scheme_(8) // this colour scheme is grey on black
-{
-	width_ = parent_menu_->get_width() - 2; // width is that of parent menu - the 1 cell width border of the menu
 	height_ = 1;
 	colour_scheme_ = 15; // white on black
 }
@@ -49,6 +40,18 @@ void Button::Render() const {
 	display.set_colour_scheme(original_colour_scheme);
 }
 // on button interaction invoke the buttons function
-void Button::Interact() {
-	result_();
+void Button::Trigger() {
+	// if the button is enabled then trigger its function
+	if (enabled_) { 
+		result_(); 
+	}
+}
+
+void Button::UpdateWidth() {
+	if (parent_menu_) {
+		width_ = parent_menu_->get_width() - 2 * parent_menu_->get_border_thickness();
+	}
+	else {
+		width_ = text_.length();
+	}
 }

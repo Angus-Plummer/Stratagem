@@ -45,7 +45,7 @@ void Unit::ApplyPhysicalDamage(const int &dmg) {
 	int terrain_modifier = Game::instance().get_map().GetTile(map_coords_)->get_def_modifier();
 	int received_damage = dmg - armour_ - terrain_modifier;
 	set_current_hp(current_hp_ - received_damage);
-	
+	Render();
 }
 
 // apply heal value
@@ -56,10 +56,6 @@ void Unit::ApplyHeal(const int &heal) {
 // select this unit
 void Unit::SelectUnit() {
 	Game::instance().SelectUnit(this);
-	if (!moved_this_turn_) {
-		selecting_movement_ = true;
-		ShowPossibleAction(action_movement);
-	}
 }
 
 // deselect this unit
@@ -67,25 +63,112 @@ void Unit::DeselectUnit() {
 	// set selection flags to false
 	selecting_movement_ = false;
 	selecting_attack_ = false;
-	// reset the map tiles to remove highlighted movement tiles
-	ResetReachableTiles();
+}
+
+// function return true if unit can move
+bool Unit::CanMove() const {
+	return ReachableTiles().size() > 0 && !moved_this_turn_;
+}
+// function return true if unit can attack
+bool Unit::CanAttack() const {
+	return AttackableUnits().size() > 0 && !attacked_this_turn_;
+}
+
+void Unit::ChooseMovement() {
+	// if the unit hasnt moved this turn..
+	if (!has_moved_this_turn()) {
+		// set selecting movement flag to true and show the possible movement
+		selecting_movement_ = true;
+		ShowPossibleAction(action_movement);
+	} 
+	// if this function has been called and the unit has already moved this turn then something has gone wrong
+	else {
+		// print error and exit
+		exit(1);
+	}
+}
+
+void Unit::UnChooseMovement() {
+	selecting_movement_ = false;
+	HighlightReachableTiles(false);
+}
+
+void Unit::ChooseAttack() {
+	// if the unit hasnt attacked yet this turn
+	if (!has_attacked_this_turn()) {
+		// set selecting movement flag to true and show the possible attack targets
+		selecting_attack_ = true;
+		ShowPossibleAction(action_attack);
+	}
+	// if this function has been called and the unit has already attacked this turn then something has gone wrong
+	else {
+		// print error and exit
+		exit(1);
+	}
+}
+
+void Unit::UnChooseAttack() {
+	selecting_attack_ = false;
+	HighlightAttackableUnits(false);
 }
 
 void Unit::ShowPossibleAction(const int &action_type) {
-	// if the action type is movement...
+	// if the action type is movement..
 	if (action_type == action_movement) {
-		HighlightReachableTiles();
+		// highlight the reachable tiles
+		HighlightReachableTiles(true);
+	}
+	// if the action is attack..
+	if (action_type == action_attack) {
+		// highlight the attackable units/tiles
+		HighlightAttackableUnits(true);
 	}
 }
 
+// check if a target unit is attackable by this unit
+bool Unit::CanAttackTarget(const Unit *target) const {
+	// if distance to the target equal to or less than this unit's attack range and it is not on the same team then it can attack
+	return DistanceTo(target) <= attack_range_ && target->get_team() != team_;
+}
+
 // function to attack a target
-void Unit::Attack(Unit *target) const {
-	// only attack if adjacent
-	if (DistanceTo(target) <= attack_range_ && target->get_team() != team_) {
+void Unit::Attack(Unit *target) {
+	// if can attack then apply damage after applying terrain modifier
+	if (CanAttackTarget(target)) {
+		// unset the choosing attack state
+		UnChooseAttack();
+		// set unit to has attacked
+		attacked_this_turn_ = true;
 		// add modifier and apply damage
-		int attack_modifier = GetTile()->get_atk_modifier();
-		target->ApplyPhysicalDamage(attack_damage_ + attack_modifier);
+		target->ApplyPhysicalDamage(attack_damage_ + GetTile()->get_atk_modifier());
+		
 	}
+}
+// highlights tiles/units that are attackable
+void Unit::HighlightAttackableUnits(const bool &highlight) const {
+	// get all the attackable units on the map
+	std::vector<Unit*> units = AttackableUnits();
+	// iterate through the units
+	for (auto iter = units.begin(); iter != units.end(); iter++) {
+		// highlight the tile the unit is on, render the tile and then render the unit on top of it
+		(*iter)->GetTile()->set_highlighted(highlight);
+		(*iter)->GetTile()->Render();
+		(*iter)->Render();
+	}
+}
+
+// returns a vector of all units that are currently attackable by this unit
+std::vector<Unit*> Unit::AttackableUnits() const {
+	std::vector<Unit*> attackable_units; // vector to hold units this unit can currently attack
+	// get all the units on the map
+	std::vector<Unit*> units = Game::instance().get_map().get_units();
+	// iterate through the units and check if it can be attacked by this unit
+	for (auto iter = units.begin(); iter != units.end(); iter++) {
+		if (CanAttackTarget(*iter)) {
+			attackable_units.push_back(*iter);
+		}
+	}
+	return attackable_units;
 }
 
 // get tile unit is currently on
@@ -109,11 +192,20 @@ void Unit::Render() const {
 	int original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back late
 	// set colour scheme of unit
 	display.set_colour_scheme(default_colour_scheme_);
-	// set console cursor position to given tile component
-	display.GoTo( Coord( display.get_map_x_offset() + map_coords_.x * display.get_tile_width() + (display.get_tile_width() / 2 ) , 
-						 display.get_map_y_offset() + map_coords_.y * display.get_tile_height() + (display.get_tile_height() / 2) ) );
+	// set console cursor position to central tile component
+	display.GoTo( Coord( display.get_map_x_offset() + map_coords_.x * display.get_tile_width() + (display.get_tile_width() / 2 ) -1, // -1 as want left of the two centre cells
+						 display.get_map_y_offset() + map_coords_.y * display.get_tile_height() + (display.get_tile_height() / 2) ));
 	// output the tile marker
-	std::cout << marker_;
+	std::cout << unit_marker_;
+	// set console cursor to bottom right of tile
+	display.GoTo ( Coord(display.get_map_x_offset() + map_coords_.x * display.get_tile_width() + display.get_tile_width() -1,
+						display.get_map_y_offset() + map_coords_.y * display.get_tile_height() + display.get_tile_height() -1 ) );
+	// if hp is >= 10 then need 2 cells to display so start printing from 1 tile to left
+	if (current_hp_ >= 10) {
+		display.GoTo(display.CursorPosition() + Coord{ -1, 0 });
+	}
+	// print hp
+	std::cout << current_hp_;
 	// revert to original colour scheme
 	display.set_colour_scheme(original_colour_scheme);
 }
@@ -134,7 +226,6 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 	// start with the tile the unit is currently on, add to the vector of open tiles
 	MoveSequence initial_tile(GetTile()); // maybe need to make a copy assignment operator to use this
 	open.push_back(initial_tile);
-	can_reach.push_back(initial_tile.get_tile());
 
 	std::vector<Tile*> adjacent_tiles;
 
@@ -198,28 +289,14 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 }
 
 // highlight the tiles that the unit can reach
-void Unit::HighlightReachableTiles() const {
+void Unit::HighlightReachableTiles(const bool &highlight) const {
 	std::vector<Tile*> reachable_tiles = ReachableTiles(); // vector of reachable tiles
 	for (auto iter = reachable_tiles.begin(); iter != reachable_tiles.end(); iter++) { // iterate through
-																					   // set to higlighted and render
-		(*iter)->set_highlighted(true);
+		// set to higlighted and render
+		(*iter)->set_highlighted(highlight);
 		(*iter)->Render();
 		// if tile has a unit on it then redraw the unit
 		if (Game::instance().get_map().UnitPresent( (*iter)->get_map_coords() ) ) {
-			Game::instance().get_map().GetUnit((*iter)->get_map_coords())->Render();
-		}
-	}
-}
-
-// unhighlight the tiles that the unit can reach
-void Unit::ResetReachableTiles() const {
-	std::vector<Tile*> reachable_tiles = ReachableTiles(); // vector of reachable tiles
-	for (auto iter = reachable_tiles.begin(); iter != reachable_tiles.end(); iter++) { // iterate through
-																					   // set to not higlighted and render
-		(*iter)->set_highlighted(false);
-		(*iter)->Render();
-		// if tile has a unit on it then redraw the unit
-		if (Game::instance().get_map().UnitPresent((*iter)->get_map_coords())) {
 			Game::instance().get_map().GetUnit((*iter)->get_map_coords())->Render();
 		}
 	}
@@ -232,36 +309,36 @@ void Unit::AnimateMovement(const Tile* target_tile) const {
 	int initial_colour_scheme = display.get_colour_scheme();
 	// if target tile is in adjacent to tile unit is on then animate movement
 	if (GetTile()->AdjacencyTest(target_tile)) {
-		int x_delta = target_tile->get_map_coords().x - map_coords_.x;
-		int y_delta = target_tile->get_map_coords().y - map_coords_.y;
+		// get coordinate change of x and y 
+		Coord delta = target_tile->get_map_coords() - map_coords_;
 		int num_step;
-		if (x_delta != 0) {
+		if (delta.x != 0) {
 			num_step = display.get_tile_width();
 		}
 		else {
 			num_step = display.get_tile_height();
 		}
 		// get initial console cursor location of the unit
-		Coord initial_pos(display.get_map_x_offset() + map_coords_.x * display.get_tile_width() + (display.get_tile_width() / 2),  
+		Coord initial_pos(display.get_map_x_offset() + map_coords_.x * display.get_tile_width() + (display.get_tile_width() / 2) - 1, // -1 as we take leftmost of the central tiles  
 						  display.get_map_y_offset() + map_coords_.y * display.get_tile_height() + (display.get_tile_height() / 2));
 		Coord current_pos = initial_pos;
 		for (int step = 0; step <= num_step ; step++) {
 			// got to the current position of the unit marker and replace the console cell with the tile marker using the tile colour scheme
 			display.GoTo(current_pos); // got to current position
-			// render the tile at the current position
+			// render the tile at the current positions (unit marker is two cells)
 			Game::instance().get_map().GetTileFromConsoleCoord(current_pos)->Render();
+			Game::instance().get_map().GetTileFromConsoleCoord(current_pos + Coord{1,0})->Render();
 			// update the current tile position
-			current_pos.x = initial_pos.x + x_delta * step;
-			current_pos.y = initial_pos.y + y_delta * step;
+			current_pos = initial_pos + delta * step;
 			// set cursor to new position, set colour scheme to unit colour scheme and output the units marker
 			display.GoTo(current_pos);
 			display.set_colour_scheme(get_colour_scheme());
-			std::cout << marker_;
+			std::cout << unit_marker_;
 			// sleep for a short time so can actually see the movement
-			if (x_delta != 0) {
+			if (delta.x != 0) {
 				Sleep(50);
 			}
-			if (y_delta != 0) { // if moving in y direction sleep for twice as long because console cells are twice as high as they are wide
+			else if (delta.y != 0) { // if moving in y direction sleep for twice as long because console cells are twice as high as they are wide
 				Sleep(100);
 			}
 		}
@@ -277,12 +354,11 @@ void Unit::MoveTo(Tile* target_tile) {
 	if (!CanReach(target_tile)) {
 		exit(1);
 	}
-	// clear the highlighting of the tiles that the unit could reach as not necessary now
-	std::vector<Tile*> reachable_tiles = ReachableTiles();
-	for (auto iter = reachable_tiles.begin(); iter != reachable_tiles.end(); iter++) {
-		(*iter)->set_highlighted(false);
-		(*iter)->Render();
-	}
+
+	// remove the selecting movement state
+	UnChooseMovement();
+	// mark this unit as having moved this turn
+	moved_this_turn_ = true;
 
 	std::list<MoveSequence> open; // tiles that will potentially be analysed
 	std::list<MoveSequence> closed; // tiles that have been analysed
@@ -366,4 +442,6 @@ void Unit::MoveTo(Tile* target_tile) {
 		// update the units map coordinates to the new position
 		set_map_coords((*iter)->get_map_coords());
 	}
+	// finally render the unit again fully so extra info such as hp and statuses is rewritten
+	Render();
 }

@@ -15,7 +15,7 @@ Archer::Archer(const int &team) : Unit(team) {
 	// set hp
 	current_hp_ = max_hp_;
 	// game object properties
-	marker_ = 'A';
+	unit_marker_ = "Ar";
 	type_ = "archer";
 }
 

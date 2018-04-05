@@ -5,12 +5,12 @@
 
 // forward declarations
 class Map;
-struct Coord;
 
 // Abstract base class for terrain tile types
 class Tile : public GameObject {
 protected:
 	// member data for tiles
+	char tile_marker_; // representation of tile type as char for when printing map
 	int move_cost_; // cost of movement across the tile (if unit can traverse the tile)
 	int def_modifier_; // additive defensive modifier. Affects damage recieved by a unit on this tile.
 	int atk_modifier_; // additive attack modifier. Affects damage dealt by a unit on this tile.

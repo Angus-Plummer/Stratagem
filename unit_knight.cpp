@@ -10,12 +10,12 @@ Knight::Knight(const int &team) : Unit(team) {
 	max_hp_ = 30;
 	armour_ = 2;
 	move_range_ = 2;
-	attack_damage_ = 10;
+	attack_damage_ = 6;
 	attack_range_ = 1;
 	// set hp
 	current_hp_ = max_hp_;
 	// game object properties
-	marker_ = 'K';
+	unit_marker_ = "Kn";
 	type_ = "knight";
 }
 

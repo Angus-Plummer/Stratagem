@@ -43,6 +43,9 @@ public:
 	// returns the tile at a console coordinate
 	Tile* GetTileFromConsoleCoord(const Coord &position) const;
 
+	// returns a vector of pointers to the units active on the map
+	std::vector<Unit*> get_units() const { return units_; }
+
 	// Renders the map on a screen
 	void Render() const;
 

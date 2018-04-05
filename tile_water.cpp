@@ -3,7 +3,7 @@
 
 WaterTile::WaterTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) {
 	type_ = "water";
-	marker_ = char(176);
+	tile_marker_ = char(176);
 	default_colour_scheme_ = 27;
 	highlighted_colour_scheme_ = 28;
 	move_cost_ = 2;

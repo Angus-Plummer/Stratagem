@@ -5,7 +5,7 @@
 GrassTile::GrassTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) {
 	// member data for tiles
 	type_ = "plains";
-	marker_ = char(176);
+	tile_marker_ = char(176);
 	default_colour_scheme_ = 106;
 	highlighted_colour_scheme_ = 108; 
 	move_cost_ = 1;

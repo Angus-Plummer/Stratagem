@@ -16,15 +16,20 @@ protected:
 public:
 	// ctor for button without menu
 	Button(Coord location, std::string text, std::function<void()> function);
-	// ctor for button with menu
-	Button(Coord rel_location, std::string text, std::function<void()> function, Menu* menu);
 	~Button();
 
+	// render the button
 	void Render() const;
-	void Interact();
+	// trigger the button's function
+	void Trigger();
 
+	// mutators
 	void set_enabled(const bool &enabled) { enabled_ = enabled; }
+	bool is_enabled() const { return enabled_; }
 	void set_disabled_colour_scheme(const int &colour_scheme) { disabled_colour_scheme_ = colour_scheme; }
-
+	void set_menu(Menu *menu) { parent_menu_ = menu; }
+	
+	// update the width of the button (used when the width of a parent menu changes)
+	void UpdateWidth();
 };
 

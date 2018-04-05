@@ -52,7 +52,7 @@ void Tile::Render() const {
 			// set console cursor position to given tile component
 			display.GoTo(tile_component);
 			// output the tile marker
-			std::cout << marker_;
+			std::cout << tile_marker_;
 		}
 	}
 	// revert to original colour scheme

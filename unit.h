@@ -9,6 +9,8 @@ class MoveSequence;
 
 class Unit : public GameObject {
 protected:
+	// string identifier (units use 2 chars to identify them)
+	std::string unit_marker_;
 	// max and current hp
 	int max_hp_;
 	int current_hp_;
@@ -39,15 +41,22 @@ public:
 	int get_max_hp() const { return max_hp_; }
 	int get_current_hp() const { return current_hp_; }
 	void set_current_hp(int const &hp); // will set to 0 if < 0 and max_hp if > max_hp
-	void ApplyPhysicalDamage(const int &dmg);
-	void ApplyHeal(const int &heal);
 	double get_armour() const { return armour_; }
 	int get_move_distance() const { return move_range_; }
 	bool is_alive() const { return alive_; }
 	int get_team() const { return team_; }
+	bool is_selecting_movement() const { return selecting_movement_; }
+	bool is_selecting_attack() const { return selecting_attack_; }
+
+
+	// apply damage and healing
+	void ApplyPhysicalDamage(const int &dmg);
+	void ApplyHeal(const int &heal);
 
 	// get if the unit can currently move
-	bool CanMove() const { return !moved_this_turn_; }
+	bool has_moved_this_turn() const { return moved_this_turn_; }
+	// get if the unit can currently attack
+	bool has_attacked_this_turn() const { return attacked_this_turn_; }
 
 	// move unit to a new coordinate. 
 	void set_map_coords(const Coord &new_pos);
@@ -57,11 +66,35 @@ public:
 	// deselect this unit
 	void DeselectUnit();
 
+	// function return true if unit can move
+	bool CanMove() const;
+	// function return true if unit can attack
+	bool CanAttack() const;
+
+	// function to run when movement option is chosen from the action menu
+	void ChooseMovement();
+	// cancels the state of selecting movement
+	void UnChooseMovement();
+
+	// function to run when attack option is chosen from the action menu
+	void ChooseAttack();
+	// cancels the state of selecting attack
+	void UnChooseAttack();
+
 	// marks the possible actions on the screen, depending on the type of action
 	void ShowPossibleAction(const int &action_type);
 
+	// check if a target unit is attackable by this unit
+	bool CanAttackTarget(const Unit *target) const;
+
 	// attack another unit
-	void Attack(Unit*target) const;
+	void Attack(Unit *target);
+
+	// returns a vector of all units that are currently attackable by this unit
+	std::vector<Unit*> AttackableUnits() const;
+
+	// highlights tiles/units that are attackable
+	void HighlightAttackableUnits(const bool &highlight) const;
 
 	// get tile unit is currently on
 	Tile* GetTile() const;
@@ -82,10 +115,7 @@ public:
 	std::vector<Tile*> ReachableTiles() const;
 
 	// highlight the tiles that the unit can reach
-	void Unit::HighlightReachableTiles() const;
-
-	// unhighlight the tiles that the unit can reach
-	void Unit::ResetReachableTiles() const;
+	void Unit::HighlightReachableTiles(const bool &highlight) const;
 
 	// animates the unit moving to an adjacent tile
 	void AnimateMovement(const Tile* target_tile) const;

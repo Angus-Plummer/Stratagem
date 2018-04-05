@@ -3,7 +3,7 @@
 
 class UIObject{
 protected:
-	Coord location_; // location of the UI object (top right console cell). may be relative to screen or a parent object
+	Coord location_; // location of the UI object (top left console cell)
 	int width_;
 	int height_;
 	int colour_scheme_;
@@ -18,7 +18,10 @@ public:
 	int get_width() const { return width_; }
 	int get_height() const { return height_; }
 
+	// returns true if the input coordinate is within the area covered by the UI object, defined in cpp file
+	bool Contains(const Coord &coord) const;
+
+	// Renders the object on the screen
 	virtual void Render() const = 0;
-	virtual void Interact() = 0;
 };
 

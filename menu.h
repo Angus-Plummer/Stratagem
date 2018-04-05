@@ -5,14 +5,20 @@
 
 class Menu : public UIObject {
 protected:
-	std::vector<Button> options;
+	std::vector<Button> options_; // vector of buttons
+	int border_thickness_;
 public:
 	Menu(Coord location);
 	~Menu();
 
-	void Render() const {}
-	void Interact() {}
+	void Render() const;
 
-	void addButton(Button button);
+	void AddButton(Button &button);
+
+	int NumberOfOptions() const { return options_.size(); }
+
+	int get_border_thickness() const { return border_thickness_; }
+
+	void HandleLeftMouseButtonDown(const Coord &coord);
 };
 
