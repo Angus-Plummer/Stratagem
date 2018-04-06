@@ -1,30 +1,31 @@
-#include "unit_knight.h"
+#include "unit_warrior.h"
 #include "tile_grass.h"
 #include "tile_forest.h"
 #include "tile_mountain.h"
 #include "tile_water.h"
 
 
-Knight::Knight(const int &team) : Unit(team) {
-	// knight stats
+Warrior::Warrior(const int &team) : Unit(team) {
+	// warrior stats
 	max_hp_ = 30;
-	armour_ = 2;
+	armour_ = 3;
 	move_range_ = 2;
-	attack_damage_ = 6;
+	attack_damage_ = 8;
 	attack_range_ = 1;
+	armour_pierce_ = 1;
 	// set hp
 	current_hp_ = max_hp_;
 	// game object properties
-	unit_marker_ = "Kn";
-	type_ = "knight";
+	unit_marker_ = "Wr";
+	type_ = "warrior";
 }
 
 
-Knight::~Knight(){
+Warrior::~Warrior(){
 }
 
-// returns true if the knight can cross the terrain. (knight cant enter water or mountains)
-bool Knight::CanTraverse(const Tile *terrain_tile) const {
+// returns true if the warrior can cross the terrain. (warrior cant enter water or mountains)
+bool Warrior::CanTraverse(const Tile *terrain_tile) const {
 	// if tile is a water tile then return false
 	if (dynamic_cast<WaterTile*>(const_cast<Tile*>(terrain_tile))) { // have to remove const qualifier first
 		return false;

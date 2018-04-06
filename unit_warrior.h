@@ -2,9 +2,9 @@
 
 #include "unit.h"
 
-class Priest : public Unit {
+class Warrior : public Unit {
 public:
-	Priest(const int &team);
-	~Priest();
+	Warrior(const int &team);
+	~Warrior();
 	bool CanTraverse(const Tile *terrain_tile) const;
 };

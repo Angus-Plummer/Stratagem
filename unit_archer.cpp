@@ -6,12 +6,13 @@
 #include "tile_water.h"
 
 Archer::Archer(const int &team) : Unit(team) {
-	// knight stats
+	// archer stats
 	max_hp_ = 20;
-	armour_ = 1;
-	move_range_ = 3;
+	armour_ = 0;
+	move_range_ = 2;
 	attack_damage_ = 8;
 	attack_range_ = 2;
+	armour_pierce_ = 5;
 	// set hp
 	current_hp_ = max_hp_;
 	// game object properties

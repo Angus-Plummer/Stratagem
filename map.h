@@ -33,6 +33,8 @@ public:
 	void LoadMap(const std::vector<std::vector<int>> &map);
 	// adds a unit to the map
 	void AddUnit(Unit *new_unit, const Coord &position);
+	// removes a unit from the map
+	void RemoveUnit(Unit *unit);
 
 	// Return number of rows and columns
 	int get_map_height() const { return map_height_; } 
@@ -48,6 +50,9 @@ public:
 
 	// Renders the map on a screen
 	void Render() const;
+
+	// Renders a specific tile the unit on it if there is one
+	void Render(Coord coord) const;
 
 	// unhiglights all tiles on the screen
 	void ResetTiles() const;

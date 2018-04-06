@@ -15,7 +15,7 @@ protected:
 
 public:
 	// ctor for button without menu
-	Button(Coord location, std::string text, std::function<void()> function);
+	Button(std::string text, std::function<void()> function);
 	~Button();
 
 	// render the button

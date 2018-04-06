@@ -134,12 +134,21 @@ void Map::Render() const {
 	// iterate over the map tiles
 	for (int map_j = 0; map_j < map_height_; map_j++) {
 		for (int map_i = 0; map_i < map_width_; map_i++) {
-			map_[map_i][map_j]->Render();
+			Render(Coord{ map_i, map_j }); // will also render the unit on the tile if there is one
 		}
 	}
-	// iterate over the units
-	for (auto iterator = units_.begin(); iterator != units_.end(); iterator++) {
-		(*iterator)->Render(); // render unit on display
+}
+
+// Renders a specific tile the unit on it if there is one
+void Map::Render(Coord coord) const {
+	// check coord corresponds to a map coordinate
+	if (coord.x >= 0 && coord.x < map_width_ && coord.y >= 0 && coord.x < map_height_) {
+		// if the coordinate is on the map then render the corresponding tile
+		GetTile(coord)->Render();
+		// if there is a unit present on the tile then render that too.
+		if (UnitPresent(coord)) {
+			GetUnit(coord)->Render();
+		}
 	}
 }
 // unhiglights all tiles on the screen
@@ -161,6 +170,14 @@ void Map::AddUnit(Unit* new_unit, const Coord &position) {
 			units_.push_back(new_unit);
 		} // otherwise throw error and do nothing
 	}
+}
+
+// remove a unit from the map
+void Map::RemoveUnit(Unit *unit) {
+	// use the Erase-Remove idiom to delete the unit from whichever array it is in
+	units_.erase(std::remove(units_.begin(), units_.end(), unit), units_.end());
+	// render the tile where the unit was to update it
+	Render(unit->get_map_coords());
 }
 
 // returns true if a unit is present on a given tile

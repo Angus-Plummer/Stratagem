@@ -9,35 +9,29 @@ class MoveSequence;
 
 class Unit : public GameObject {
 protected:
-	// string identifier (units use 2 chars to identify them)
-	std::string unit_marker_;
-	// max and current hp
-	int max_hp_;
-	int current_hp_;
-	// armor value
-	int armour_;
-	// magic armour value;
-	int magic_resistance_;
-	// maximum move distance
-	int move_range_;
-	// default attack damage
-	int attack_damage_;
-	// default attack range
-	int attack_range_;
+	std::string unit_marker_; // string identifier (units use 2 chars to identify them)
+	int max_hp_; // maximum hit points of the unit
+	int current_hp_; // the current hit points of the unit
+	int armour_; // armor value ( reduces damage additatively)
+	int armour_pierce_; // armour piercing value of attack
+	//int magic_resistance_; // magic armour value;
+	int move_range_; // maximum move distance
+	int attack_damage_; // default attack damage
+	int attack_range_; 	// default attack range
 	bool moved_this_turn_; // whether unit has/hasnt moved yet
 	bool attacked_this_turn_; // whether unit has/hasnt attacked yet
 	bool selecting_movement_; // true if unit is currently selected for movement
 	bool selecting_attack_; // true if unit is currently selected for attacking
 	bool alive_; // whether unit is alive or not
 	int team_; // what team the unit belongs to
-
 	int selected_colour_scheme_; // colour scheme when selected
+	int acted_colour_scheme_; // colour scheme when unit has already acted on a turn
 
 public:
 	Unit(const int &team);
 	virtual ~Unit();
 
-	// accessor functions
+	// accessors and mutators
 	int get_max_hp() const { return max_hp_; }
 	int get_current_hp() const { return current_hp_; }
 	void set_current_hp(int const &hp); // will set to 0 if < 0 and max_hp if > max_hp
@@ -47,24 +41,31 @@ public:
 	int get_team() const { return team_; }
 	bool is_selecting_movement() const { return selecting_movement_; }
 	bool is_selecting_attack() const { return selecting_attack_; }
+	bool has_moved_this_turn() const { return moved_this_turn_; }
+	bool has_attacked_this_turn() const { return attacked_this_turn_; }
 
+	// get the appropriate colour scheme for the unit
+	int get_colour_scheme() const;
 
 	// apply damage and healing
-	void ApplyPhysicalDamage(const int &dmg);
-	void ApplyHeal(const int &heal);
-
-	// get if the unit can currently move
-	bool has_moved_this_turn() const { return moved_this_turn_; }
-	// get if the unit can currently attack
-	bool has_attacked_this_turn() const { return attacked_this_turn_; }
+	void AttackedBy(const Unit *target);
+	//void ApplyHeal(const int &heal);
 
 	// move unit to a new coordinate. 
 	void set_map_coords(const Coord &new_pos);
 
+	// find out if this unit can be selected (if it has either moved or attacked already)
+	bool CanSelect() const;
 	// select this unit
 	void SelectUnit();
 	// deselect this unit
 	void DeselectUnit();
+
+	// reset the has_moved_this_turn and has_attacked_this_turn flags to false
+	void EnableActions();
+
+	// do unit death
+	void Die();
 
 	// function return true if unit can move
 	bool CanMove() const;
@@ -118,7 +119,7 @@ public:
 	void Unit::HighlightReachableTiles(const bool &highlight) const;
 
 	// animates the unit moving to an adjacent tile
-	void AnimateMovement(const Tile* target_tile) const;
+	void AnimateMovement(const Tile* start_tile, const Tile* target_tile) const;
 
 	// Move to a target tile (will not work for an invalid tile or when there is no legal movement to the tile)
 	void MoveTo(Tile* target_tile);

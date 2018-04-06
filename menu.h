@@ -8,8 +8,10 @@ protected:
 	std::vector<Button> options_; // vector of buttons
 	int border_thickness_;
 public:
-	Menu(Coord location);
+	Menu();
 	~Menu();
+
+	void set_location(const Coord &position);
 
 	void Render() const;
 

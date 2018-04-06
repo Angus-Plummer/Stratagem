@@ -122,9 +122,10 @@ POINT Screen::MousePosition() const {
 		return position;
 	}
 }
-// gets the position of the mouse cursor if LMB is pressed down. (console cell location)
+// gets the position (console cell location) of the mouse cursor if LMB is pressed clicked down. (acts like detecting a mouse up event)
 Coord Screen::MouseDownPosition() const {
-	Coord position = { -1,-1 }; // defualt position, will be returned if no LMB down detected
+	bool detected_down = false;
+	Coord down_position = { -1,-1 };// defualt position, will be returned if no LMB down detected
 	DWORD num_read, i; //var to hold number of inputs detected and an interator value
 	INPUT_RECORD buffer_input_record[128]; // record of the inputs in the buffer
 	// perform read of input and print error message if error occurs in function
@@ -133,10 +134,29 @@ Coord Screen::MouseDownPosition() const {
 	for (i = 0; i < num_read; i++) {
 		// if there is a LMB mouse down event then update the position COORD with its location
 		if (buffer_input_record[i].Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED) {
-			position = { buffer_input_record[i].Event.MouseEvent.dwMousePosition.X, buffer_input_record[i].Event.MouseEvent.dwMousePosition.Y } ;
+			detected_down = true;
+			down_position = { buffer_input_record[i].Event.MouseEvent.dwMousePosition.X, buffer_input_record[i].Event.MouseEvent.dwMousePosition.Y };
 		}
 	}
-	return position;
+
+	// if a mouse down has been detected then wait until the mouse comes up before returning (i.e. its no longer down)
+	if (detected_down) {
+		while (detected_down == true) {
+			detected_down = false; // set back to false, if it doesnt get set to true through the loop then continue
+			// perform read of input and print error message if error occurs in function
+			if (!ReadConsoleInput(standard_in_handle_, buffer_input_record, 128, &num_read)) { std::cout << "Error reading console input\n"; }
+			// iterate through the record of the input buffer
+			for (i = 0; i < num_read; i++) {
+				// if there is a LMB mouse down event then update the position COORD with its location and set detected down to true
+				if (buffer_input_record[i].Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED) {
+					detected_down = true;
+					// update the position to the most recent position
+					down_position = { buffer_input_record[i].Event.MouseEvent.dwMousePosition.X, buffer_input_record[i].Event.MouseEvent.dwMousePosition.Y };
+				}
+			}
+		}
+	}
+	return down_position;
 }
 
 // sets the colour scheme to input arg value

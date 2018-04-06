@@ -8,7 +8,7 @@ protected:
 	int height_;
 	int colour_scheme_;
 public:
-	UIObject(Coord location);
+	UIObject();
 	virtual ~UIObject();
 
 	// accessors and mutators

@@ -4,7 +4,8 @@
 #include "button.h"
 
 
-Menu::Menu(Coord location) : UIObject(location){
+Menu::Menu() {
+	location_ = Coord{ 0,0 }; // default position is top left of screen. must set to something
 	border_thickness_ = 1; // thickness of the menu's border
 	width_ = 2 * border_thickness_;
 	height_ = 2 * border_thickness_;
@@ -13,6 +14,18 @@ Menu::Menu(Coord location) : UIObject(location){
 
 
 Menu::~Menu(){ // CHECK IF NEED TO DELETE THE BUTTONS IN THE OPTIONS VECTOR DIRECTLY
+}
+
+void Menu::set_location(const Coord &position) {
+	location_ = position;
+	// iterate through the vector of buttons and update the location of each one
+	int lines_down = 0; // keep track of how many lines have been taken up by buttons moved so far
+	for (auto iter = options_.begin(); iter != options_.end(); iter++) {
+		// location of button is location of menu + shifted right by border thickness, shifted down by border thickness + how many lines are occupied by buttons already moved
+		iter->set_location(location_ + Coord(border_thickness_, border_thickness_ + lines_down));
+		// update lines_down to include the most recently added button
+		lines_down += iter->get_height(); 
+	}
 }
 
 

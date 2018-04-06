@@ -44,7 +44,7 @@ public:
 	// gets the position of the mouse cursor (pixel location, relative to window)
 	POINT MousePosition() const;
 
-	// gets the position of the mouse cursor if LMB is pressed down. (console cell location)
+	// gets the position (console cell location) of the mouse cursor if LMB is pressed clicked down. (acts like detecting a mouse up event)
 	Coord MouseDownPosition() const;
 };
 

@@ -2,7 +2,7 @@
 
 
 
-UIObject::UIObject(Coord location) : location_(location){
+UIObject::UIObject() {
 }
 
 

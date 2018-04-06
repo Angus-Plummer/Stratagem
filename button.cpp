@@ -5,8 +5,8 @@
 
 
 // ctor for button
-Button::Button(Coord location, std::string text, std::function<void()> function): 
-	UIObject(location), text_(text), result_(function), 
+Button::Button(std::string text, std::function<void()> function): 
+	text_(text), result_(function), 
 	parent_menu_(nullptr), enabled_(true), disabled_colour_scheme_(8) // this colour scheme is grey on black
 {
 	width_ = text_.length(); // width is just the number of chars in the text

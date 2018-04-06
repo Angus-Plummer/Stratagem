@@ -1,10 +1,9 @@
 #pragma once
-
 #include "unit.h"
 
-class Knight : public Unit {
+class Rogue : public Unit {
 public:
-	Knight(const int &team);
-	~Knight();
+	Rogue(const int &team);
+	~Rogue();
 	bool CanTraverse(const Tile *terrain_tile) const;
 };
