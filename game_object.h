@@ -7,6 +7,7 @@ protected:
 	std::string type_; // string of name of tile type
 	Coord map_coords_; // coordinates of object on the game map
 	int default_colour_scheme_; // default colour scheme of terminal output
+	int highlighted_colour_scheme_; // colour scheme when highlighted
 	
 public:
 	GameObject();

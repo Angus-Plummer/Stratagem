@@ -1,6 +1,7 @@
 #pragma once
 #include "stdafx.h"
 
+// class for output to handling console output and mouse input
 class Screen {
 protected:
 	HWND console_window_; // handle for the console window
@@ -40,9 +41,6 @@ public:
 	// get and set the position of the console cursor
 	void GoTo(const Coord &coord) const;
 	Coord CursorPosition() const;
-
-	// gets the position of the mouse cursor (pixel location, relative to window)
-	POINT MousePosition() const;
 
 	// gets the position (console cell location) of the mouse cursor if LMB is pressed clicked down. (acts like detecting a mouse up event)
 	Coord MouseDownPosition() const;

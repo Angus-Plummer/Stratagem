@@ -17,6 +17,8 @@ public:
 
 	void AddButton(Button &button);
 
+	void Clear();
+
 	int NumberOfOptions() const { return options_.size(); }
 
 	int get_border_thickness() const { return border_thickness_; }

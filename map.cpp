@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "map.h"
 
-#include "game.h"
+#include "game_instance.h"
 #include "screen.h"
 
 #include "unit.h"
@@ -98,7 +98,7 @@ Tile* Map::GetTile(const Coord &position) const {
 
 // returns the tile at a console coordinate
 Tile* Map::GetTileFromConsoleCoord(const Coord &position) const {
-	Screen display = Game::instance().get_display();
+	Screen display = GameInstance::instance().get_display();
 	Coord map_location;	// corresponding map tile
 	// correct for map offset and convert into tile location
 	map_location.x = (position.x - display.get_map_x_offset()) / display.get_tile_width();
@@ -114,7 +114,7 @@ Tile* Map::GetTileFromConsoleCoord(const Coord &position) const {
 
 // Renders the map on a screen
 void Map::Render() const {
-	Screen display = Game::instance().get_display();
+	Screen display = GameInstance::instance().get_display();
 	int tile_width = display.get_tile_width();
 	int tile_height = display.get_tile_height();
 	int map_x_offset = display.get_map_x_offset();
@@ -208,7 +208,7 @@ Unit* Map::GetUnit(const Coord &position) const {
 
 // select an object on the map using right mouse button down
 Tile* Map::SelectTile() const {
-	Screen display = Game::instance().get_display();
+	Screen display = GameInstance::instance().get_display();
 	// get location of mouse down ({-1,-1} if no mouse down detected)
 	Coord event_location = display.MouseDownPosition();
 	if (event_location.x != -1 && event_location.y != -1) {
@@ -220,7 +220,7 @@ Tile* Map::SelectTile() const {
 
 // select a unit on the map using the mouse
 Unit* Map::SelectUnit() const {
-	Screen display = Game::instance().get_display();
+	Screen display = GameInstance::instance().get_display();
 	// get location of mouse down ({-1,-1} if no mouse down detected)
 	Coord event_location = display.MouseDownPosition();
 	if (event_location.x != -1 && event_location.y != -1) {

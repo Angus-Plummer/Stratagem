@@ -1,5 +1,5 @@
 #include "menu.h"
-#include "game.h"
+#include "game_instance.h"
 #include "screen.h"
 #include "button.h"
 
@@ -31,7 +31,7 @@ void Menu::set_location(const Coord &position) {
 
 void Menu::Render() const {
 	// get the currently used screen
-	Screen display = Game::instance().get_display();
+	Screen display = GameInstance::instance().get_display();
 	
 	// get original colour scheme to revert back at end
 	int original_colour_scheme = display.get_colour_scheme();
@@ -98,6 +98,13 @@ void Menu::AddButton(Button &button){
 			iter->UpdateWidth();
 		}
 	}
+}
+
+// clears all the buttons from the menu
+void Menu::Clear() {
+	options_.clear();
+	width_ = 2 * border_thickness_;
+	height_ = 2 * border_thickness_;
 }
 
 void Menu::HandleLeftMouseButtonDown(const Coord &coord) {

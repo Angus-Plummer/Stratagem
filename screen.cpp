@@ -68,7 +68,7 @@ int Screen::Width() const {
 }
 int Screen::Height() const{
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
-	if (!GetConsoleScreenBufferInfo(standard_in_handle_, &buffer)) {
+	if (!GetConsoleScreenBufferInfo(standard_out_handle_, &buffer)) {
 		exit(1);
 	}
 	return buffer.srWindow.Bottom - buffer.srWindow.Top;
@@ -101,27 +101,6 @@ Coord Screen::CursorPosition() const {
 	}
 }
 
-// gets the position of the mouse cursor (pixel location, relative to window)
-POINT Screen::MousePosition() const {
-	POINT position; // POINT var to hold output
-	// try to get cursor position ( relative to top left of screen)
-	if (GetCursorPos(&position)) {
-		// try to convert to position relative to console window
-		if (ScreenToClient(GetConsoleWindow(), &position)) {
-			return position;
-		}
-		// if could not convert just return 0,0
-		else {
-			position = { 0,0 };
-			return position;
-		}
-	}
-	// if could not get position just return 0,0
-	else {
-		position = { 0,0 };
-		return position;
-	}
-}
 // gets the position (console cell location) of the mouse cursor if LMB is pressed clicked down. (acts like detecting a mouse up event)
 Coord Screen::MouseDownPosition() const {
 	bool detected_down = false;

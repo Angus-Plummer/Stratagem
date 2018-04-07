@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "tile.h"
 
-#include "game.h"
+#include "game_instance.h"
 #include "screen.h"
 #include "map.h"
 
@@ -35,13 +35,13 @@ void Tile::set_highlighted(bool const &highlighted) {
 
 // function to check if two tiles are adjacent
 bool Tile::AdjacencyTest(const Tile *test_tile) const {
-	std::vector<Tile*> adjacent_tiles = Game::instance().get_map().AdjacentTo(this);
+	std::vector<Tile*> adjacent_tiles = GameInstance::instance().get_map().AdjacentTo(this);
 	return std::find(adjacent_tiles.begin(), adjacent_tiles.end(), test_tile) != adjacent_tiles.end();
 }
 
 // render the tile
 void Tile::Render() const {
-	Screen display = Game::instance().get_display();
+	Screen display = GameInstance::instance().get_display();
 	int original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back later
 	// set colour scheme for tyle type
 	display.set_colour_scheme(get_colour_scheme());

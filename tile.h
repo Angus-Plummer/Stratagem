@@ -14,7 +14,6 @@ protected:
 	int move_cost_; // cost of movement across the tile (if unit can traverse the tile)
 	int def_modifier_; // additive defensive modifier. Affects damage recieved by a unit on this tile.
 	int atk_modifier_; // additive attack modifier. Affects damage dealt by a unit on this tile.
-	int highlighted_colour_scheme_; // colour scheme when highlighted
 	bool highlighted_; // if tile is currently highlighted for movement then this is true, otherwise false
 	// pointer to the map that this tile belongs to
 	Map* parent_map_;

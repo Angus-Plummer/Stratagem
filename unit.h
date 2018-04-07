@@ -3,13 +3,22 @@
 #include "stdafx.h"
 #include "game_object.h"
 
+// current state of the unit
+enum UnitState {
+	STATE_IDLE, // unit is unselected and can still be used
+	STATE_ASLEEP, // unit is unselected and has already acted this turn
+	STATE_DEAD, // unit is dead
+	STATE_SELECTED // unit is selected
+};
+
 // forward declarations
 class Tile;
 class MoveSequence;
 
 class Unit : public GameObject {
 protected:
-	std::string unit_marker_; // string identifier (units use 2 chars to identify them)
+	UnitState state_; // the current state of the unit
+	std::string unit_marker_; // string identifier (2 chars that are drawn on the map to represent the unit)
 	int max_hp_; // maximum hit points of the unit
 	int current_hp_; // the current hit points of the unit
 	int armour_; // armor value ( reduces damage additatively)
@@ -20,12 +29,10 @@ protected:
 	int attack_range_; 	// default attack range
 	bool moved_this_turn_; // whether unit has/hasnt moved yet
 	bool attacked_this_turn_; // whether unit has/hasnt attacked yet
-	bool selecting_movement_; // true if unit is currently selected for movement
-	bool selecting_attack_; // true if unit is currently selected for attacking
-	bool alive_; // whether unit is alive or not
 	int team_; // what team the unit belongs to
-	int selected_colour_scheme_; // colour scheme when selected
+
 	int acted_colour_scheme_; // colour scheme when unit has already acted on a turn
+	int dead_colour_scheme_; // colour scheme when the unit is dead
 
 public:
 	Unit(const int &team);
@@ -37,10 +44,7 @@ public:
 	void set_current_hp(int const &hp); // will set to 0 if < 0 and max_hp if > max_hp
 	double get_armour() const { return armour_; }
 	int get_move_distance() const { return move_range_; }
-	bool is_alive() const { return alive_; }
 	int get_team() const { return team_; }
-	bool is_selecting_movement() const { return selecting_movement_; }
-	bool is_selecting_attack() const { return selecting_attack_; }
 	bool has_moved_this_turn() const { return moved_this_turn_; }
 	bool has_attacked_this_turn() const { return attacked_this_turn_; }
 
@@ -61,29 +65,18 @@ public:
 	// deselect this unit
 	void DeselectUnit();
 
-	// reset the has_moved_this_turn and has_attacked_this_turn flags to false
+	// reset the has_moved_this_turn and has_attacked_this_turn flags to false and set the state to idle
 	void EnableActions();
+	// set the flags to true and state to asleep
+	void DisableActions();
 
 	// do unit death
-	void Die();
+	void Kill();
 
 	// function return true if unit can move
 	bool CanMove() const;
 	// function return true if unit can attack
 	bool CanAttack() const;
-
-	// function to run when movement option is chosen from the action menu
-	void ChooseMovement();
-	// cancels the state of selecting movement
-	void UnChooseMovement();
-
-	// function to run when attack option is chosen from the action menu
-	void ChooseAttack();
-	// cancels the state of selecting attack
-	void UnChooseAttack();
-
-	// marks the possible actions on the screen, depending on the type of action
-	void ShowPossibleAction(const int &action_type);
 
 	// check if a target unit is attackable by this unit
 	bool CanAttackTarget(const Unit *target) const;
