@@ -107,6 +107,6 @@ public:
 	// handles game victory
 	void Victory(const int &team);
 
-	// run the main game loop until the user quits
+	// run the main game playing loop until the game ends
 	void Run();
 };

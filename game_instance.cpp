@@ -8,7 +8,7 @@
 #include "ascii_art.h"
 
 GameInstance::GameInstance() {
-	display_ = new Screen(700, 700); // default screen size 700x700
+	display_ = new Screen(610, 560); // default screen size 610x560 ( just fits everything on)
 	game_map_ = new Map(); // create empty map
 	selected_unit_ = nullptr; // no unit selected
 	context_menu_ = Menu(); // context menu not showing
@@ -189,15 +189,18 @@ void GameInstance::RemoveContextMenu() {
 		}
 	}
 
-	// if the context menu is covering the game map at all then re-render the tiles and units that it covers
+	// if the context menu is covering the game map at all then re-render the tiles and units that it covers (renders each tile once instead of rendering a tile for each cell of the context menu)
 	if (game_map_->GetTileFromConsoleCoord(context_menu_.get_location())) { // "screen_location" of menu is the top left cell and it expands right and down
 		// get top-left-most tile covered by menu
 		Coord top_left = game_map_->GetTileFromConsoleCoord(context_menu_.get_location())->get_map_coords();
 		// for all tiles that are covered by any amount by the context menu...
 		for (int i = 0; i < context_menu_.get_width() / display_->get_tile_width() + 1; i++) { // the width of the menu / width of the tile gives number of tiles that the menu covers horizontally (rounded down, hence add 1)
-			for (int j = 0; j <= context_menu_.get_height() / display_->get_tile_height() + 1; j++) { // the height of the menu / height of the tile gives number of tiles that the menu covers vertically (rounded down, hence add 1)
-				// render the tile and if there is a unit present on the tile, render that too
-				game_map_->Render(top_left + Coord{ i,j });
+			for (int j = 0; j < context_menu_.get_height() / display_->get_tile_height() + 1; j++) { // the height of the menu / height of the tile gives number of tiles that the menu covers vertically (rounded down, hence add 1)
+				// if there is a tile at this coordinate then render the tile, if not then there is nothing to render
+				if (game_map_->GetTile(top_left + Coord{ i,j })) {
+					// render the tile (will also render any unit on the tile
+					game_map_->Render(top_left + Coord{ i,j });
+				}
 			}
 		}
 	}
