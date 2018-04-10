@@ -43,3 +43,4 @@ struct Coord{
 	// writing the coordinate to a stream
 	friend std::ostream& operator<<(std::ostream &os, const Coord &coord);
 };
+

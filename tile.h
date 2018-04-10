@@ -32,7 +32,7 @@ public:
 	bool get_highlighted() const { return highlighted_; }
 
 	// get the colour scheme (highlighted scheme if highlighted is true)
-	int get_colour_scheme() const;
+	ColourScheme get_colour_scheme() const;
 
 	// function to check if two tiles are adjacent
 	bool AdjacencyTest(const Tile *test_tile) const;

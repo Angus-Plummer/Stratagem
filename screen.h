@@ -35,8 +35,8 @@ public:
 	int get_map_x_offset() const;
 	int get_map_y_offset() const;
 	// get and set the colour scheme of the console
-	void set_colour_scheme(const int &attribute) const;
-	int get_colour_scheme() const;
+	void set_colour_scheme(const ColourScheme &colour_scheme) const;
+	ColourScheme get_colour_scheme() const;
 
 	// get and set the position of the console cursor
 	void GoTo(const Coord &coord) const;

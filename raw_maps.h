@@ -1,5 +1,5 @@
 #pragma once
-#include "stdafx.h"
+#include "stdafx.h" 
 
 std::vector<std::vector<int>> const raw_map1 = {
 	{ 4, 4, 4, 4, 4, 2, 2, 2, 3, 3 },

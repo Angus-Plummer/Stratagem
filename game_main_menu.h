@@ -25,6 +25,7 @@ protected:
 	std::vector<Button> buttons_;
 	GameInstance* instance_;
 	Screen* display_;
+	int current_map_; // holds the number of the currently selected map
 public:
 	GameMainMenu(Screen &display);
 	~GameMainMenu();
@@ -53,7 +54,7 @@ public:
 	void PlayGame();
 
 	// handles a mouse down event (i.e. the user clicking somewhere on the screen)
-	void HandleLeftMouseButtonDown(const Coord &location);
+	void HandleLeftMouseButtonDown(const Coord &screen_location);
 
 	// runs the main game loop until the user quits the game
 	void Run();

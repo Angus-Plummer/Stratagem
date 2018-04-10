@@ -12,24 +12,24 @@ GameInstance::GameInstance() {
 	game_map_ = new Map(); // create empty map
 	selected_unit_ = nullptr; // no unit selected
 	context_menu_ = Menu(); // context menu not showing
-	end_turn_button_menu_ = Menu(); // start with end turn button not showing
-	surrender_button_menu_ = Menu(); // start with no surrender button showing
+	end_turn_button_ = Button(); // start with end turn button not showing
+	surrender_button_ = Button(); // start with no surrender button showing
 	player_turn_ = 1; // start with player 1's turn
 	instance_ = *this; // set the game instance to be this newly constructed game instance
 	running_ = false; // game initiates not running
-	state_ = STATE_SELECTING_UNIT; // set initial state as no unit selected
+	state_ = STATE_SETUP; // set initial state is setup 
 }
 
 GameInstance::GameInstance(Screen &display): display_(&display){
 	game_map_ = new Map(); // create empty map
 	selected_unit_ = nullptr; // no unit selected
 	context_menu_ = Menu(); // context menu not showing
-	end_turn_button_menu_ = Menu(); // start with end turn button not 
-	surrender_button_menu_ = Menu(); // start with no surrender button showing
+	end_turn_button_ = Button(); // start with end turn button not 
+	surrender_button_ = Button(); // start with no surrender button showing
 	player_turn_ = 1; // start with player 1's turn
 	instance_ = *this; // set the game instance to be this newly constructed game instance
 	running_ = false; // game initiates not running
-	state_ = STATE_SELECTING_UNIT; // set initial state as no unit selected
+	state_ = STATE_SETUP; // set initial state is setup 
 }
 
 // dtor : NEED TO SET THIS UP PROPERLY
@@ -105,12 +105,15 @@ void GameInstance::RemoveUnit(Unit *unit) {
 	p1_units_.erase(std::remove(p1_units_.begin(), p1_units_.end(), unit), p1_units_.end());
 	p2_units_.erase(std::remove(p2_units_.begin(), p2_units_.end(), unit), p2_units_.end());
 	game_map_->RemoveUnit(unit);
-	// if after removing the unit there are not units left on the team it was removed from then the other team wins
-	if (p1_units_.size() == 0) {
-		Victory(2);
-	}
-	else if (p2_units_.size() == 0) {
-		Victory(1);
+
+	// if after removing the unit there are not units left on the team from then the other team wins (if the game is not currently in setup where this map happen during unit placement)
+	if (state_ != STATE_SETUP) {
+		if (p1_units_.size() == 0) {
+			Victory(2);
+		}
+		else if (p2_units_.size() == 0) {
+			Victory(1);
+		}
 	}
 }
 
@@ -210,7 +213,8 @@ void GameInstance::RemoveContextMenu() {
 
 // carries out the beginning of a turn
 void GameInstance::StartTurn() {
-	// render the game map again, show the end turn button and end turn label
+	// clear the screen and render the game map again, show the end turn button and end turn label
+	display_->Clear();
 	game_map_->Render();
 	ShowTurnLabel();
 	ShowEndTurnButton();
@@ -283,57 +287,55 @@ void GameInstance::DisableUnits(std::vector<Unit*> units) const {
 // show / update the label for who's turn it currently is
 void GameInstance::ShowTurnLabel() {
 	// save the current colour scheme to revert back after
-	int original_colour_scheme = display_->get_colour_scheme();
+	ColourScheme original_colour_scheme = display_->get_colour_scheme();
 	// go to top right next to map
 	display_->GoTo(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * game_map_->get_map_width() + 1,1 });
 	// if player 1s turn set colour scheme to blue, player 2s turn then red
 	if (player_turn_ == 1) {
-		display_->set_colour_scheme(159);
+		display_->set_colour_scheme(ColourScheme(DARK_BLUE, WHITE));
 	}
 	else if (player_turn_ == 2) {
-		display_->set_colour_scheme(79);
+		display_->set_colour_scheme(ColourScheme(DARK_RED, WHITE));
 	}
 	// print out message saying whos turn it is
-	std::cout << "Player " << player_turn_ << "'s turn";
+	std::cout << " Player " << player_turn_ << "'s turn ";
 	// revert back to original colour scheme
 	display_->set_colour_scheme(original_colour_scheme);
 }
 
 // add / redo end turn button
 void GameInstance::ShowEndTurnButton() {
-	// if there is already a end turn menu then first remove that
-	end_turn_button_menu_.Clear();
-	
 	// add button
-	Button end_turn_button("End turn", []() {GameInstance::instance().EndTurn(); });
-	end_turn_button_menu_.AddButton(end_turn_button);
+	end_turn_button_ =  Button(" End turn ", []() {GameInstance::instance().EndTurn(); });
+
+	// set colour
+	end_turn_button_.set_colour_scheme(ColourScheme(WHITE, BLACK));
 
 	// menu position is top right, next to map but below the current players turn label
-	end_turn_button_menu_.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * game_map_->get_map_width() + 1, 3 });
+	end_turn_button_.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * game_map_->get_map_width() + 1, 3 });
 
 	// render the menu
-	end_turn_button_menu_.Render();
+	end_turn_button_.Render();
 }
 
 // show quit game button
 void GameInstance::ShowSurrenderButton() {
-	// if there is already a end turn menu then first remove that
-	surrender_button_menu_.Clear();
 
 	// add button
-	Button surrender_button("Surrender", []() { 
+	surrender_button_ = Button(" Surrender ", []() { 
 		// lambda function runs the victory function for the other player
 		if (GameInstance::instance().get_player_turn() == 1) { GameInstance::instance().Victory(2);}
 		else { GameInstance::instance().Victory(1); }
 	});
-	surrender_button_menu_.AddButton(surrender_button);
+	// set colour
+	surrender_button_.set_colour_scheme(ColourScheme(WHITE, BLACK));
 
 	// menu position is bottom right, next to map, far from other buttons
-	surrender_button_menu_.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * game_map_->get_map_width() + 1,
-		display_->get_map_y_offset() + display_->get_tile_height() * game_map_->get_map_height() - surrender_button_menu_.get_height()});
+	surrender_button_.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * game_map_->get_map_width() + 1,
+		display_->get_map_y_offset() + display_->get_tile_height() * game_map_->get_map_height() - surrender_button_.get_height()});
 
 	// render the menu
-	surrender_button_menu_.Render();
+	surrender_button_.Render();
 }
 
 void GameInstance::ShowTurnChangeScreen() {
@@ -373,11 +375,11 @@ void GameInstance::HandleLeftMouseButtonDown(const Coord &screen_location) { // 
 			}
 		}
 		// otherwise check if the click was on the end turn and surrender buttons and handle those cases
-		else if (end_turn_button_menu_.Contains(screen_location)) {
-			end_turn_button_menu_.HandleLeftMouseButtonDown(screen_location);
+		else if (end_turn_button_.Contains(screen_location)) {
+			end_turn_button_.Trigger();
 		}
-		else if (surrender_button_menu_.Contains(screen_location)) {
-			surrender_button_menu_.HandleLeftMouseButtonDown(screen_location);
+		else if (surrender_button_.Contains(screen_location)) {
+			surrender_button_.Trigger();
 		}
 		break;
 	// if selecting an action then handle click on the menu or deselect the unit (and select new unit if clicked on suitable unit)
@@ -386,13 +388,26 @@ void GameInstance::HandleLeftMouseButtonDown(const Coord &screen_location) { // 
 		if (context_menu_.Contains(screen_location)) {
 			context_menu_.HandleLeftMouseButtonDown(screen_location);
 		}
-		// if they didnt click on the menu...
+		// if they clicked on the end_turn button then handle
+		else if (end_turn_button_.Contains(screen_location)) {
+			RemoveContextMenu();
+			end_turn_button_.Trigger();
+		}
+		// if they clicked on the surrender button then handle
+		else if (surrender_button_.Contains(screen_location)) {
+			RemoveContextMenu();
+			surrender_button_.Trigger();
+		}
+		// if they didnt click on the menu or the surrender or end turn buttons...
 		else {
-			// if there is a tile at the screen_location of the click (i.e. they clicked on the map) and the currently selected unit has yet to attack or move
-			if (tile && !selected_unit_->has_moved_this_turn() && !selected_unit_->has_attacked_this_turn()) {
-				// deselect the currently selected unit
-				DeselectUnit();
-				// if there is also a unit present on that tile then select that unit if it can be selected
+			// if there is a tile at the screen_location of the click (i.e. they clicked on the map) 
+			if (tile){
+				// deselect the currently selected unit if it has yet to act
+				if (!selected_unit_->has_moved_this_turn() && !selected_unit_->has_attacked_this_turn()) {
+					// deselect the currently selected unit
+					DeselectUnit();
+				}
+				// if there is also a unit present on that tile then select that unit if it can be selected (even if the currently selected unit has done some action)
 				if (unit) {
 					if (unit->CanSelect()) {
 						unit->SelectUnit();
@@ -507,10 +522,10 @@ void GameInstance::Run() {
 	running_ = true; // will set to false if user clicks quit button or somone wins
 	while (running_) {
 		// get location of mouse click
-		Coord mouse_down_pos = GameInstance::instance().get_display().MouseDownPosition();
+		Coord mouse_down_pos = display_->MouseDownPosition();
 		// if mouse click was on the screen then handle it
-		if (mouse_down_pos.x != -1 && mouse_down_pos.y != -1) {
-			GameInstance::instance().HandleLeftMouseButtonDown(mouse_down_pos);
+		if (mouse_down_pos != Coord{ -1,-1 }) {
+			HandleLeftMouseButtonDown(mouse_down_pos);
 			// if the game isnt over then auto end the turn if appropriate
 			if (state_ != STATE_VICTORY) {
 				// if all the units on the team whos go it is have now acted then end the turn

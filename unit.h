@@ -31,8 +31,8 @@ protected:
 	bool attacked_this_turn_; // whether unit has/hasnt attacked yet
 	int team_; // what team the unit belongs to
 
-	int acted_colour_scheme_; // colour scheme when unit has already acted on a turn
-	int dead_colour_scheme_; // colour scheme when the unit is dead
+	ColourScheme acted_colour_scheme_; // colour scheme when unit has already acted on a turn
+	ColourScheme dead_colour_scheme_; // colour scheme when the unit is dead
 
 public:
 	Unit(const int &team);
@@ -49,7 +49,7 @@ public:
 	bool has_attacked_this_turn() const { return attacked_this_turn_; }
 
 	// get the appropriate colour scheme for the unit
-	int get_colour_scheme() const;
+	ColourScheme get_colour_scheme() const;
 
 	// apply damage and healing
 	void AttackedBy(const Unit *target);

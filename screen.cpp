@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "screen.h"
+#include "colour_scheme.h"
 
 
 Screen::Screen(const int &width, const int &height) : console_window_(GetConsoleWindow()),
@@ -138,18 +139,28 @@ Coord Screen::MouseDownPosition() const {
 	return down_position;
 }
 
-// sets the colour scheme to input arg value
-void Screen::set_colour_scheme(const int &attribute) const {
+// sets the colour scheme to the input background and text colours
+void Screen::set_colour_scheme(const ColourScheme &colour_scheme) const {
+	// determine the id number of the colour scheme (hexadecimal, first digit background, second text)
+	int colour_scheme_hex = colour_scheme.background_colour * 16 + colour_scheme.text_colour;
 	// if fails to do function then exit
-	if (!SetConsoleTextAttribute(standard_out_handle_, attribute)) {
+	if (!SetConsoleTextAttribute(standard_out_handle_, colour_scheme_hex)) {
 		exit(1);
 	}
 }
-// gets the current colour scheme
-int Screen::get_colour_scheme() const {
+
+// gets the current colour of the background
+ColourScheme Screen::get_colour_scheme() const {
+	// attempt to get console screen buffer info and throw error if it fails
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
 	if (!GetConsoleScreenBufferInfo(standard_out_handle_, &buffer)) {
 		exit(1);
 	}
-	return buffer.wAttributes;
+	// integer value of the colour scheme (hexadecimal first digit background, second digit text)
+	int colour_scheme = buffer.wAttributes;
+	// divide by 16 and ignore remainder to get background colour
+	ConsoleColour background_colour = static_cast<ConsoleColour>(colour_scheme / 16);
+	// text colour is remainder of the division by 16
+	ConsoleColour text_colour = static_cast<ConsoleColour>(colour_scheme % 16);
+	return ColourScheme(background_colour, text_colour);
 }

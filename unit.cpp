@@ -9,16 +9,16 @@
 Unit::Unit(const int &team): GameObject(), team_(team), state_(STATE_ASLEEP){ /* alive_(true), moved_this_turn_(false), 
 								attacked_this_turn_(false), selecting_movement_(false), selecting_attack_(false){ */
 	if (team_ == 1) {
-		default_colour_scheme_ = 31; // dark blue with white text
-		highlighted_colour_scheme_ = 159; // brighter blue with white text
-		acted_colour_scheme_ = 23; // dark blue with gery text
-		dead_colour_scheme_ = 7; // grey on black
+		default_colour_scheme_ = ColourScheme(DARK_BLUE, WHITE);
+		highlighted_colour_scheme_ = ColourScheme(BLUE, WHITE);
+		acted_colour_scheme_ = ColourScheme(DARK_BLUE, LIGHT_GREY);
+		dead_colour_scheme_ = ColourScheme(BLACK, LIGHT_GREY);
 	}
 	if (team_ == 2){
-		default_colour_scheme_ = 79; // red with white text
-		highlighted_colour_scheme_ = 207; // bright red with white text
-		acted_colour_scheme_ = 71; // red with grey text
-		dead_colour_scheme_ = 7; // grey on black
+		default_colour_scheme_ = ColourScheme(DARK_RED, WHITE);
+		highlighted_colour_scheme_ = ColourScheme(RED, WHITE);
+		acted_colour_scheme_ = ColourScheme(DARK_RED, LIGHT_GREY);
+		dead_colour_scheme_ = ColourScheme(BLACK, LIGHT_GREY);
 	}
 }
 
@@ -45,7 +45,7 @@ void Unit::set_current_hp(const int &hp) {  // will set to 0 if < 0 and max_hp i
 }
 
 // get the appropriate colour scheme for the unit
-int Unit::get_colour_scheme() const {
+ColourScheme Unit::get_colour_scheme() const {
 	// if the unit is the currently seleceted unit then return the selected colour scheme
 	switch (state_) {
 		// if the unit is selcted return the selected colour scheme
@@ -228,7 +228,7 @@ void Unit::set_map_coords(const Coord &new_pos) {
 
 void Unit::Render() const {
 	Screen display = GameInstance::instance().get_display();
-	int original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back late
+	ColourScheme original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back late
 	// set colour scheme of unit
 	display.set_colour_scheme(get_colour_scheme());
 	// set console cursor position to central tile component
@@ -341,7 +341,7 @@ void Unit::HighlightReachableTiles(const bool &highlight) const {
 void Unit::AnimateMovement(const Tile* start_tile, const Tile* target_tile) const {
 	Screen display = GameInstance::instance().get_display();
 	// save the colour scheme to reset at end of function
-	int initial_colour_scheme = display.get_colour_scheme();
+	ColourScheme initial_colour_scheme = display.get_colour_scheme();
 	// if target tile is in adjacent to tile unit is on then animate movement
 	if (start_tile->AdjacencyTest(target_tile)) {
 		// get coordinate change of x and y 

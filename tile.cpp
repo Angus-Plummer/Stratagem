@@ -19,7 +19,7 @@ Tile::Tile(Map &map, const Coord &map_coords) : GameObject(), parent_map_(&map),
 Tile::~Tile() {};
 
 // get the colour scheme
-int Tile::get_colour_scheme() const {
+ColourScheme Tile::get_colour_scheme() const {
 	if (highlighted_) {
 		return highlighted_colour_scheme_;
 	}
@@ -42,7 +42,7 @@ bool Tile::AdjacencyTest(const Tile *test_tile) const {
 // render the tile
 void Tile::Render() const {
 	Screen display = GameInstance::instance().get_display();
-	int original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back later
+	ColourScheme original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back later
 	// set colour scheme for tyle type
 	display.set_colour_scheme(get_colour_scheme());
 	// iterate over console cells for tile width and height

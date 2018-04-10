@@ -9,7 +9,7 @@ Menu::Menu() {
 	border_thickness_ = 1; // thickness of the menu's border
 	width_ = 2 * border_thickness_;
 	height_ = 2 * border_thickness_;
-	colour_scheme_ = 15; // white on black
+	colour_scheme_ = ColourScheme(BLACK, WHITE); // white on black
 }
 
 
@@ -34,7 +34,7 @@ void Menu::Render() const {
 	Screen display = GameInstance::instance().get_display();
 	
 	// get original colour scheme to revert back at end
-	int original_colour_scheme = display.get_colour_scheme();
+	ColourScheme original_colour_scheme = display.get_colour_scheme();
 	display.set_colour_scheme(colour_scheme_);
 
 	// ----- menu background -----
@@ -46,6 +46,7 @@ void Menu::Render() const {
 	}
 	
 	// ----- menu borders -----
+	
 	// top border
 	display.GoTo(location_); // cursor in top left of menu
 	std::cout << char(218); // top left corner (single: 218, double: 201, left double: 214, top double: 213)

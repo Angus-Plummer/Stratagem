@@ -4,6 +4,7 @@
 #include "Menu.h" // have to include menu as the game instance contains menus (not just pointers to them)
 
 enum GameState {
+	STATE_SETUP, // pregame setup, before game starts running
 	STATE_SELECTING_UNIT, // no unit currently selected
 	STATE_UNIT_SELECTING_ACTION, // selected unit is choosing an action
 	STATE_UNIT_SELECTING_MOVEMENT, // selected unit is choosing tile for movement
@@ -26,8 +27,8 @@ protected:
 	Map* game_map_; // game map
 	Unit* selected_unit_; // the currently selected unit (nullptr if no unit selected)
 	Menu context_menu_; // the context menu
-	Menu end_turn_button_menu_; // menu that holds the button to end player turn
-	Menu surrender_button_menu_; // menu that hold the surrender button
+	Button end_turn_button_; // button to end player turn
+	Button surrender_button_; // surrender button
 
 
 	// vector of pointers for each players units

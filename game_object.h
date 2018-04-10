@@ -6,8 +6,8 @@ class GameObject{
 protected:
 	std::string type_; // string of name of tile type
 	Coord map_coords_; // coordinates of object on the game map
-	int default_colour_scheme_; // default colour scheme of terminal output
-	int highlighted_colour_scheme_; // colour scheme when highlighted
+	ColourScheme default_colour_scheme_; // default colour scheme of terminal output
+	ColourScheme highlighted_colour_scheme_; // colour scheme when highlighted
 	
 public:
 	GameObject();
@@ -16,7 +16,7 @@ public:
 	// accessors
 	std::string get_type() const { return type_; }
 	Coord get_map_coords() const { return map_coords_; }
-	int get_colour_scheme() const { return default_colour_scheme_; }
+	ColourScheme get_colour_scheme() const { return default_colour_scheme_; }
 
 	// render the object on a screen
 	void virtual Render() const = 0;
