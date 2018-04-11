@@ -39,6 +39,8 @@ public:
 	// Return number of rows and columns
 	int get_map_height() const { return map_height_; } 
 	int get_map_width() const { return map_width_; }
+	// return width of setup region
+	int get_set_up_width() const { return set_up_width_; }
 
 	// returns the terrain tile a map coordinate
 	Tile* GetTile(const Coord &position) const;

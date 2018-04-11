@@ -248,6 +248,9 @@ void GameInstance::EndTurn() {
 	}
 	// run an animation to show turn change (as easy to miss the current turn label)
 	ShowTurnChangeScreen();
+	// wait for mouse click and then start the next turn
+	display_->WaitForMouse();
+	StartTurn();
 }
 
 // checks if all the units on the current team have acted and ends turn if they have
@@ -308,9 +311,6 @@ void GameInstance::ShowEndTurnButton() {
 	// add button
 	end_turn_button_ =  Button(" End turn ", []() {GameInstance::instance().EndTurn(); });
 
-	// set colour
-	end_turn_button_.set_colour_scheme(ColourScheme(WHITE, BLACK));
-
 	// menu position is top right, next to map but below the current players turn label
 	end_turn_button_.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * game_map_->get_map_width() + 1, 3 });
 
@@ -327,9 +327,7 @@ void GameInstance::ShowSurrenderButton() {
 		if (GameInstance::instance().get_player_turn() == 1) { GameInstance::instance().Victory(2);}
 		else { GameInstance::instance().Victory(1); }
 	});
-	// set colour
-	surrender_button_.set_colour_scheme(ColourScheme(WHITE, BLACK));
-
+	
 	// menu position is bottom right, next to map, far from other buttons
 	surrender_button_.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * game_map_->get_map_width() + 1,
 		display_->get_map_y_offset() + display_->get_tile_height() * game_map_->get_map_height() - surrender_button_.get_height()});
@@ -476,7 +474,7 @@ void GameInstance::HandleLeftMouseButtonDown(const Coord &screen_location) { // 
 			UnChooseAttack();
 		}
 		break;
-	// if between turns then mouse click just triggers the start of the next turn
+	// if between turns then mouse click just triggers the start of the next turn (should automatically do this anyway)
 	case STATE_BETWEEN_TURNS:
 		StartTurn();
 		break;

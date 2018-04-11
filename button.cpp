@@ -22,7 +22,7 @@ Button::Button(std::string text, std::function<void()> function):
 {
 	width_ = text_.length(); // width is just the number of chars in the text
 	height_ = 1;
-	colour_scheme_ = ColourScheme(BLACK, WHITE); // white on black
+	colour_scheme_ = ColourScheme(WHITE, BLACK); // white on black
 }
 
 

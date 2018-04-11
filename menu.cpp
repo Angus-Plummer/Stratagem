@@ -88,6 +88,7 @@ void Menu::AddButton(Button &button){
 	button.set_location(location_ + Coord(border_thickness_, height_ -  border_thickness_));
 	// set the buttons parent menu as this menu
 	button.set_menu(this);
+	button.set_colour_scheme(ColourScheme(BLACK,WHITE));
 	// add the button to this menu's button vector and increse the height of the menu by the buttons height
 	options_.push_back(button);
 	// increase the height of the menu to accomodate the button

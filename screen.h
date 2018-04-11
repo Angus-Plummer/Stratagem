@@ -44,5 +44,8 @@ public:
 
 	// gets the position (console cell location) of the mouse cursor if LMB is pressed clicked down. (acts like detecting a mouse up event)
 	Coord MouseDownPosition() const;
+
+	// wait for mouse input (function will keep looping until a click is detected)
+	void WaitForMouse();
 };
 

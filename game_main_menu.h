@@ -10,6 +10,7 @@ enum MenuState {
 	STATE_TITLE_SCREEN,
 	STATE_HELP_SCREEN,
 	STATE_MAP_SELECTION,
+	STATE_TEAM_SIZE_SELECT,
 	STATE_UNIT_PLACEMENT,
 	STATE_GAME_RUNNING,
 	STATE_QUITTING
@@ -18,6 +19,8 @@ enum MenuState {
 // forward declarations
 class Screen;
 class GameInstance;
+class Tile;
+class Unit;
 
 class GameMainMenu{
 protected:
@@ -26,6 +29,10 @@ protected:
 	GameInstance* instance_;
 	Screen* display_;
 	int current_map_; // holds the number of the currently selected map
+	int team_size_; // number of starting units on each team
+	int team_placing_; // the team that is currently allowed to select and place units
+	Unit* placing_unit_; // unit that is currently being placed on the map
+	std::vector<Unit*> units_;
 public:
 	GameMainMenu(Screen &display);
 	~GameMainMenu();
@@ -44,11 +51,45 @@ public:
 	// moved the game into the map selection state
 	void StartMapSelection();
 
+	// move the game into the selecting teams size state
+	void StartTeamSizeSelection();
+
+	// --------- unit placement ------------
+
 	// moves the game into the unit placement state
 	void StartUnitPlacement();
 
-	// remove all units of a team from the game map (allows them to try placing again. also run for both teams when backing out of unit selection)
-	void ResetUnitPlacement(const int &team);
+	// confirms the current unit placement (if the correct number of units have been placed)
+	void ConfirmUnitPlacement();
+
+	// remove all units of the team that is currently placing units from the game map (allows them to try placing again. also run for both teams when backing out of unit selection)
+	void ClearUnits();
+
+	// returns a vector of the tiles that placing_unit_ can be placed on
+	std::vector<Tile*> PlaceableTiles() const;
+
+	// highlight placable tiles (sets placable tiles to highlighted and renders them)
+	void HighlightPlaceableTiles();
+
+	// reset tiles (sets all to unhighlighted and renders)
+	void ResetTiles();
+
+	// counts the number of units that have been placed by the current team
+	int CountUnits();
+	
+	// shows the number of units the team currently placing units has placed
+	void ShowUnitCounter();
+
+	// shows the type of unit that is currently being placed
+	void ShowPlacingUnit();
+
+	// select a new unit to be placed
+	void SetPlacingUnit(Unit *placing_unit);
+
+	// removes the unit being placed and replaces with a nullptr, also resets the tiles
+	void RemovePlacingUnit();
+
+	// --------- end of unit placement ----------
 
 	// starts the actual game running
 	void PlayGame();

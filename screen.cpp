@@ -139,6 +139,15 @@ Coord Screen::MouseDownPosition() const {
 	return down_position;
 }
 
+// wait for mouse input (function will keep looping until a click is detected)
+void Screen::WaitForMouse() {
+	Coord mouse_down_pos{ -1,-1 }; // {-1,-1 is returned from MouseDownPosition if no click is detected}
+								   // keep getting the mouse down position until it returns an a value corresponding to a click
+	while (mouse_down_pos == Coord{ -1,-1 }) {
+		mouse_down_pos = MouseDownPosition();
+	}
+}
+
 // sets the colour scheme to the input background and text colours
 void Screen::set_colour_scheme(const ColourScheme &colour_scheme) const {
 	// determine the id number of the colour scheme (hexadecimal, first digit background, second text)
