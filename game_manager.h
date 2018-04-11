@@ -22,7 +22,7 @@ class GameInstance;
 class Tile;
 class Unit;
 
-class GameMainMenu{
+class GameManager{
 protected:
 	MenuState state_;
 	std::vector<Button> buttons_;
@@ -32,10 +32,10 @@ protected:
 	int team_size_; // number of starting units on each team
 	int team_placing_; // the team that is currently allowed to select and place units
 	Unit* placing_unit_; // unit that is currently being placed on the map
-	std::vector<Unit*> units_;
+	std::vector<Unit*> units_placed_;
 public:
-	GameMainMenu(Screen &display);
-	~GameMainMenu();
+	GameManager(Screen &display);
+	~GameManager();
 
 	// clear all menus from the vector of menus
 	void ClearButtons();
@@ -79,6 +79,9 @@ public:
 	
 	// shows the number of units the team currently placing units has placed
 	void ShowUnitCounter();
+
+	// flashes the unit counter red
+	void FlashUnitCounter();
 
 	// shows the type of unit that is currently being placed
 	void ShowPlacingUnit();

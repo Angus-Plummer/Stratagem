@@ -107,7 +107,7 @@ void GameInstance::RemoveUnit(Unit *unit) {
 	game_map_->RemoveUnit(unit);
 
 	// if after removing the unit there are not units left on the team from then the other team wins (if the game is not currently in setup where this map happen during unit placement)
-	if (state_ != STATE_SETUP) {
+	if (state_ != STATE_SETUP && state_ != STATE_VICTORY) {
 		if (p1_units_.size() == 0) {
 			Victory(2);
 		}
@@ -488,6 +488,16 @@ void GameInstance::HandleLeftMouseButtonDown(const Coord &screen_location) { // 
 // handles game victory
 void GameInstance::Victory(const int &team) {
 	state_ = STATE_VICTORY; // set state
+	// iterate through the units and remove any remaining from the game
+	for (auto unit_iter = p1_units_.begin(); unit_iter != p1_units_.end(); unit_iter++) {
+		game_map_->RemoveUnit(*unit_iter);
+	}
+	p1_units_.clear();
+	for (auto unit_iter = p2_units_.begin(); unit_iter != p2_units_.end(); unit_iter++) {
+		game_map_->RemoveUnit(*unit_iter);
+	}
+	p1_units_.clear();
+
 	// show victory message / screen
 	display_->Clear();
 	// determine top left coord to output ascii art from (art is centred horizontally and placed 1/3 down from top of screen)s

@@ -30,7 +30,6 @@ protected:
 	Button end_turn_button_; // button to end player turn
 	Button surrender_button_; // surrender button
 
-
 	// vector of pointers for each players units
 	std::vector<Unit*> p1_units_;
 	std::vector<Unit*> p2_units_;
