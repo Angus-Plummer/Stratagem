@@ -21,7 +21,7 @@ public:
 	// returns true if the input coordinate is within the area covered by the UI object, defined in cpp file
 	bool Contains(const Coord &coord) const;
 
-	// Renders the object on the screen
+	// Renders the object on the console
 	virtual void Render() const = 0;
 };
 

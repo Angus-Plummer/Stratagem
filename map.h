@@ -50,13 +50,13 @@ public:
 	// returns a vector of pointers to the units active on the map
 	std::vector<Unit*> get_units() const { return units_; }
 
-	// Renders the map on a screen
+	// Renders the map on the console
 	void Render() const;
 
 	// Renders a specific tile the unit on it if there is one
 	void Render(Coord coord) const;
 
-	// unhiglights all tiles on the screen
+	// unhiglights all tiles on the console
 	void ResetTiles() const;
 
 	// returns true if a unit is present on a given tile

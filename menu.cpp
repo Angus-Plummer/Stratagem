@@ -1,11 +1,12 @@
 #include "menu.h"
+#include "game_manager.h"
 #include "game_instance.h"
-#include "screen.h"
+#include "window.h"
 #include "button.h"
 
 
 Menu::Menu() {
-	location_ = Coord{ 0,0 }; // default position is top left of screen. must set to something
+	location_ = Coord{ 0,0 }; // default position is top left of window. must set to something
 	border_thickness_ = 1; // thickness of the menu's border
 	width_ = 2 * border_thickness_;
 	height_ = 2 * border_thickness_;
@@ -30,8 +31,8 @@ void Menu::set_location(const Coord &position) {
 
 
 void Menu::Render() const {
-	// get the currently used screen
-	Screen display = GameInstance::instance().get_display();
+	// get the currently used window
+	Window display = GameManager::game().get_display();
 	
 	// get original colour scheme to revert back at end
 	ColourScheme original_colour_scheme = display.get_colour_scheme();

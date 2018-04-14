@@ -12,7 +12,7 @@ Archer::Archer(const int &team) : Unit(team) {
 	move_range_ = 2;
 	attack_damage_ = 8;
 	attack_range_ = 2;
-	armour_pierce_ = 5;
+	armour_pierce_ = 3;
 	// set hp
 	current_hp_ = max_hp_;
 	// game object properties

@@ -14,16 +14,14 @@ enum GameState {
 };
 
 // forward declarations
-class Screen;
+class Window;
 class Map;
 class Unit;
 
 class GameInstance{
 protected:
-	// there is one copy of the game instance and it is globally available through the static public function instance()
-	static GameInstance instance_;
 
-	Screen* display_; // screen that game is output to
+	Window* display_; // window that game is output to
 	Map* game_map_; // game map
 	Unit* selected_unit_; // the currently selected unit (nullptr if no unit selected)
 	Menu context_menu_; // the context menu
@@ -41,14 +39,12 @@ protected:
 public:
 	
 	GameInstance::GameInstance(); // default ctor
-	GameInstance(Screen &display); // ctor taking a screen as arg
+	GameInstance(Window &display); // ctor taking a window as arg
 	~GameInstance(); // dtor
 	
-	// global access to the current instance of the game
-	static GameInstance& instance() { return instance_; }
-	
 	// get access to the current game map, display and selected unit
-	Screen& get_display() const { return *display_; }
+	Window& get_display() const { return *display_; }
+	void set_display(Window &display) { display_ = &display; }
 	Map& get_map() const { return *game_map_; }
 	Unit& get_selected_unit() const { return *selected_unit_; }
 
@@ -101,7 +97,7 @@ public:
 	// show special screen on turn change so players cant miss that it has happened
 	void ShowTurnChangeScreen();
 
-	// handles a mouse down event (i.e. the user clicking somewhere on the screen)
+	// handles a mouse down event (i.e. the user clicking somewhere on the window)
 	void HandleLeftMouseButtonDown(const Coord &location);
 
 	// handles game victory

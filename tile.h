@@ -37,7 +37,7 @@ public:
 	// function to check if two tiles are adjacent
 	bool AdjacencyTest(const Tile *test_tile) const;
 
-	// render the tile on a screen
+	// render the tile on the console
 	void Render() const;
 
 	

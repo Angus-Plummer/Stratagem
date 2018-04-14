@@ -1,5 +1,6 @@
 #include "game_instance.h"
-#include "screen.h"
+#include "game_manager.h"
+#include "window.h"
 #include "map.h"
 #include "tile.h"
 #include "unit.h"
@@ -8,36 +9,32 @@
 #include "ascii_art.h"
 
 GameInstance::GameInstance() {
-	display_ = new Screen(610, 560); // default screen size 610x560 ( just fits everything on)
+	display_ = new Window(610, 560); // default window size 610x560 ( just fits everything on)
 	game_map_ = new Map(); // create empty map
 	selected_unit_ = nullptr; // no unit selected
 	context_menu_ = Menu(); // context menu not showing
 	end_turn_button_ = Button(); // start with end turn button not showing
 	surrender_button_ = Button(); // start with no surrender button showing
 	player_turn_ = 1; // start with player 1's turn
-	instance_ = *this; // set the game instance to be this newly constructed game instance
 	running_ = false; // game initiates not running
 	state_ = STATE_SETUP; // set initial state is setup 
 }
 
-GameInstance::GameInstance(Screen &display): display_(&display){
+GameInstance::GameInstance(Window &display): display_(&display){
 	game_map_ = new Map(); // create empty map
 	selected_unit_ = nullptr; // no unit selected
 	context_menu_ = Menu(); // context menu not showing
 	end_turn_button_ = Button(); // start with end turn button not 
 	surrender_button_ = Button(); // start with no surrender button showing
 	player_turn_ = 1; // start with player 1's turn
-	instance_ = *this; // set the game instance to be this newly constructed game instance
 	running_ = false; // game initiates not running
 	state_ = STATE_SETUP; // set initial state is setup 
 }
 
 // dtor : NEED TO SET THIS UP PROPERLY
 GameInstance::~GameInstance(){
+	// delete game_map_;
 }
-
-// static game instance, globally accessible
-GameInstance GameInstance::instance_;
 
 // select the target unit
 void GameInstance::SelectUnit(Unit *unit) {
@@ -151,12 +148,12 @@ void GameInstance::ShowContextMenu() {
 	// Buttons
 
 	// movement button (player can then choose a move target)
-	Button move_button("Move", []() {GameInstance::instance().ChooseMovement(); });
+	Button move_button("Move", []() {GameManager::game().get_instance().ChooseMovement(); });
 	if (!selected_unit_->CanMove()) { move_button.set_enabled(false); }
 	context_menu_.AddButton(move_button);
 	
 	// attack button (player can then choose attack target)
-	Button attack_button("Attack", []() {GameInstance::instance().ChooseAttack(); });
+	Button attack_button("Attack", []() {GameManager::game().get_instance().ChooseAttack(); });
 	if (!selected_unit_->CanAttack()) { attack_button.set_enabled(false); }
 	context_menu_.AddButton(attack_button);
 	
@@ -166,7 +163,7 @@ void GameInstance::ShowContextMenu() {
 	if (!selected_unit_->has_attacked_this_turn() && !selected_unit_->has_moved_this_turn()) { end_cancel_button_name = "Cancel"; }
 	// if the unit has either moved or attacked already then the button is named pass
 	else { end_cancel_button_name = "End"; }
-	Button end_cancel_button(end_cancel_button_name, []() {GameInstance::instance().DeselectUnit(); });
+	Button end_cancel_button(end_cancel_button_name, []() {GameManager::game().get_instance().DeselectUnit(); });
 	context_menu_.AddButton(end_cancel_button);
 
 	// if selected unit is in any but the last two map columns then set menu position as to right of unit
@@ -193,7 +190,7 @@ void GameInstance::RemoveContextMenu() {
 	}
 
 	// if the context menu is covering the game map at all then re-render the tiles and units that it covers (renders each tile once instead of rendering a tile for each cell of the context menu)
-	if (game_map_->GetTileFromConsoleCoord(context_menu_.get_location())) { // "screen_location" of menu is the top left cell and it expands right and down
+	if (game_map_->GetTileFromConsoleCoord(context_menu_.get_location())) { // "window_location" of menu is the top left cell and it expands right and down
 		// get top-left-most tile covered by menu
 		Coord top_left = game_map_->GetTileFromConsoleCoord(context_menu_.get_location())->get_map_coords();
 		// for all tiles that are covered by any amount by the context menu...
@@ -213,7 +210,7 @@ void GameInstance::RemoveContextMenu() {
 
 // carries out the beginning of a turn
 void GameInstance::StartTurn() {
-	// clear the screen and render the game map again, show the end turn button and end turn label
+	// clear the console and render the game map again, show the end turn button and end turn label
 	display_->Clear();
 	game_map_->Render();
 	ShowTurnLabel();
@@ -309,7 +306,7 @@ void GameInstance::ShowTurnLabel() {
 // add / redo end turn button
 void GameInstance::ShowEndTurnButton() {
 	// add button
-	end_turn_button_ =  Button(" End turn ", []() {GameInstance::instance().EndTurn(); });
+	end_turn_button_ =  Button(" End turn ", []() {GameManager::game().get_instance().EndTurn(); });
 
 	// menu position is top right, next to map but below the current players turn label
 	end_turn_button_.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * game_map_->get_map_width() + 1, 3 });
@@ -324,8 +321,8 @@ void GameInstance::ShowSurrenderButton() {
 	// add button
 	surrender_button_ = Button(" Surrender ", []() { 
 		// lambda function runs the victory function for the other player
-		if (GameInstance::instance().get_player_turn() == 1) { GameInstance::instance().Victory(2);}
-		else { GameInstance::instance().Victory(1); }
+		if (GameManager::game().get_instance().get_player_turn() == 1) { GameManager::game().get_instance().Victory(2);}
+		else { GameManager::game().get_instance().Victory(1); }
 	});
 	
 	// menu position is bottom right, next to map, far from other buttons
@@ -337,27 +334,27 @@ void GameInstance::ShowSurrenderButton() {
 }
 
 void GameInstance::ShowTurnChangeScreen() {
-	// completely clear the screen
+	// completely clear the console
 	display_->Clear();
 	
-	// at centre of where the screen print a statement indicating the change in turn
-	Coord screen_centre(display_->Width() / 2, display_->Height() / 2);
-	display_->GoTo(screen_centre + Coord{ -7, -1 }); // -7 as ~half the output immediately below so it is centred
+	// at centre of where the window print a statement indicating the change in turn
+	Coord window_centre(display_->Width() / 2, display_->Height() / 2);
+	display_->GoTo(window_centre + Coord{ -7, -1 }); // -7 as ~half the output immediately below so it is centred
 	std::cout << "Player " << player_turn_ << "'s turn"; // length of this output is 15 chars
-	display_->GoTo(screen_centre + Coord{ -13, 1 }); // go left 13 chars (half out ouput immediately below)
+	display_->GoTo(window_centre + Coord{ -13, 1 }); // go left 13 chars (half out ouput immediately below)
 	std::cout << "click anywhere to continue"; // length of 26 chars
 }
 
 
-// handles a mouse down event (i.e. the user clicking somewhere on the screen)
-void GameInstance::HandleLeftMouseButtonDown(const Coord &screen_location) { // Coord screen_location is in terms of console cells over whole display
+// handles a mouse down event (i.e. the user clicking somewhere on the window)
+void GameInstance::HandleLeftMouseButtonDown(const Coord &window_location) { // Coord window_location is in terms of console cells over whole display
 																			 // check for no mouse click returns a Coord of {-1, -1}
-	if (screen_location.x == -1 && screen_location.y == -1) {
+	if (window_location.x == -1 && window_location.y == -1) {
 		// throw error as should not be able to get here
 		exit(1);
 	}
 	// get pointers to the tile and unit at the click location. Will be nullptr if there isnt one at location (or clicked off of map)
-	Tile* tile = game_map_->GetTileFromConsoleCoord(screen_location);
+	Tile* tile = game_map_->GetTileFromConsoleCoord(window_location);
 	Unit* unit = nullptr;
 	if (tile) {
 		unit = game_map_->GetUnit(tile->get_map_coords()); // returns nullptr if no unit present
@@ -373,32 +370,32 @@ void GameInstance::HandleLeftMouseButtonDown(const Coord &screen_location) { // 
 			}
 		}
 		// otherwise check if the click was on the end turn and surrender buttons and handle those cases
-		else if (end_turn_button_.Contains(screen_location)) {
+		else if (end_turn_button_.Contains(window_location)) {
 			end_turn_button_.Trigger();
 		}
-		else if (surrender_button_.Contains(screen_location)) {
+		else if (surrender_button_.Contains(window_location)) {
 			surrender_button_.Trigger();
 		}
 		break;
 	// if selecting an action then handle click on the menu or deselect the unit (and select new unit if clicked on suitable unit)
 	case STATE_UNIT_SELECTING_ACTION:
 		// if they clicked on the context menu then handle
-		if (context_menu_.Contains(screen_location)) {
-			context_menu_.HandleLeftMouseButtonDown(screen_location);
+		if (context_menu_.Contains(window_location)) {
+			context_menu_.HandleLeftMouseButtonDown(window_location);
 		}
 		// if they clicked on the end_turn button then handle
-		else if (end_turn_button_.Contains(screen_location)) {
+		else if (end_turn_button_.Contains(window_location)) {
 			RemoveContextMenu();
 			end_turn_button_.Trigger();
 		}
 		// if they clicked on the surrender button then handle
-		else if (surrender_button_.Contains(screen_location)) {
+		else if (surrender_button_.Contains(window_location)) {
 			RemoveContextMenu();
 			surrender_button_.Trigger();
 		}
 		// if they didnt click on the menu or the surrender or end turn buttons...
 		else {
-			// if there is a tile at the screen_location of the click (i.e. they clicked on the map) 
+			// if there is a tile at the window_location of the click (i.e. they clicked on the map) 
 			if (tile){
 				// deselect the currently selected unit if it has yet to act
 				if (!selected_unit_->has_moved_this_turn() && !selected_unit_->has_attacked_this_turn()) {
@@ -416,8 +413,8 @@ void GameInstance::HandleLeftMouseButtonDown(const Coord &screen_location) { // 
 		break;
 	// if selecting movement then handle movement to valid tile or go back to selecting action
 	case STATE_UNIT_SELECTING_MOVEMENT:
-		// .. and the screen_location of the click is a tile (i.e. on the map) ...
-		if (tile) { //tile == nullptr if no tile at screen_location of click
+		// .. and the window_location of the click is a tile (i.e. on the map) ...
+		if (tile) { //tile == nullptr if no tile at window_location of click
 			//  ... and the unit can reach the tile
 			if (selected_unit_->CanReach(tile)) {
 				// unhighlight the reachable tiles
@@ -442,7 +439,7 @@ void GameInstance::HandleLeftMouseButtonDown(const Coord &screen_location) { // 
 		break;
 	// if selecting attack then either handle attack on valid unit or go back to selecting action
 	case STATE_UNIT_SELECTING_ATTACK:
-		// ... and the screen_location of the click is a unit ...
+		// ... and the window_location of the click is a unit ...
 		if (unit) {
 			// ... and the currently selected unit can attack this target unit...
 			if (selected_unit_->CanAttackTarget(unit)) {
@@ -478,7 +475,7 @@ void GameInstance::HandleLeftMouseButtonDown(const Coord &screen_location) { // 
 	case STATE_BETWEEN_TURNS:
 		StartTurn();
 		break;
-	// if on victory screen then mouse click stops the running game instance
+	// if on victory window then mouse click stops the running game instance
 	case STATE_VICTORY:
 		running_ = false;
 		break;
@@ -500,7 +497,7 @@ void GameInstance::Victory(const int &team) {
 
 	// show victory message / screen
 	display_->Clear();
-	// determine top left coord to output ascii art from (art is centred horizontally and placed 1/3 down from top of screen)s
+	// determine top left coord to output ascii art from (art is centred horizontally and placed 1/3 down from top of window)
 	int start_col = display_->Width() / 2 - fireworks[0].length() / 2;
 	int start_row = display_->Height() / 3 - (int)fireworks.size() / 2;
 	// if end up with negative of either coordinate then set it to 0
@@ -531,7 +528,7 @@ void GameInstance::Run() {
 	while (running_) {
 		// get location of mouse click
 		Coord mouse_down_pos = display_->MouseDownPosition();
-		// if mouse click was on the screen then handle it
+		// if mouse click was on the window then handle it
 		if (mouse_down_pos != Coord{ -1,-1 }) {
 			HandleLeftMouseButtonDown(mouse_down_pos);
 			// if the game isnt over then auto end the turn if appropriate

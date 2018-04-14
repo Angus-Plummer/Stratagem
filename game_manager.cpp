@@ -1,23 +1,56 @@
 #include "game_manager.h"
-#include "screen.h"
+#include "window.h"
 #include "game_instance.h"
 #include "map.h"
 #include "tile.h"
-#include "ascii_art.h"
 #include "unit_warrior.h"
 #include "unit_rogue.h"
 #include "unit_archer.h"
+#include "ascii_art.h"
+#include "help_text.h"
 
-
-GameManager::GameManager(Screen &display) : display_(&display){
+// ctor with no window to output to
+GameManager::GameManager() {
+	// start in title window
 	state_ = STATE_TITLE_SCREEN;
-	instance_ = &GameInstance::instance();// new GameInstance(display);
-	current_map_ = 1;
+	// start with map#1, no unit being placed and team 1 placing units
+	current_map_num = 1;
 	placing_unit_ = nullptr;
 	team_placing_ = 1;
+	// create a default game instance with no display
+	instance_ = GameInstance();
+}
+// ctor with window to output to
+GameManager::GameManager(Window &display) : display_(&display){
+	// start in title window
+	state_ = STATE_TITLE_SCREEN;
+	// start with map#1, no unit being placed and team 1 placing units
+	current_map_num = 1;
+	placing_unit_ = nullptr;
+	team_placing_ = 1;
+	// create an default game instance with the display
+	instance_ = GameInstance(display);
 }
 
 GameManager::~GameManager(){
+	// delete the units that were placed
+	for (auto unit_iter = units_placed_.begin(); unit_iter != units_placed_.end(); unit_iter++) {
+		delete *unit_iter;
+	}
+	units_placed_.clear();
+	// also delete the placing unit if there still is one
+	if (placing_unit_) {
+		delete placing_unit_;
+	}
+}
+
+// initiate the static game object
+GameManager GameManager::game_ = GameManager();
+
+// set the window to display to
+void GameManager::set_display(Window &display) {
+	display_ = &display;
+	instance_.set_display(display);
 }
 
 // clear all buttons from the vector of menus (SHOULD I CLEAR THE SCREEN IN THIS FUNCTION AS WELL?)
@@ -34,12 +67,12 @@ void GameManager::RenderButtons() {
 	}
 }
 
-// moves the game into the title screen state (shows ascii art and updates menus)
+// moves the game into the title window state (shows ascii art and updates menus)
 void GameManager::ShowTitleScreen() {
-	// set state to title screen
+	// set state to title window
 	state_ = STATE_TITLE_SCREEN;
 
-	// remove all menus and clear the screen
+	// remove all menus and clear the console
 	ClearButtons();
 	display_->Clear();
 
@@ -49,7 +82,7 @@ void GameManager::ShowTitleScreen() {
 	ColourScheme original_colour_scheme = display_->get_colour_scheme();
 	// set colour scheme to yellow on black
 	display_->set_colour_scheme(ColourScheme(BLACK, YELLOW));
-	// determine top left coord to output ascii art from (art is centred horizontally and placed 1/3 down from top of screen)s
+	// determine top left coord to output ascii art from (art is centred horizontally and placed 1/3 down from top of window)
 	int start_col = display_->Width() / 2 - (int)stratagem1[0].length() / 2;
 	int start_row = display_->Height() / 3 - (int)stratagem1.size() / 2;
 	// if end up with negative of either coordinate then set it to 0
@@ -80,14 +113,14 @@ void GameManager::ShowTitleScreen() {
 	// help button (player moves to help screen)
 	button_text = " Help ";
 	Button help_button(button_text, [this]() {ShowHelpScreen(); });
-	// button located 1/3rd along the screen
+	// button located 1/3rd along the window
 	help_button.set_location(Coord{ display_->Width() / 3 - (int)std::string(button_text).length() / 2, display_->Height() / 2 + 4});
 	buttons_.push_back(help_button);
 
 	// quit button (exits the game)
 	button_text = " Quit ";
 	Button quit_button(button_text, [this]() {state_ = STATE_QUITTING; });
-	// button 2/3rd along the screen
+	// button 2/3rd along the window
 	quit_button.set_location(Coord{ display_->Width() * 2 / 3 - (int)std::string(button_text).length() / 2 , display_->Height() / 2 + 4});
 	buttons_.push_back(quit_button);
 
@@ -97,79 +130,115 @@ void GameManager::ShowTitleScreen() {
 
 // moves the game into the help screen state
 void GameManager::ShowHelpScreen() {
-	// set state to help screen
+	// set state to help window
 	state_ = STATE_HELP_SCREEN;
 
-	// remove all menus and clear the screen
+	// remove all menus and clear the console
 	ClearButtons();
 	display_->Clear();
 
-	// write the help text
-
-	// add back button ( to take back to title screen)
+	// write the help text starting from coordinate 0,0
+	display_->GoTo(Coord());
+	for (int line = 0; line < help_text.size(); line++) {
+		std::cout << WrapString(help_text[line]) << std::endl;
+	}
+	// record what row the help text ends at
+	int last_text_row = display_->CursorPosition().y;
+	
+	// add back button ( to take back to title screen) at top of help screen
 	std::string button_text(" Back ");
 	Button back_button(button_text, [this]() {ShowTitleScreen(); });
-	// button at top right if screen (with 2 cell wide, 1 cell high margin)
+	// button at top right if window (with 2 cell wide, 1 cell high margin)
 	back_button.set_location(Coord{ display_->Width() - (int)std::string(button_text).length() - 2, 1 });
 	buttons_.push_back(back_button);
+	// add another back button at the end of the help text
+	back_button.set_location(Coord{ display_->Width() - (int)std::string(button_text).length() - 2, last_text_row + 1 });
+	buttons_.push_back(back_button);
 
+	// render thr buttons
 	RenderButtons();
+
+	// set console view to first line at top of console
+	display_->GoTo(Coord(0, 0));
+}
+// helper function to wrap help text in window
+std::string GameManager::WrapString(std::string& str){
+	// number of chars in line is the width of the display window in console cells
+	int line_width = display_->Width() ;
+	// if the string has length less than the line length then do nothing
+	if (str.length() < line_width) { return str; }
+	// last space variable records the char of the last space in the text before the new line
+	int last_space = line_width - 1;
+	// find the last space in the first line length chars
+	for (int i = 0; i < line_width; ++i){
+		if (str.at(i) == ' '){
+			last_space = i;
+		}
+	}
+	// first part of new string is the chars up to the last space + new line char
+	std::string new_str = str.substr(0, last_space);
+	new_str += '\n';
+	// perform WrapString on the remainder of the string and concatenate them together
+	new_str += WrapString(str.substr(last_space + 1, std::string::npos));
+
+	// return the wrapped string 
+	return new_str;
 }
 
 // moved the game into the map selection state
 void GameManager::StartMapSelection() {
 	// set the state
 	state_ = STATE_MAP_SELECTION;
-	// clear the screen and the buttons
+	// clear the console and the buttons
 	display_->Clear();
 	ClearButtons();
 	// load a map into the game instance and render
-	GameInstance::instance().LoadMap(current_map_);
-	GameInstance::instance().RenderMap();
+	instance_.LoadMap(current_map_num);
+	instance_.RenderMap();
 
 	// make buttons for either list of maps or next/previous map (the buttons make the map load a new map from raw_maps.h and render it)
 	
 	// add next map button ( cycle through to next map)
 	std::string button_text(" Next Map ");
 	Button next_button(button_text, [this]() {
-		current_map_ += 1;
-		if (current_map_ > 5) {
-			current_map_ = 1;
+		current_map_num += 1;
+		if (current_map_num > 5) {
+			current_map_num = 1;
 		}
-		GameInstance::instance().LoadMap(current_map_);
-		GameInstance::instance().RenderMap();
+		instance_.LoadMap(current_map_num);
+		instance_.RenderMap();
 	});
 	// button at top right of map
-	next_button.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1 , 1 });
+	next_button.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1 , 1 });
 	buttons_.push_back(next_button);
 
 	// add previous map button ( cycle back to previous map)
 	button_text =" Previous Map ";
 	Button previous_button(button_text, [this]() {
-		current_map_ -= 1;
-		if (current_map_ < 1) {
-			current_map_ = 5;
+		current_map_num -= 1;
+		if (current_map_num < 1) {
+			current_map_num = 5;
 		}
-		GameInstance::instance().LoadMap(current_map_);
-		GameInstance::instance().RenderMap();
+		instance_.LoadMap(current_map_num);
+		instance_.RenderMap();
 	});
 	// button at top right of map (below the next map button)
-	previous_button.set_location(Coord{display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1, 3});
+	previous_button.set_location(Coord{display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, 3});
 	buttons_.push_back(previous_button);
 
 	// add confirm map button ( move on to unit placement with current map)
 	button_text = " Confirm Map ";
 	Button confirm_button(button_text, [this]() {StartTeamSizeSelection();});
 
-	// button at bottom right of screen
-	confirm_button.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1, 5 });
+	// button at bottom right of window
+	confirm_button.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, 5 });
 	buttons_.push_back(confirm_button);
 
 	// back button
 	button_text = " Back ";
 	Button back_button(button_text, [this]() { ShowTitleScreen();});
-	back_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1,
-		display_->get_map_y_offset() + display_->get_tile_height() * GameInstance::instance().get_map().get_map_height() - 1));
+	back_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1,
+		display_->get_map_y_offset() + display_->get_tile_height() * instance_.get_map().get_map_height() - 1));
 	buttons_.push_back(back_button);
 	
 	// render the buttons
@@ -179,7 +248,7 @@ void GameManager::StartMapSelection() {
 void GameManager::StartTeamSizeSelection() {
 	// set the state
 	state_  = STATE_TEAM_SIZE_SELECT;
-	// clear the screen and the buttons
+	// clear the console and the buttons
 	display_->Clear();
 	ClearButtons();
 	// ask user how many units they want to play with
@@ -196,16 +265,16 @@ void GameManager::StartTeamSizeSelection() {
 		// clicking on the button will set the size of the team to n an move on to unit placement for player 1
 		Button team_size_button(button_text, [this, n, min_team_size]() {team_size_ = min_team_size + n; team_placing_ = 1;  StartUnitPlacement(); });
 
-		// m choices: 1/(2m), 3/(2m), 5/(2m), ..., (2m-1)/(2m). e.g. for 5 choices : first button centred at 1/10 along screen, second at 3 / 10, third at 5/10, ...
-		team_size_button.set_location(Coord((int)(display_->Width() / (2.*num_options) * (n * 2 + 1) - team_size_button.get_width() / 2.), display_->Height() / 2)); // do calc as doubles then cast to int at the end so that position on screen is more accurate
+		// m choices: 1/(2m), 3/(2m), 5/(2m), ..., (2m-1)/(2m). e.g. for 5 choices : first button centred at 1/10 along window, second at 3 / 10, third at 5/10, ...
+		team_size_button.set_location(Coord((int)(display_->Width() / (2.*num_options) * (n * 2 + 1) - team_size_button.get_width() / 2.), display_->Height() / 2)); // do calc as doubles then cast to int at the end so that position on window is more accurate
 		// add to the buttons vector
 		buttons_.push_back(team_size_button);
 	}
 	// back button
 	std::string button_text = " Back ";
 	Button back_button(button_text, [this]() { StartMapSelection(); });
-	back_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1,
-									display_->get_map_y_offset() + display_->get_tile_height() * GameInstance::instance().get_map().get_map_height() - 1));
+	back_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1,
+									display_->get_map_y_offset() + display_->get_tile_height() * instance_.get_map().get_map_height() - 1));
 	buttons_.push_back(back_button);
 	// render all the buttons
 	RenderButtons();
@@ -215,20 +284,20 @@ void GameManager::StartTeamSizeSelection() {
 void GameManager::StartUnitPlacement() {
 	// set the state
 	state_ = STATE_UNIT_PLACEMENT;
-	// clear the screen and the buttons
+	// clear the console and the buttons
 	display_->Clear();
 	ClearButtons();	
-	// clear the screen
+	// clear the console
 	display_->Clear();
 	// tell players which player is placing units
 	std::string inform_text("Player " + std::to_string(team_placing_) + ", select and place your units");
 	display_->GoTo(Coord(display_->Width() / 2 - inform_text.length() / 2, display_->Height() / 2));
 	std::cout << inform_text;
-	// wait for mouse click then clear the screen
+	// wait for mouse click then clear the console
 	display_->WaitForMouse();
 	display_->Clear();
 	// render the map
-	GameInstance::instance().RenderMap();
+	instance_.RenderMap();
 
 	// show the number of units selected out of the required number and the unit being placed
 	ShowUnitCounter();
@@ -247,7 +316,7 @@ void GameManager::StartUnitPlacement() {
 		}
 	});
 	// place button underneath the unit counter and show placing unit text
-	add_warrior_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1, display_->get_map_y_offset() + 4));
+	add_warrior_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 4));
 	buttons_.push_back(add_warrior_button);
 	
 	// button to add rogue
@@ -263,7 +332,7 @@ void GameManager::StartUnitPlacement() {
 		}
 	});
 	// place button under the add warrior button
-	add_rogue_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1, display_->get_map_y_offset() + 6));
+	add_rogue_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 6));
 	buttons_.push_back(add_rogue_button);
 	
 	// button to add archer
@@ -279,7 +348,7 @@ void GameManager::StartUnitPlacement() {
 		}
 	});
 	// place button under the add rogue button
-	add_archer_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1, display_->get_map_y_offset() + 8));
+	add_archer_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 8));
 	buttons_.push_back(add_archer_button);
 	
 	// button to reset unit placement
@@ -290,7 +359,7 @@ void GameManager::StartUnitPlacement() {
 		ClearUnits();
 	});
 	// button goes below add unit buttons
-	reset_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1, display_->get_map_y_offset() + 12));
+	reset_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 12));
 	buttons_.push_back(reset_button);
 	
 	// button to confirm unit placement
@@ -298,7 +367,7 @@ void GameManager::StartUnitPlacement() {
 	// buttons runs the confirm unit placement function which let the next player place units or move onto the game
 	Button confirm_button(button_text, [this]() {ConfirmUnitPlacement(); });
 	// location is below the reset button
-	confirm_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1, display_->get_map_y_offset() + 14));
+	confirm_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 14));
 	buttons_.push_back(confirm_button);
 	
 	// back button
@@ -313,8 +382,8 @@ void GameManager::StartUnitPlacement() {
 		StartTeamSizeSelection(); 
 	});
 	// place back button at bottom right, next to map
-	back_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1,
-		display_->get_map_y_offset() + display_->get_tile_height() * GameInstance::instance().get_map().get_map_height() - 1));
+	back_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1,
+		display_->get_map_y_offset() + display_->get_tile_height() * instance_.get_map().get_map_height() - 1));
 	buttons_.push_back(back_button);
 
 	// render all the buttons
@@ -332,8 +401,8 @@ void GameManager::ConfirmUnitPlacement() {
 		}
 		// if current player is team 2 then add the placed units to the game and play the game
 		else if (team_placing_ == 2) {
- 			for (auto unit_iter = units_.begin(); unit_iter != units_.end(); unit_iter++) {
-				GameInstance::instance().AddUnit(*unit_iter, (*unit_iter)->get_map_coords());
+ 			for (auto unit_iter = units_placed_.begin(); unit_iter != units_placed_.end(); unit_iter++) {
+				instance_.AddUnit(*unit_iter, (*unit_iter)->get_map_coords());
 			}
 			PlayGame();
 		}
@@ -348,16 +417,16 @@ void GameManager::ConfirmUnitPlacement() {
 // remove all units of a team from the game map (allows them to try placing again. also run for both teams when backing out of unit selection)
 void GameManager::ClearUnits() {
 	// iterate through units and delete any that are on the team that is currently selecting units, then replace the pointer with a nullptr
-	for (auto unit_iter = units_.begin(); unit_iter != units_.end(); unit_iter++) {
+	for (auto unit_iter = units_placed_.begin(); unit_iter != units_placed_.end(); unit_iter++) {
 		if ((*unit_iter)->get_team() == team_placing_) {
 			// render the tile under the unit (so the unit is no longer rendered)
-			GameInstance::instance().get_map().Render((*unit_iter)->get_map_coords());
+			instance_.get_map().Render((*unit_iter)->get_map_coords());
 			delete *unit_iter;
 			*unit_iter = nullptr;
 		}
 	}
 	// find and remove the nullptrs from the vector
-	units_.erase(std::remove(units_.begin(), units_.end(), nullptr), units_.end());
+	units_placed_.erase(std::remove(units_placed_.begin(), units_placed_.end(), nullptr), units_placed_.end());
 	// update the unit counter
 	ShowUnitCounter();
 }
@@ -366,8 +435,8 @@ void GameManager::ClearUnits() {
 std::vector<Tile*> GameManager::PlaceableTiles() const {
 	std::vector<Tile*> valid_tiles;
 	// iterate through the tiles that are within the set up wdith of the sides of the map
-	for (int width = 0; width < GameInstance::instance().get_map().get_set_up_width(); width++) {
-		for (int row = 0; row < GameInstance::instance().get_map().get_map_height(); row++) {
+	for (int width = 0; width < instance_.get_map().get_set_up_width(); width++) {
+		for (int row = 0; row < instance_.get_map().get_map_height(); row++) {
 			int column = 0;
 			// for player 1 the setup columns are on the left of map
 			if (team_placing_ == 1) {
@@ -375,13 +444,13 @@ std::vector<Tile*> GameManager::PlaceableTiles() const {
 			}
 			// for player 2 the setup columns are on the right of the map
 			else if (team_placing_ == 2){
-				column = GameInstance::instance().get_map().get_map_width() -1 - width; // need -1 as the numbering starts from zero but get_map_width will start from 1
+				column = instance_.get_map().get_map_width() -1 - width; // need -1 as the numbering starts from zero but get_map_width will start from 1
 			}
 			// if unit can be placed on the tile then add it to the vector of valid tiles
 			// tile valid if: the placed unit can traverse the tile and no unit in the units vector is already on that tile
-			if (placing_unit_->CanTraverse(GameInstance::instance().get_map().GetTile(Coord(column, row))) &&
-				std::find_if(units_.begin(), units_.end(), [this, column, row](Unit* unit) {return unit->get_map_coords() == Coord(column, row); }) == units_.end()) { 
-				valid_tiles.push_back(GameInstance::instance().get_map().GetTile(Coord(column, row)));
+			if (placing_unit_->CanTraverse(instance_.get_map().GetTile(Coord(column, row))) &&
+				std::find_if(units_placed_.begin(), units_placed_.end(), [this, column, row](Unit* unit) {return unit->get_map_coords() == Coord(column, row); }) == units_placed_.end()) { 
+				valid_tiles.push_back(instance_.get_map().GetTile(Coord(column, row)));
 			}
 		}
 	}
@@ -400,18 +469,18 @@ void GameManager::HighlightPlaceableTiles() {
 // reset tiles (sets all to unhighlighted and renders. also renders the units on the current players team)
 void GameManager::ResetTiles() {
 	// iterate over hight of map and setup width
-	for (int width = 0; width < GameInstance::instance().get_map().get_set_up_width(); width++) {
-		for (int row = 0; row < GameInstance::instance().get_map().get_map_height(); row++) {
+	for (int width = 0; width < instance_.get_map().get_set_up_width(); width++) {
+		for (int row = 0; row < instance_.get_map().get_map_height(); row++) {
 			// for both sides of map: if tile is highlighted then unhighlight it and render it again
 			// left side of map
-			if (GameInstance::instance().get_map().GetTile(Coord(width, row))->get_highlighted() == true) {
-				GameInstance::instance().get_map().GetTile(Coord(width, row))->set_highlighted(false);
-				GameInstance::instance().get_map().GetTile(Coord(width, row))->Render();
+			if (instance_.get_map().GetTile(Coord(width, row))->get_highlighted() == true) {
+				instance_.get_map().GetTile(Coord(width, row))->set_highlighted(false);
+				instance_.get_map().GetTile(Coord(width, row))->Render();
 			}
 			// right side of map
-			if (GameInstance::instance().get_map().GetTile(Coord(GameInstance::instance().get_map().get_map_width() - 1 - width, row))->get_highlighted() == true) {
-				GameInstance::instance().get_map().GetTile(Coord(GameInstance::instance().get_map().get_map_width() - 1 - width, row))->set_highlighted(false);
-				GameInstance::instance().get_map().GetTile(Coord(GameInstance::instance().get_map().get_map_width() - 1 - width, row))->Render();
+			if (instance_.get_map().GetTile(Coord(instance_.get_map().get_map_width() - 1 - width, row))->get_highlighted() == true) {
+				instance_.get_map().GetTile(Coord(instance_.get_map().get_map_width() - 1 - width, row))->set_highlighted(false);
+				instance_.get_map().GetTile(Coord(instance_.get_map().get_map_width() - 1 - width, row))->Render();
 			}
 		}
 	}
@@ -419,13 +488,13 @@ void GameManager::ResetTiles() {
 
 // counts the number of units that have been placed by the current team
 int GameManager::CountUnits() {
-	return std::count_if(units_.begin(), units_.end(), [this](Unit* unit) {return unit->get_team() == team_placing_; });
+	return std::count_if(units_placed_.begin(), units_placed_.end(), [this](Unit* unit) {return unit->get_team() == team_placing_; });
 
 }
 
 // shows the number of units the team currently placing units has placed
 void GameManager::ShowUnitCounter() {
-	display_->GoTo(Coord(display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1, display_->get_map_y_offset()));
+	display_->GoTo(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset()));
 	std::cout << "Units: " << CountUnits() << " / " << team_size_;
 }
 
@@ -451,10 +520,10 @@ void GameManager::FlashUnitCounter() {
 // shows the type of unit that is currently being placed
 void GameManager::ShowPlacingUnit() {
 	// first write blank spaces over the previous text
-	display_->GoTo(Coord(display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1, display_->get_map_y_offset() + 2));
+	display_->GoTo(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 2));
 	std::cout << "                ";
 	// if there is a unit being placed then print its type, otherwies instruct user to select a unit
-	display_->GoTo(Coord(display_->get_map_x_offset() + display_->get_tile_width() * GameInstance::instance().get_map().get_map_width() + 1, display_->get_map_y_offset() + 2));
+	display_->GoTo(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 2));
 	if (placing_unit_) {
 		std::cout << "Placing: " << placing_unit_->get_type();
 	}
@@ -487,16 +556,16 @@ void GameManager::RemovePlacingUnit(){
 	}
 }
 
-// handles a mouse down event (i.e. the user clicking somewhere on the screen)
-void GameManager::HandleLeftMouseButtonDown(const Coord &screen_location){
-	// double check mouse event was on the screen
-	if (screen_location.x == -1 && screen_location.y == -1) {
+// handles a mouse down event (i.e. the user clicking somewhere on the window)
+void GameManager::HandleLeftMouseButtonDown(const Coord &window_location){
+	// double check mouse event was on the window
+	if (window_location.x == -1 && window_location.y == -1) {
 		// throw error as should not be able to get here
 		exit(1);
 	}
 	// go through the vector of menus and check if any contain the mouse event location. if so then handle the mouse event
 	for (auto button_iter = buttons_.begin(); button_iter != buttons_.end(); button_iter++) {
-		if (button_iter->Contains(screen_location)) {
+		if (button_iter->Contains(window_location)) {
 			button_iter->Trigger();
 			return; // return here as cant iterate through the rest of the buttons and dont want to continue through rest of this function if a button was clicked
 		}
@@ -505,14 +574,14 @@ void GameManager::HandleLeftMouseButtonDown(const Coord &screen_location){
 	if (state_ == STATE_UNIT_PLACEMENT) {
 		// get info at location of click..
 		// get tile of click location (will be nullptr if not on tile)
-		Tile* tile = GameInstance::instance().get_map().GetTileFromConsoleCoord(screen_location);
+		Tile* tile = instance_.get_map().GetTileFromConsoleCoord(window_location);
 		Unit* unit = nullptr;
 		// if there is a unit on the tile then get that too (will be nullptr otherwise)
 		if (tile) { 
-			// iterator locaiton of unit at the tile coord, will be units_.end() if no unit found at that coordinate
-			auto found_unit = std::find_if(units_.begin(), units_.end(), [this, tile](Unit* unit) {return unit->get_map_coords() == tile->get_map_coords(); });
-			// if the found unit iterator is not the units_.end() then it will point to a unit at the tile coord so set unit to the dereferenced iterator
-			if (found_unit != units_.end()) {
+			// iterator locaiton of unit at the tile coord, will be units_placed_.end() if no unit found at that coordinate
+			auto found_unit = std::find_if(units_placed_.begin(), units_placed_.end(), [this, tile](Unit* unit) {return unit->get_map_coords() == tile->get_map_coords(); });
+			// if the found unit iterator is not the units_placed_.end() then it will point to a unit at the tile coord so set unit to the dereferenced iterator
+			if (found_unit != units_placed_.end()) {
 				unit = *found_unit;
 			}
 		}
@@ -525,10 +594,10 @@ void GameManager::HandleLeftMouseButtonDown(const Coord &screen_location){
 				ResetTiles();
 				// set the units position to be that position on the map and add it to the vector of units
 				placing_unit_->set_map_coords(tile->get_map_coords());
-				units_.push_back(placing_unit_);
+				units_placed_.push_back(placing_unit_);
 				// render the unit at its placed location
 				placing_unit_->Render();
-				// just set placing_unit to nullptr instead of using RemovePlacingUnit() as dont want to delete the unit object after putting it in the units_ vector
+				// just set placing_unit to nullptr instead of using RemovePlacingUnit() as dont want to delete the unit object after putting it in the units_placed_ vector
 				placing_unit_ = nullptr;
 				// update the placing unit and unit counter texts
 				ShowPlacingUnit();
@@ -539,7 +608,7 @@ void GameManager::HandleLeftMouseButtonDown(const Coord &screen_location){
 		else if (unit) {
 			if (unit->get_team() == team_placing_) {
 				// remove the clicked on unit from the vector of units
-				units_.erase(std::remove(units_.begin(), units_.end(), unit), units_.end());
+				units_placed_.erase(std::remove(units_placed_.begin(), units_placed_.end(), unit), units_placed_.end());
 				// set the unit as the unit being placed
 				SetPlacingUnit(unit);
 				// update the unit counter
@@ -553,10 +622,10 @@ void GameManager::HandleLeftMouseButtonDown(const Coord &screen_location){
 void GameManager::PlayGame() {
 	// change state
 	state_ = STATE_GAME_RUNNING;
-	// clear the screen
+	// clear the console
 	display_->Clear();
 	// run the game
-	GameInstance::instance().Run();
+	instance_.Run();
 	// delete the old game instance
 	//delete instance_;
 	// on game exit go to the title menu
@@ -567,7 +636,7 @@ void GameManager::PlayGame() {
 void GameManager::Run() {
 	ShowTitleScreen();
 	while (state_ != STATE_QUITTING) {
-		// if there was a mouse event on the screen (no click on screen then coordinate is (-1,-1))
+		// if there was a mouse event on the window (no click on window then coordinate is (-1,-1))
 		Coord mouse_down_pos = display_->MouseDownPosition();
 		if (mouse_down_pos != Coord{ -1,-1 }) {
 			// handle the mouse down at that location

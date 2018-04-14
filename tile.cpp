@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "tile.h"
-
+#include "game_manager.h"
 #include "game_instance.h"
-#include "screen.h"
+#include "window.h"
 #include "map.h"
 
 Tile::Tile(Map &map, const Coord &map_coords) : GameObject(), parent_map_(&map), highlighted_(false){
@@ -35,13 +35,13 @@ void Tile::set_highlighted(bool const &highlighted) {
 
 // function to check if two tiles are adjacent
 bool Tile::AdjacencyTest(const Tile *test_tile) const {
-	std::vector<Tile*> adjacent_tiles = GameInstance::instance().get_map().AdjacentTo(this);
+	std::vector<Tile*> adjacent_tiles = GameManager::game().get_instance().get_map().AdjacentTo(this);
 	return std::find(adjacent_tiles.begin(), adjacent_tiles.end(), test_tile) != adjacent_tiles.end();
 }
 
 // render the tile
 void Tile::Render() const {
-	Screen display = GameInstance::instance().get_display();
+	Window display = GameManager::game().get_display();
 	ColourScheme original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back later
 	// set colour scheme for tyle type
 	display.set_colour_scheme(get_colour_scheme());

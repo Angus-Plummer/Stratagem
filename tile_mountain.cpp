@@ -9,7 +9,7 @@ MountainTile::MountainTile(Map &map, const Coord &map_coords) : Tile(map, map_co
 	highlighted_colour_scheme_ = ColourScheme(DARK_GREY, RED);
 	move_cost_ = 3;
 	def_modifier_ = 3;
-	atk_modifier_ = -2;
+	atk_modifier_ = -1;
 }
 
 

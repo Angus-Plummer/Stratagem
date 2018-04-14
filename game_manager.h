@@ -1,11 +1,9 @@
 #pragma once
 #include "stdafx.h"
-#include "menu.h"
-// NEED: title screen (start, help, quit)
-//		 map selection (menu with list of maps / next and previous map buttons with buttons to right of rendered maps) also go back to title screen
-//		 unit placement (1 team at a time, place units on map (warrior -> rogue -> archer) undo button and finish button when all added. next team places but can see previous teams units. Then show black screen with click anywhere to start -> game instance starts. also back button to go back to map selection.
-//		 when game instance finishes go back to title screen
+#include "button.h"
+#include "game_instance.h"
 
+// the states of the game when in the menu system. can only be in one of these states at any time
 enum MenuState {
 	STATE_TITLE_SCREEN,
 	STATE_HELP_SCREEN,
@@ -17,25 +15,37 @@ enum MenuState {
 };
 
 // forward declarations
-class Screen;
-class GameInstance;
+class Window;
 class Tile;
 class Unit;
 
 class GameManager{
 protected:
-	MenuState state_;
-	std::vector<Button> buttons_;
-	GameInstance* instance_;
-	Screen* display_;
-	int current_map_; // holds the number of the currently selected map
+	MenuState state_; // menu state
+	std::vector<Button> buttons_; // vector that holds all the buttons that are currently in the window
+	static GameManager game_; 	// there is one copy of the game and it is globally available through the static public function game()
+	GameInstance instance_; // the instance of the game owned by the manager
+	Window* display_; // pointer to the display being used
+	int current_map_num; // holds the number of the currently selected map
 	int team_size_; // number of starting units on each team
 	int team_placing_; // the team that is currently allowed to select and place units
 	Unit* placing_unit_; // unit that is currently being placed on the map
-	std::vector<Unit*> units_placed_;
+	std::vector<Unit*> units_placed_; // vector of all units that have been placed so far (they do not get placed into the game instance so they can be managed separately)
 public:
-	GameManager(Screen &display);
+	GameManager();
+	GameManager(Window &display);
 	~GameManager();
+
+	// global access to the current instance of the game
+	static GameManager& game() { return game_; }
+
+	// get a reference to the current game instance
+	GameInstance& get_instance() { return instance_; }
+	// get a reference to the display window
+	Window& get_display() const { return *display_; }
+	
+	// set the display window
+	void set_display(Window &display);
 
 	// clear all menus from the vector of menus
 	void ClearButtons();
@@ -47,6 +57,10 @@ public:
 
 	// moves the game into the help screen state
 	void ShowHelpScreen();
+
+	// helper function to wrap help text in window
+	std::string WrapString(std::string& str);
+
 
 	// moved the game into the map selection state
 	void StartMapSelection();
@@ -97,8 +111,8 @@ public:
 	// starts the actual game running
 	void PlayGame();
 
-	// handles a mouse down event (i.e. the user clicking somewhere on the screen)
-	void HandleLeftMouseButtonDown(const Coord &screen_location);
+	// handles a mouse down event (i.e. the user clicking somewhere on the window)
+	void HandleLeftMouseButtonDown(const Coord &window_location);
 
 	// runs the main game loop until the user quits the game
 	void Run();

@@ -1,7 +1,8 @@
 #include "button.h"
+#include "game_manager.h"
 #include "game_instance.h"
 #include "menu.h"
-#include "screen.h"
+#include "window.h"
 
 // ctor for empty button
 Button::Button() :
@@ -30,10 +31,10 @@ Button::~Button()
 {
 }
 
-// renders the button on the screen
+// renders the button on the console
 void Button::Render() const {
 	// get the currently used display
-	Screen display = GameInstance::instance().get_display();
+	Window display = GameManager::game().get_display();
 	// save the current colour scheme to rest bacck after rendering
 	ColourScheme original_colour_scheme = display.get_colour_scheme();
 	// if the button is enabled then set the colour scheme to the default colour scheme

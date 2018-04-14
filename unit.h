@@ -99,7 +99,7 @@ public:
 	// check if unit can traverse a given terrain
 	bool virtual CanTraverse(const Tile *terrain_tile) const = 0;
 
-	// renders the unit on a screen
+	// renders the unit in the console
 	void Render() const;
 
 	// returns true if the unit can legally reach the target tile in one movement

@@ -1,11 +1,9 @@
 ﻿#include "stdafx.h"
 #include "map.h"
-
+#include "game_manager.h"
 #include "game_instance.h"
-#include "screen.h"
-
+#include "window.h"
 #include "unit.h"
-
 #include "tile_grass.h"
 #include "tile_water.h"
 #include "tile_mountain.h"
@@ -98,7 +96,7 @@ Tile* Map::GetTile(const Coord &position) const {
 
 // returns the tile at a console coordinate
 Tile* Map::GetTileFromConsoleCoord(const Coord &position) const {
-	Screen display = GameInstance::instance().get_display();
+	Window display = GameManager::game().get_display();
 	Coord map_location;	// corresponding map tile
 	// correct for map offset and convert into tile location
 	map_location.x = (position.x - display.get_map_x_offset()) / display.get_tile_width();
@@ -112,9 +110,9 @@ Tile* Map::GetTileFromConsoleCoord(const Coord &position) const {
 	return nullptr;
 }
 
-// Renders the map on a screen
+// Renders the map on a the console
 void Map::Render() const {
-	Screen display = GameInstance::instance().get_display();
+	Window display = GameManager::game().get_display();
 	int tile_width = display.get_tile_width();
 	int tile_height = display.get_tile_height();
 	int map_x_offset = display.get_map_x_offset();
@@ -151,7 +149,7 @@ void Map::Render(Coord coord) const {
 		}
 	}
 }
-// unhiglights all tiles on the screen
+// unhiglights all tiles on the console
 void Map::ResetTiles() const {
 	for (auto iter_vec = map_.begin(); iter_vec != map_.end(); iter_vec++) {
 		for (auto iter_tile = iter_vec->begin(); iter_tile != iter_vec->end(); iter_tile++) {
@@ -208,7 +206,7 @@ Unit* Map::GetUnit(const Coord &position) const {
 
 // select an object on the map using right mouse button down
 Tile* Map::SelectTile() const {
-	Screen display = GameInstance::instance().get_display();
+	Window display = GameManager::game().get_display();
 	// get location of mouse down ({-1,-1} if no mouse down detected)
 	Coord event_location = display.MouseDownPosition();
 	if (event_location.x != -1 && event_location.y != -1) {
@@ -220,7 +218,7 @@ Tile* Map::SelectTile() const {
 
 // select a unit on the map using the mouse
 Unit* Map::SelectUnit() const {
-	Screen display = GameInstance::instance().get_display();
+	Window display = GameManager::game().get_display();
 	// get location of mouse down ({-1,-1} if no mouse down detected)
 	Coord event_location = display.MouseDownPosition();
 	if (event_location.x != -1 && event_location.y != -1) {

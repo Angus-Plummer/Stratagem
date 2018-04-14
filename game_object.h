@@ -18,7 +18,7 @@ public:
 	Coord get_map_coords() const { return map_coords_; }
 	ColourScheme get_colour_scheme() const { return default_colour_scheme_; }
 
-	// render the object on a screen
+	// render the object on the console
 	void virtual Render() const = 0;
 
 };

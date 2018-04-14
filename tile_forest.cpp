@@ -8,7 +8,7 @@ tile_marker_ = char(237);// char(237); // char(190)
 default_colour_scheme_ = ColourScheme(DARK_GREEN, BROWN);
 highlighted_colour_scheme_ = ColourScheme(DARK_GREEN, RED);
 move_cost_ = 2;
-def_modifier_ = 1;
+def_modifier_ = 2;
 atk_modifier_ = 0;
 }
 

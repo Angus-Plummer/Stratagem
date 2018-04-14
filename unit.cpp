@@ -1,6 +1,7 @@
 #include "unit.h"
+#include "game_manager.h"
 #include "game_instance.h"
-#include "screen.h"
+#include "window.h"
 #include "map.h"
 #include "tile.h"
 #include "move_sequence.h"
@@ -56,7 +57,7 @@ ColourScheme Unit::get_colour_scheme() const {
 			return default_colour_scheme_;
 		// if the unit is not selectable (asleep) then use acted colour scheme. For units on team whos not taking their go then return default
 		case STATE_ASLEEP :
-			if (GameInstance::instance().get_player_turn() == team_) {
+			if (GameManager::game().get_instance().get_player_turn() == team_) {
 				return acted_colour_scheme_;
 			}
 			else {
@@ -71,8 +72,8 @@ ColourScheme Unit::get_colour_scheme() const {
 void Unit::AttackedBy(const Unit *attacker) {
 	// get raw damage and terrain modifiers
 	int raw_damage = attacker->attack_damage_;
-	int defense_modifier = GameInstance::instance().get_map().GetTile(map_coords_)->get_def_modifier(); // this unit's terrain defense modifiers
-	int attack_modifier = GameInstance::instance().get_map().GetTile(attacker->get_map_coords())->get_atk_modifier(); // attacking unit's terrain attack modifiers
+	int defense_modifier = GameManager::game().get_instance().get_map().GetTile(map_coords_)->get_def_modifier(); // this unit's terrain defense modifiers
+	int attack_modifier = GameManager::game().get_instance().get_map().GetTile(attacker->get_map_coords())->get_atk_modifier(); // attacking unit's terrain attack modifiers
 	// get this units effective armour:
 	int effective_armour = armour_ - attacker->armour_pierce_;
 	// if it is below 0 then set to 0
@@ -86,7 +87,7 @@ void Unit::AttackedBy(const Unit *attacker) {
 	// if the unit is still alive then render the tile its on and its updated hp again
 	// (if it dies the rendering is handled elsewhere anyway so this prevents unnecessary rendering
 	if (state_ != STATE_DEAD) {
-		GameInstance::instance().get_map().Render(map_coords_);
+		GameManager::game().get_instance().get_map().Render(map_coords_);
 	}
 }
 
@@ -105,7 +106,7 @@ void Unit::SelectUnit() {
 	// update state
 	state_ = STATE_SELECTED;
 	// set as currently selected unit in game
-	GameInstance::instance().SelectUnit(this);
+	GameManager::game().get_instance().SelectUnit(this);
 	// render to update colour scheme
 	Render();
 }
@@ -156,7 +157,7 @@ void Unit::Kill() {
 	Render();
 	Sleep(50);
 	// now remove the unit from the game
-	GameInstance::instance().RemoveUnit(this);
+	GameManager::game().get_instance().RemoveUnit(this);
 }
 
 // function return true if unit can move
@@ -192,7 +193,7 @@ void Unit::HighlightAttackableUnits(const bool &highlight) const {
 	for (auto iter = units.begin(); iter != units.end(); iter++) {
 		// highlight the tile the unit is on, render the tile and then render the unit on top of it
 		(*iter)->GetTile()->set_highlighted(highlight);
-		GameInstance::instance().get_map().Render((*iter)->get_map_coords());
+		GameManager::game().get_instance().get_map().Render((*iter)->get_map_coords());
 	}
 }
 
@@ -200,7 +201,7 @@ void Unit::HighlightAttackableUnits(const bool &highlight) const {
 std::vector<Unit*> Unit::AttackableUnits() const {
 	std::vector<Unit*> attackable_units; // vector to hold units this unit can currently attack
 	// get all the units on the map
-	std::vector<Unit*> units = GameInstance::instance().get_map().get_units();
+	std::vector<Unit*> units = GameManager::game().get_instance().get_map().get_units();
 	// iterate through the units and check if it can be attacked by this unit
 	for (auto iter = units.begin(); iter != units.end(); iter++) {
 		if (CanAttackTarget(*iter)) {
@@ -212,7 +213,7 @@ std::vector<Unit*> Unit::AttackableUnits() const {
 
 // get tile unit is currently on
 Tile* Unit::GetTile() const {
-	return GameInstance::instance().get_map().GetTile(map_coords_);
+	return GameManager::game().get_instance().get_map().GetTile(map_coords_);
 }
 
 // finds distance to target unit (manhattan distance)
@@ -227,7 +228,7 @@ void Unit::set_map_coords(const Coord &new_pos) {
 }
 
 void Unit::Render() const {
-	Screen display = GameInstance::instance().get_display();
+	Window display = GameManager::game().get_display();
 	ColourScheme original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back late
 	// set colour scheme of unit
 	display.set_colour_scheme(get_colour_scheme());
@@ -281,7 +282,7 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 		open.erase(current_iter);
 		// clear the vector of adjacent tiles and fill for the current tile
 		adjacent_tiles.clear();
-		adjacent_tiles = GameInstance::instance().get_map().AdjacentTo(current->get_tile());
+		adjacent_tiles = GameManager::game().get_instance().get_map().AdjacentTo(current->get_tile());
 		// go through this vector
 		for (auto iter = adjacent_tiles.begin(); iter != adjacent_tiles.end(); iter++) {
 			// make a MoveSequence object from this adjacent tile and make its parent the currently inspected
@@ -299,9 +300,9 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 						// if cost to reach it is less than max possible add it to the reachable tiles and the open set
 						if (adjacent.get_cost() <= move_range_) {
 							// if there is a unit on the tile..
-							if (GameInstance::instance().get_map().UnitPresent(adjacent.get_tile()->get_map_coords())) {
+							if (GameManager::game().get_instance().get_map().UnitPresent(adjacent.get_tile()->get_map_coords())) {
 								// friendly unit -> can move through but not end on. non-friendly then neither
-								if (team_ == GameInstance::instance().get_map().GetUnit( adjacent.get_tile()->get_map_coords() )->get_team()) {
+								if (team_ == GameManager::game().get_instance().get_map().GetUnit( adjacent.get_tile()->get_map_coords() )->get_team()) {
 									open.push_back(adjacent);
 								}
 							}
@@ -333,13 +334,13 @@ void Unit::HighlightReachableTiles(const bool &highlight) const {
 	for (auto iter = reachable_tiles.begin(); iter != reachable_tiles.end(); iter++) { // iterate through
 		// set to higlighted and render
 		(*iter)->set_highlighted(highlight);
-		GameInstance::instance().get_map().Render((*iter)->get_map_coords()); // renders the tile and then the unit on it if there is one
+		GameManager::game().get_instance().get_map().Render((*iter)->get_map_coords()); // renders the tile and then the unit on it if there is one
 	}
 }
 
 // animates the unit moving to an adjacent tile (does not move unit to the tile, just animates it)
 void Unit::AnimateMovement(const Tile* start_tile, const Tile* target_tile) const {
-	Screen display = GameInstance::instance().get_display();
+	Window display = GameManager::game().get_display();
 	// save the colour scheme to reset at end of function
 	ColourScheme initial_colour_scheme = display.get_colour_scheme();
 	// if target tile is in adjacent to tile unit is on then animate movement
@@ -363,14 +364,14 @@ void Unit::AnimateMovement(const Tile* start_tile, const Tile* target_tile) cons
 			// render the tile at the current console cell positions (unit marker is two cells)
 			for (int i = 0; i < 2; i++) {
 				// get tile occupied by one of the unit marker chars
-				Tile* tile = GameInstance::instance().get_map().GetTileFromConsoleCoord(current_pos + Coord{i,0});
+				Tile* tile = GameManager::game().get_instance().get_map().GetTileFromConsoleCoord(current_pos + Coord{i,0});
 				// render it
 				tile->Render();
 				// if the tile contains a unit
-				if (GameInstance::instance().get_map().UnitPresent(tile->get_map_coords())) {
+				if (GameManager::game().get_instance().get_map().UnitPresent(tile->get_map_coords())) {
 					// and the unit is not this unit
-					if (GameInstance::instance().get_map().GetUnit(tile->get_map_coords()) != this) {
-						GameInstance::instance().get_map().GetUnit(tile->get_map_coords())->Render();
+					if (GameManager::game().get_instance().get_map().GetUnit(tile->get_map_coords()) != this) {
+						GameManager::game().get_instance().get_map().GetUnit(tile->get_map_coords())->Render();
 					}
 				}
 			}
@@ -429,7 +430,7 @@ void Unit::MoveTo(Tile* target_tile) {
 		open.erase(current_iter);
 		// clear the vector of adjacent tiles and fill for the current tile
 		adjacent_tiles.clear();
-		adjacent_tiles = GameInstance::instance().get_map().AdjacentTo(current->get_tile());
+		adjacent_tiles = GameManager::game().get_instance().get_map().AdjacentTo(current->get_tile());
 		// go through the tiles in the vector of adjacent tiles
 		for (auto iter = adjacent_tiles.begin(); iter != adjacent_tiles.end(); iter++) {
 			// make a MoveSequence object from this adjacent tile and make its parent the currently inspected tile
@@ -449,9 +450,9 @@ void Unit::MoveTo(Tile* target_tile) {
 				if (CanTraverse(adjacent.get_tile())) {
 					if (!in_open_set) { // if not in open set
 						// if there is a unit on the tile..
-						if (GameInstance::instance().get_map().UnitPresent(adjacent.get_tile()->get_map_coords())) {
+						if (GameManager::game().get_instance().get_map().UnitPresent(adjacent.get_tile()->get_map_coords())) {
 							// friendly unit -> can move through, non-friendly then cant
-							if (team_ == GameInstance::instance().get_map().GetUnit(adjacent.get_tile()->get_map_coords())->get_team()) {
+							if (team_ == GameManager::game().get_instance().get_map().GetUnit(adjacent.get_tile()->get_map_coords())->get_team()) {
 								open.push_back(adjacent);
 							}
 						}
