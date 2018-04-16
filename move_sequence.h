@@ -18,24 +18,24 @@ public:
 	
 	// accessors and mutators for parent in chain
 	void set_parent(MoveSequence &new_parent);
-	MoveSequence* get_parent() const;
+	const MoveSequence* get_parent() const;
 
 	// get the tile that this MoveSequence component belongs to
 	Tile* get_tile() const;
 
-	// get the heuristic for this tile
+	// set the heuristic for this tile
 	void set_heuristic_to(const Tile *target_tile);
 
 	// get the cost to reach this tile
-	int get_cost() const;
+	const int& get_cost() const;
 	// get the score of the tile (cost to reach tile + heuristic to reach target tile)
-	int get_score() const;
+	const int get_score() const;
 
 	// updates the cost for this tile
 	void Update();
 
 	// check if two move sequences point to the same map tile
-	bool operator==(const MoveSequence &rhs);
+	const bool operator==(const MoveSequence &rhs);
 
 	// check which of two move sequence objects has lowest score
 	//bool operator<(const MoveSequence &rhs);

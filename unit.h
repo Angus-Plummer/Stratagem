@@ -34,9 +34,15 @@ protected:
 	ColourScheme acted_colour_scheme_; // colour scheme when unit has already acted on a turn
 	ColourScheme dead_colour_scheme_; // colour scheme when the unit is dead
 
+	// get a deep copy of the unit
+	virtual Unit* clone_impl() const = 0;
+
 public:
 	Unit(const int &team);
 	virtual ~Unit();
+
+	// get a unique pointer to a copy of this object
+	std::unique_ptr<Unit> clone() const { return std::unique_ptr<Unit>(clone_impl()); }
 
 	// accessors and mutators
 	int get_max_hp() const { return max_hp_; }
@@ -44,12 +50,12 @@ public:
 	void set_current_hp(int const &hp); // will set to 0 if < 0 and max_hp if > max_hp
 	double get_armour() const { return armour_; }
 	int get_move_distance() const { return move_range_; }
-	int get_team() const { return team_; }
+	const int get_team() const { return team_; }
 	bool has_moved_this_turn() const { return moved_this_turn_; }
 	bool has_attacked_this_turn() const { return attacked_this_turn_; }
 
 	// get the appropriate colour scheme for the unit
-	ColourScheme get_colour_scheme() const;
+	const ColourScheme& get_colour_scheme() const;
 
 	// apply damage and healing
 	void AttackedBy(const Unit *target);
@@ -59,7 +65,7 @@ public:
 	void set_map_coords(const Coord &new_pos);
 
 	// find out if this unit can be selected (if it has either moved or attacked already)
-	bool CanSelect() const;
+	const bool CanSelect() const;
 	// select this unit
 	void SelectUnit();
 	// deselect this unit
@@ -74,18 +80,18 @@ public:
 	void Kill();
 
 	// function return true if unit can move
-	bool CanMove() const;
+	const bool CanMove() const;
 	// function return true if unit can attack
-	bool CanAttack() const;
+	const bool CanAttack() const;
 
 	// check if a target unit is attackable by this unit
-	bool CanAttackTarget(const Unit *target) const;
+	const bool CanAttackTarget(const Unit *target) const;
 
 	// attack another unit
 	void Attack(Unit *target);
 
 	// returns a vector of all units that are currently attackable by this unit
-	std::vector<Unit*> AttackableUnits() const;
+	const std::vector<Unit*> AttackableUnits() const;
 
 	// highlights tiles/units that are attackable
 	void HighlightAttackableUnits(const bool &highlight) const;
@@ -94,16 +100,16 @@ public:
 	Tile* GetTile() const;
 
 	// checks how many tiles away another unit is
-	int DistanceTo(const Unit *target) const;
+	const int DistanceTo(const Unit *target) const;
 
 	// check if unit can traverse a given terrain
-	bool virtual CanTraverse(const Tile *terrain_tile) const = 0;
+	virtual const bool CanTraverse(const Tile *terrain_tile) const = 0;
 
 	// renders the unit in the console
 	void Render() const;
 
 	// returns true if the unit can legally reach the target tile in one movement
-	bool CanReach(const Tile* target_tile);
+	const bool CanReach(const Tile* target_tile);
 
 	// returns a vector of pointers to the tiles (as movesequences) that can be reached by this unit
 	std::vector<Tile*> ReachableTiles() const;

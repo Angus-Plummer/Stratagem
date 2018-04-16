@@ -22,15 +22,15 @@ class GameInstance{
 protected:
 
 	Window* display_; // window that game is output to
-	Map* game_map_; // game map
+	std::unique_ptr<Map> game_map_; // game map
 	Unit* selected_unit_; // the currently selected unit (nullptr if no unit selected)
 	Menu context_menu_; // the context menu
 	Button end_turn_button_; // button to end player turn
 	Button surrender_button_; // surrender button
 
 	// vector of pointers for each players units
-	std::vector<Unit*> p1_units_;
-	std::vector<Unit*> p2_units_;
+	std::vector<std::unique_ptr<Unit>> p1_units_;
+	std::vector<std::unique_ptr<Unit>> p2_units_;
 	
 	GameState state_;
 	bool running_; // bool indicates whether this instance of the game is currently running
@@ -40,21 +40,23 @@ public:
 	
 	GameInstance::GameInstance(); // default ctor
 	GameInstance(Window &display); // ctor taking a window as arg
-	// copy ctor
-	// move ctor
+	GameInstance(const GameInstance &instance); // copy ctor
+	GameInstance(GameInstance &&instance); // move ctor
 	~GameInstance(); // dtor
 
 	// copy assignment
+	GameInstance& operator=(const GameInstance &instance);
 	// move assignment
+	GameInstance& operator=(GameInstance &&instance);
 	
 	// get access to the current game map, display and selected unit
-	Window& get_display() const { return *display_; }
+	const Window& get_display() const { return *display_; }
 	void set_display(Window &display) { display_ = &display; }
 	Map& get_map() const { return *game_map_; }
 	Unit& get_selected_unit() const { return *selected_unit_; }
 
 	// get whos turn it currently is
-	int get_player_turn() const { return player_turn_; }
+	const int& get_player_turn() const { return player_turn_; }
 
 	// load in a map from the 5 premade maps
 	void LoadMap(const int &map_id) const;
@@ -62,13 +64,9 @@ public:
 	void RenderMap() const;
 
 	// add a unit to the game
-	void AddUnit(Unit *new_unit, const Coord &pos);
+	void AddUnit(std::unique_ptr<Unit> new_unit, const Coord &pos);
 	// remove a unit from the game
 	void RemoveUnit(Unit *unit);
-
-	// activates and deactivate a vector of units (sets their has moved or attacked this turn booleans and their internal state enum)
-	void EnableUnits(std::vector<Unit*> units) const;
-	void DisableUnits(std::vector<Unit*> units) const;
 
 	// select the target unit
 	void SelectUnit(Unit *unit);
@@ -94,7 +92,7 @@ public:
 	// checks if all the units on the current team have acted and ends turn if they have
 	void AutoEndTurn();
 	// show / update the label for who's turn it currently is
-	void ShowTurnLabel();
+	void ShowTurnLabel() const;
 	// show end turn button
 	void ShowEndTurnButton();
 	// show surrender button

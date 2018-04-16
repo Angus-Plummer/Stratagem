@@ -19,7 +19,7 @@ void MoveSequence::set_parent(MoveSequence &new_parent){
 	parent_ = &new_parent;
 	Update();
 }
-MoveSequence* MoveSequence::get_parent() const{
+const MoveSequence* MoveSequence::get_parent() const{
 	return parent_;
 }
 
@@ -28,12 +28,12 @@ Tile* MoveSequence::get_tile() const{
 	return tile_;
 }
 // get the cost of reaching this tile from the intial tile
-int MoveSequence::get_cost() const {
+const int& MoveSequence::get_cost() const {
 	return cost_to_here_;
 }
 
 // get the score of the tile (cost to reach tile + heuristic to reach target tile)
-int MoveSequence::get_score() const {
+const int MoveSequence::get_score() const {
 	return cost_to_here_ + heuristic_to_target;
 }
 
@@ -57,20 +57,6 @@ void MoveSequence::Update() {
 }
 
 // check if two move sequences point to the same map tile
-bool MoveSequence::operator==(const MoveSequence &rhs){
+const bool MoveSequence::operator==(const MoveSequence &rhs){
 	return (tile_ == rhs.tile_);
 }
-
-// check which of two move sequence objects has lowest score
-//bool MoveSequence::operator<(const MoveSequence &rhs) {
-//	return ( cost_to_here_ < rhs.cost_to_here_);
-//}
-
-/*// copy assignment operator overloading
-void MoveSequence::operator=(MoveSequence const &rhs) {
-	tile_ = rhs.tile_;
-	parent_ = rhs.parent_;
-	cost_to_here_ = rhs.cost_to_here_;
-	estimated_left_ = rhs.estimated_left_;
-}
-*/

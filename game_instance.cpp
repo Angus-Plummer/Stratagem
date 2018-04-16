@@ -9,8 +9,8 @@
 #include "ascii_art.h"
 
 GameInstance::GameInstance() {
-	display_ = new Window(610, 560); // default window size 610x560 ( just fits everything on)
-	game_map_ = new Map(); // create empty map
+	display_ = new Window(700, 700); // default window size
+	game_map_ = std::unique_ptr<Map>(new Map()); // create empty map
 	selected_unit_ = nullptr; // no unit selected
 	context_menu_ = Menu(); // context menu not showing
 	end_turn_button_ = Button(); // start with end turn button not showing
@@ -21,7 +21,7 @@ GameInstance::GameInstance() {
 }
 
 GameInstance::GameInstance(Window &display): display_(&display){
-	game_map_ = new Map(); // create empty map
+	game_map_ = std::unique_ptr<Map>(new Map()); // create empty map
 	selected_unit_ = nullptr; // no unit selected
 	context_menu_ = Menu(); // context menu not showing
 	end_turn_button_ = Button(); // start with end turn button not 
@@ -31,9 +31,80 @@ GameInstance::GameInstance(Window &display): display_(&display){
 	state_ = STATE_SETUP; // set initial state is setup 
 }
 
-// dtor : NEED TO SET THIS UP PROPERLY
-GameInstance::~GameInstance(){
-	delete game_map_;
+// copy ctor
+GameInstance::GameInstance(const GameInstance &instance) {
+	display_ = instance.display_;
+	selected_unit_ = instance.selected_unit_;
+	context_menu_ = instance.context_menu_;
+	end_turn_button_ = instance.end_turn_button_;
+	surrender_button_ = instance.surrender_button_;
+	player_turn_ = instance.player_turn_;
+	running_ = instance.running_;
+	state_ = instance.state_;
+
+	// make unique pointer to a new map object that is copy of the input instance's map
+	game_map_ = std::unique_ptr<Map>(new Map(*instance.game_map_));
+
+	// make copies of the units and add them to the unit vectors
+	for (auto unit_iter = instance.p1_units_.begin(); unit_iter != instance.p1_units_.end(); unit_iter++) {
+		p1_units_.push_back((*unit_iter)->clone());
+	}
+	for (auto unit_iter = instance.p2_units_.begin(); unit_iter != instance.p2_units_.end(); unit_iter++) {
+		p2_units_.push_back((*unit_iter)->clone());
+	}
+} 
+
+// move ctor
+GameInstance::GameInstance(GameInstance &&instance) : GameInstance() {
+	std::swap(display_, instance.display_);
+	std::swap(game_map_, instance.game_map_);
+	std::swap(p1_units_, instance.p1_units_);
+	std::swap(p2_units_, instance.p2_units_);
+	std::swap(selected_unit_, instance.selected_unit_);
+	std::swap(context_menu_, instance.context_menu_);
+	std::swap(end_turn_button_, instance.end_turn_button_);
+	std::swap(surrender_button_, instance.surrender_button_);
+	std::swap(player_turn_, instance.player_turn_);
+	std::swap(running_, instance.running_);
+	std::swap(state_, instance.state_);
+} 
+// dtor
+GameInstance::~GameInstance() {} 
+
+// copy assignment
+GameInstance& GameInstance::operator=(const GameInstance &instance) {
+	game_map_ = std::unique_ptr<Map>(new Map(*instance.game_map_));
+	selected_unit_ = nullptr;
+	context_menu_ = Menu();
+	end_turn_button_ = Button();
+	surrender_button_ = Button();
+	player_turn_ = instance.player_turn_;
+	running_ = false;
+	state_ = STATE_SETUP;
+	// make copies of the units and add them to the unit vectors
+	for (auto unit_iter = instance.p1_units_.begin(); unit_iter != instance.p1_units_.end(); unit_iter++) {
+		p1_units_.push_back((*unit_iter)->clone());
+	}
+	for (auto unit_iter = instance.p2_units_.begin(); unit_iter != instance.p2_units_.end(); unit_iter++) {
+		p2_units_.push_back((*unit_iter)->clone());
+	}
+	return *this;
+}
+// move assignment
+GameInstance& GameInstance::operator=(GameInstance &&instance) {
+	std::swap(display_, instance.display_);
+	std::swap(game_map_, instance.game_map_);
+	std::swap(p1_units_, instance.p1_units_);
+	std::swap(p2_units_, instance.p2_units_);
+	std::swap(selected_unit_, instance.selected_unit_);
+	std::swap(context_menu_, instance.context_menu_);
+	std::swap(end_turn_button_, instance.end_turn_button_);
+	std::swap(surrender_button_, instance.surrender_button_);
+	std::swap(player_turn_, instance.player_turn_);
+	std::swap(running_, instance.running_);
+	std::swap(state_, instance.state_);
+
+	return *this;
 }
 
 // select the target unit
@@ -84,20 +155,20 @@ void GameInstance::RenderMap() const {
 }
 
 // add a unit to the game
-void GameInstance::AddUnit(Unit *new_unit, const Coord &pos) {
-	game_map_->AddUnit(new_unit, pos);
+void GameInstance::AddUnit(std::unique_ptr<Unit> new_unit, const Coord &pos) {
+	game_map_->AddUnit(new_unit.get(), pos);
 	if (new_unit->get_team() == 1) {
-		p1_units_.push_back(new_unit);
+		p1_units_.push_back(std::move(new_unit));
 	}
 	else if (new_unit->get_team() == 2) {
-		p2_units_.push_back(new_unit);
+		p2_units_.push_back(std::move(new_unit));
 	}
 }
 // remove a unit from the game and map
 void GameInstance::RemoveUnit(Unit *unit) {
 	// use the Erase-Remove idiom to delete the unit from whichever array it is in
-	p1_units_.erase(std::remove(p1_units_.begin(), p1_units_.end(), unit), p1_units_.end());
-	p2_units_.erase(std::remove(p2_units_.begin(), p2_units_.end(), unit), p2_units_.end());
+	p1_units_.erase(std::remove_if(p1_units_.begin(), p1_units_.end(), [&unit](const std::unique_ptr<Unit> &vec_unit) {return vec_unit.get() == unit; }), p1_units_.end());
+	p2_units_.erase(std::remove_if(p2_units_.begin(), p2_units_.end(), [&unit](const std::unique_ptr<Unit> &vec_unit) {return vec_unit.get() == unit; }), p2_units_.end());
 	game_map_->RemoveUnit(unit);
 
 	// if after removing the unit there are not units left on the team from then the other team wins (if the game is not currently in setup where this map happen during unit placement)
@@ -216,10 +287,14 @@ void GameInstance::StartTurn() {
 
 	// enable the units of the player whose turn it is
 	if (player_turn_ == 1) {
-		EnableUnits(p1_units_);
+		for (auto unit_iter = p1_units_.begin(); unit_iter != p1_units_.end(); unit_iter++) {
+			(*unit_iter)->EnableActions();
+		}
 	}
 	else if (player_turn_ == 2) {
-		EnableUnits(p2_units_);
+		for (auto unit_iter = p2_units_.begin(); unit_iter != p2_units_.end(); unit_iter++) {
+			(*unit_iter)->EnableActions();
+		}
 	}
 	// set game state to selecting a unit
 	state_ = STATE_SELECTING_UNIT;
@@ -233,11 +308,17 @@ void GameInstance::EndTurn() {
 	state_ = STATE_BETWEEN_TURNS;
 	// change the player turn variable
 	if (player_turn_ == 1) {
-		DisableUnits(p1_units_);
+		// disable all units on p1 team
+		for (auto unit_iter = p1_units_.begin(); unit_iter != p1_units_.end(); unit_iter++) {
+			(*unit_iter)->DisableActions();
+		}		
 		player_turn_ = 2;
 	}
 	else if (player_turn_ == 2) {
-		DisableUnits(p2_units_);
+		// disable all units on p2 team
+		for (auto unit_iter = p2_units_.begin(); unit_iter != p2_units_.end(); unit_iter++) {
+			(*unit_iter)->DisableActions();
+		}
 		player_turn_ = 1;
 	}
 	// run an animation to show turn change (as easy to miss the current turn label)
@@ -253,8 +334,16 @@ void GameInstance::AutoEndTurn() {
 	if (state_ == STATE_SELECTING_UNIT) {
 		// get vector of units of team whos turn it is
 		std::vector<Unit*> current_team;
-		if (player_turn_ == 1) { current_team = p1_units_; }
-		else if (player_turn_ == 2) { current_team = p2_units_; }
+		if (player_turn_ == 1) { 
+			for (auto unit_iter = p1_units_.begin(); unit_iter != p1_units_.end(); unit_iter++) {
+				current_team.push_back(unit_iter->get());
+			}
+		}
+		else if (player_turn_ == 2) { 
+			for (auto unit_iter = p2_units_.begin(); unit_iter != p2_units_.end(); unit_iter++) {
+				current_team.push_back(unit_iter->get());
+			}
+		}
 		// iterate through the units on that team and see if any can be selected or are the currently selected unit
 		bool all_acted = true;
 		for (auto unit_iter = current_team.begin(); unit_iter != current_team.end(); unit_iter++) {
@@ -265,24 +354,8 @@ void GameInstance::AutoEndTurn() {
 	}
 }
 
-// activates a vector of units (resets their has moved or attacked this turn booleans)
-void GameInstance::EnableUnits(std::vector<Unit*> units) const {
-	// iterate through the units and enable their actions
-	for (auto unit_iter = units.begin(); unit_iter != units.end(); unit_iter++) {
-		(*unit_iter)->EnableActions();
-	}
-}
-
-// deactivates a vector of units (sets their has moved or attacked this turn booleans)
-void GameInstance::DisableUnits(std::vector<Unit*> units) const {
-	// iterate through the units and enable their actions
-	for (auto unit_iter = units.begin(); unit_iter != units.end(); unit_iter++) {
-		(*unit_iter)->DisableActions();
-	}
-}
-
 // show / update the label for who's turn it currently is
-void GameInstance::ShowTurnLabel() {
+void GameInstance::ShowTurnLabel() const {
 	// save the current colour scheme to revert back after
 	ColourScheme original_colour_scheme = display_->get_colour_scheme();
 	// go to top right next to map
@@ -482,11 +555,11 @@ void GameInstance::Victory(const int &team) {
 	state_ = STATE_VICTORY; // set state
 	// iterate through the units and remove any remaining from the game
 	for (auto unit_iter = p1_units_.begin(); unit_iter != p1_units_.end(); unit_iter++) {
-		game_map_->RemoveUnit(*unit_iter);
+		game_map_->RemoveUnit(unit_iter->get());
 	}
 	p1_units_.clear();
 	for (auto unit_iter = p2_units_.begin(); unit_iter != p2_units_.end(); unit_iter++) {
-		game_map_->RemoveUnit(*unit_iter);
+		game_map_->RemoveUnit(unit_iter->get());
 	}
 	p1_units_.clear();
 

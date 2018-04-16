@@ -3,8 +3,10 @@
 #include "unit.h"
 
 class Archer : public Unit {
+protected:
+	Archer * clone_impl() const { return new Archer(*this); }
 public:
 	Archer(const int &team);
 	~Archer();
-	bool CanTraverse(const Tile *terrain_tile) const;
+	const bool CanTraverse(const Tile *terrain_tile) const;
 };

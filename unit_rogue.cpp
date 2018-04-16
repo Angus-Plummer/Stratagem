@@ -23,7 +23,7 @@ Rogue::~Rogue(){
 }
 
 // returns true if unit can cross a terrain tile. ( rogue cant cross water)
-bool Rogue::CanTraverse(const Tile *terrain_tile) const {
+const bool Rogue::CanTraverse(const Tile *terrain_tile) const {
 	// if tile is water tile then return false
 	if (dynamic_cast<WaterTile*>(const_cast<Tile*>(terrain_tile))) {
 		return false;

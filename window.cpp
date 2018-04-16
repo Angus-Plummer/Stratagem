@@ -57,24 +57,24 @@ void Window::Clear() {
 }
 
 // get console window width and height in terms of rows and columns of console cells
-int Window::Width() const {
+const int Window::Width() const {
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
 	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
 	return buffer.srWindow.Right - buffer.srWindow.Left;
 
 }
-int Window::Height() const{
+const int Window::Height() const{
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
 	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
 	return buffer.srWindow.Bottom - buffer.srWindow.Top;
 }
 
 // tile width and height in  terms of console cells
-int Window::get_tile_width() const { return tile_width_; }
-int Window::get_tile_height() const { return tile_height_;}
+const int& Window::get_tile_width() const { return tile_width_; }
+const int& Window::get_tile_height() const { return tile_height_;}
 // map x and y offset in terms of console cells
-int Window::get_map_x_offset() const { return map_x_offset_; }
-int Window::get_map_y_offset() const { return map_y_offset_; }
+const int& Window::get_map_x_offset() const { return map_x_offset_; }
+const int& Window::get_map_y_offset() const { return map_y_offset_; }
 
 
 // get and set the position of the console cursor
@@ -84,7 +84,7 @@ void Window::GoTo(const Coord &in_coord) const {
 	SetConsoleCursorPosition(standard_out_handle_, coord);
 }
 
-Coord Window::CursorPosition() const {
+const Coord Window::CursorPosition() const {
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
 	// get buffer info
 	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
@@ -92,7 +92,7 @@ Coord Window::CursorPosition() const {
 }
 
 // gets the position (console cell location) of the mouse cursor if LMB is pressed clicked down. (acts like detecting a mouse up event)
-Coord Window::MouseDownPosition() const {
+const Coord Window::MouseDownPosition() const {
 	bool detected_down = false;
 	Coord down_position = { -1,-1 };// defualt position, will be returned if no LMB down detected
 	DWORD num_read, i; //var to hold number of inputs detected and an interator value
@@ -129,7 +129,7 @@ Coord Window::MouseDownPosition() const {
 }
 
 // wait for mouse input (function will keep looping until a click is detected)
-void Window::WaitForMouse() {
+void Window::WaitForMouse() const {
 	Coord mouse_down_pos{ -1,-1 }; // {-1,-1 is returned from MouseDownPosition if no click is detected}
 								   // keep getting the mouse down position until it returns an a value corresponding to a click
 	while (mouse_down_pos == Coord{ -1,-1 }) {
@@ -146,7 +146,7 @@ void Window::set_colour_scheme(const ColourScheme &colour_scheme) const {
 }
 
 // gets the current colour of the background
-ColourScheme Window::get_colour_scheme() const {
+const ColourScheme Window::get_colour_scheme() const {
 	// get console window buffer info
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
 	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);

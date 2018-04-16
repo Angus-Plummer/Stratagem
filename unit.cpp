@@ -24,9 +24,7 @@ Unit::Unit(const int &team): GameObject(), team_(team), state_(STATE_ASLEEP){ /*
 }
 
 // dtor
-Unit::~Unit()
-{
-}
+Unit::~Unit(){}
 
 // set new current hp value
 void Unit::set_current_hp(const int &hp) {  // will set to 0 if < 0 and max_hp if > max_hp
@@ -46,7 +44,7 @@ void Unit::set_current_hp(const int &hp) {  // will set to 0 if < 0 and max_hp i
 }
 
 // get the appropriate colour scheme for the unit
-ColourScheme Unit::get_colour_scheme() const {
+const ColourScheme& Unit::get_colour_scheme() const {
 	// if the unit is the currently seleceted unit then return the selected colour scheme
 	switch (state_) {
 		// if the unit is selcted return the selected colour scheme
@@ -67,6 +65,8 @@ ColourScheme Unit::get_colour_scheme() const {
 		case STATE_DEAD :
 			return dead_colour_scheme_;
 	}
+	// if its state is invalid just return default colour scheme
+	return default_colour_scheme_;
 }
 
 void Unit::AttackedBy(const Unit *attacker) {
@@ -97,7 +97,7 @@ void Unit::AttackedBy(const Unit *attacker) {
 //}
 
 // find out if this unit can be selected (if it has either moved or attacked already and if it is its team's turn)
-bool Unit::CanSelect() const {
+const bool Unit::CanSelect() const {
 	return state_ == STATE_IDLE;
 }
 
@@ -161,16 +161,16 @@ void Unit::Kill() {
 }
 
 // function return true if unit can move
-bool Unit::CanMove() const {
+const bool Unit::CanMove() const {
 	return ReachableTiles().size() > 0 && !moved_this_turn_;
 }
 // function return true if unit can attack
-bool Unit::CanAttack() const {
+const bool Unit::CanAttack() const {
 	return AttackableUnits().size() > 0 && !attacked_this_turn_;
 }
 
 // check if a target unit is attackable by this unit
-bool Unit::CanAttackTarget(const Unit *target) const {
+const bool Unit::CanAttackTarget(const Unit *target) const {
 	// if distance to the target equal to or less than this unit's attack range and it is not on the same team then it can attack
 	return DistanceTo(target) <= attack_range_ && target->get_team() != team_;
 }
@@ -198,7 +198,7 @@ void Unit::HighlightAttackableUnits(const bool &highlight) const {
 }
 
 // returns a vector of all units that are currently attackable by this unit
-std::vector<Unit*> Unit::AttackableUnits() const {
+const std::vector<Unit*> Unit::AttackableUnits() const {
 	std::vector<Unit*> attackable_units; // vector to hold units this unit can currently attack
 	// get all the units on the map
 	std::vector<Unit*> units = GameManager::game().get_instance().get_map().get_units();
@@ -217,7 +217,7 @@ Tile* Unit::GetTile() const {
 }
 
 // finds distance to target unit (manhattan distance)
-int Unit::DistanceTo(const Unit *target) const {
+const int Unit::DistanceTo(const Unit *target) const {
 	return abs(map_coords_.x - target->map_coords_.x) + abs(map_coords_.y - target->map_coords_.y);
 }
 
@@ -251,7 +251,7 @@ void Unit::Render() const {
 }
 
 // returns true if the unit can legally reach the target tile in one movement
-bool Unit::CanReach(const Tile* target_tile) {
+const bool Unit::CanReach(const Tile* target_tile) {
 	std::vector<Tile*> reachable_tiles = ReachableTiles(); // vector of tiles reachable by this unit
 	// iterates through the tiles, if still have not found after all in vector then this will return false
 	return std::find(reachable_tiles.begin(), reachable_tiles.end(), target_tile) != reachable_tiles.end();

@@ -37,9 +37,9 @@ struct Coord{
 	Coord& operator=(const Coord &coord) { x = coord.x; y = coord.y; return *this; }
 
 	// friend operator overloads (defined in .cpp file)
-	friend bool operator==(const Coord &lhs, const Coord &rhs);
+	friend const bool operator==(const Coord &lhs, const Coord &rhs);
 	// inequality operator
-	friend bool operator!=(const Coord &lhs, const Coord &rhs);
+	friend const bool operator!=(const Coord &lhs, const Coord &rhs);
 	// writing the coordinate to a stream
 	friend std::ostream& operator<<(std::ostream &os, const Coord &coord);
 };

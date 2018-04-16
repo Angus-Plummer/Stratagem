@@ -25,7 +25,7 @@ Warrior::~Warrior(){
 }
 
 // returns true if the warrior can cross the terrain. (warrior cant enter water or mountains)
-bool Warrior::CanTraverse(const Tile *terrain_tile) const {
+const bool Warrior::CanTraverse(const Tile *terrain_tile) const {
 	// if tile is a water tile then return false
 	if (dynamic_cast<WaterTile*>(const_cast<Tile*>(terrain_tile))) { // have to remove const qualifier first
 		return false;

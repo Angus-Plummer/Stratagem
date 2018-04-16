@@ -29,25 +29,23 @@ protected:
 	int current_map_num; // holds the number of the currently selected map
 	int team_size_; // number of starting units on each team
 	int team_placing_; // the team that is currently allowed to select and place units
-	Unit* placing_unit_; // unit that is currently being placed on the map
-	std::vector<Unit*> units_placed_; // vector of all units that have been placed so far (they do not get placed into the game instance so they can be managed separately)
+	std::unique_ptr<Unit> placing_unit_; // unit that is currently being placed on the map, this unit is owned by the game manager so use unique_ptr
+	std::vector<std::unique_ptr<Unit>> units_placed_; // vector of all units that have been placed so far (they do not get placed into the game instance so they can be managed separately), the units are owned by the game manager while they are being placed (so use unique_ptr)
 public:
+	// ctors
 	GameManager();
 	GameManager(Window &display);
-	// copy ctor
-	// move ctor
+	// dtor
 	~GameManager();
-
-	// copy assignment
-	// move assignment
 
 	// global access to the current instance of the game
 	static GameManager& game() { return game_; }
 
 	// get a reference to the current game instance
 	GameInstance& get_instance() { return instance_; }
+	
 	// get a reference to the display window
-	Window& get_display() const { return *display_; }
+	const Window& get_display() const { return *display_; }
 	
 	// set the display window
 	void set_display(Window &display);
@@ -55,7 +53,7 @@ public:
 	// clear all menus from the vector of menus
 	void ClearButtons();
 	// render all menus
-	void RenderButtons();
+	void RenderButtons() const;
 
 	// moves the game into the title screen state (shows ascii art and updates menus)
 	void ShowTitleScreen();
@@ -64,8 +62,7 @@ public:
 	void ShowHelpScreen();
 
 	// helper function to wrap help text in window
-	std::string WrapString(std::string& str);
-
+	std::string WrapString(std::string& str) const;
 
 	// moved the game into the map selection state
 	void StartMapSelection();
@@ -73,7 +70,7 @@ public:
 	// move the game into the selecting teams size state
 	void StartTeamSizeSelection();
 
-	// --------- unit placement ------------
+	// --------- unit placement functions ------------
 
 	// moves the game into the unit placement state
 	void StartUnitPlacement();
@@ -94,16 +91,16 @@ public:
 	void ResetTiles();
 
 	// counts the number of units that have been placed by the current team
-	int CountUnits();
+	const int CountUnits() const;
 	
 	// shows the number of units the team currently placing units has placed
-	void ShowUnitCounter();
+	void ShowUnitCounter() const;
 
 	// flashes the unit counter red
-	void FlashUnitCounter();
+	void FlashUnitCounter() const;
 
 	// shows the type of unit that is currently being placed
-	void ShowPlacingUnit();
+	void ShowPlacingUnit() const;
 
 	// select a new unit to be placed
 	void SetPlacingUnit(Unit *placing_unit);
@@ -111,7 +108,7 @@ public:
 	// removes the unit being placed and replaces with a nullptr, also resets the tiles
 	void RemovePlacingUnit();
 
-	// --------- end of unit placement ----------
+	// --------- end of unit placement functions ----------
 
 	// starts the actual game running
 	void PlayGame();

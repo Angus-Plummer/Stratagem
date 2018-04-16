@@ -27,7 +27,7 @@ Archer::~Archer()
 
 
 // returns true if unit can cross a terrain tile. ( archer cant cross water)
-bool Archer::CanTraverse(const Tile *terrain_tile) const {
+const bool Archer::CanTraverse(const Tile *terrain_tile) const {
 	// if tile is water tile then return false
 	if (dynamic_cast<WaterTile*>(const_cast<Tile*>(terrain_tile))) {
 		return false;

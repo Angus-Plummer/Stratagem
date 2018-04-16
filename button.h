@@ -27,7 +27,7 @@ public:
 
 	// mutators
 	void set_enabled(const bool &enabled) { enabled_ = enabled; }
-	bool is_enabled() const { return enabled_; }
+	const bool& is_enabled() const { return enabled_; }
 	void set_disabled_colour_scheme(const ColourScheme &colour_scheme) { disabled_colour_scheme_ = colour_scheme; }
 	void set_menu(Menu *menu) { parent_menu_ = menu; }
 	

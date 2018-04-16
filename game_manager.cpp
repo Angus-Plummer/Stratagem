@@ -15,7 +15,7 @@ GameManager::GameManager() {
 	state_ = STATE_TITLE_SCREEN;
 	// start with map#1, no unit being placed and team 1 placing units
 	current_map_num = 1;
-	placing_unit_ = nullptr;
+	placing_unit_ = std::unique_ptr<Unit>(nullptr);
 	team_placing_ = 1;
 }
 // ctor with window to output to
@@ -24,24 +24,14 @@ GameManager::GameManager(Window &display) : display_(&display){
 	state_ = STATE_TITLE_SCREEN;
 	// start with map#1, no unit being placed and team 1 placing units
 	current_map_num = 1;
-	placing_unit_ = nullptr;
+	placing_unit_ = std::unique_ptr<Unit>(nullptr);
 	team_placing_ = 1;
 	// set the display of the instance to be the display of the game manager
 	instance_.set_display(display);
 }
 
-GameManager::~GameManager(){
-	// delete the units that were placed
-	for (auto unit_iter = units_placed_.begin(); unit_iter != units_placed_.end(); unit_iter++) {
-		delete *unit_iter;
-	}
-	units_placed_.clear();
-	// also delete the placing unit if there still is one
-	if (placing_unit_) {
-		delete placing_unit_;
-	}
-	// delete display?
-}
+// dtor
+GameManager::~GameManager(){}
 
 // initiate the static game object
 GameManager GameManager::game_;
@@ -59,7 +49,7 @@ void GameManager::ClearButtons() {
 }
 
 // render all menus
-void GameManager::RenderButtons() {
+void GameManager::RenderButtons() const{
 	// individually render the menus within the menus vector
 	for (auto button_iter = buttons_.begin(); button_iter != buttons_.end(); button_iter++) {
 		button_iter->Render();
@@ -138,7 +128,7 @@ void GameManager::ShowHelpScreen() {
 
 	// write the help text starting from coordinate 0,0
 	display_->GoTo(Coord());
-	for (int line = 0; line < help_text.size(); line++) {
+	for (int line = 0; line < (int)help_text.size(); line++) {
 		std::cout << WrapString(help_text[line]) << std::endl;
 	}
 	// record what row the help text ends at
@@ -161,11 +151,11 @@ void GameManager::ShowHelpScreen() {
 	display_->GoTo(Coord(0, 0));
 }
 // helper function to wrap help text in window
-std::string GameManager::WrapString(std::string& str){
+std::string GameManager::WrapString(std::string& str) const{
 	// number of chars in line is the width of the display window in console cells
 	int line_width = display_->Width() ;
 	// if the string has length less than the line length then do nothing
-	if (str.length() < line_width) { return str; }
+	if ((int)str.length() < line_width) { return str; }
 	// last space variable records the char of the last space in the text before the new line
 	int last_space = line_width - 1;
 	// find the last space in the first line length chars
@@ -398,11 +388,14 @@ void GameManager::ConfirmUnitPlacement() {
 			team_placing_ = 2;
 			StartUnitPlacement();
 		}
-		// if current player is team 2 then add the placed units to the game and play the game
+		// if current player is team 2 then move the placed units to the game and play the game
 		else if (team_placing_ == 2) {
  			for (auto unit_iter = units_placed_.begin(); unit_iter != units_placed_.end(); unit_iter++) {
-				instance_.AddUnit(*unit_iter, (*unit_iter)->get_map_coords());
+				instance_.AddUnit(std::move(*unit_iter), (*unit_iter)->get_map_coords());
 			}
+			// clear the vector of placed units (as they have now moved to the game instance)
+			units_placed_.clear();
+			// play the game
 			PlayGame();
 		}
 	}
@@ -420,12 +413,11 @@ void GameManager::ClearUnits() {
 		if ((*unit_iter)->get_team() == team_placing_) {
 			// render the tile under the unit (so the unit is no longer rendered)
 			instance_.get_map().Render((*unit_iter)->get_map_coords());
-			delete *unit_iter;
-			*unit_iter = nullptr;
+			unit_iter->reset();
 		}
 	}
 	// find and remove the nullptrs from the vector
-	units_placed_.erase(std::remove(units_placed_.begin(), units_placed_.end(), nullptr), units_placed_.end());
+	units_placed_.erase(std::remove_if(units_placed_.begin(), units_placed_.end(), [](const std::unique_ptr<Unit> &unit) {return unit.get() == nullptr; }), units_placed_.end());
 	// update the unit counter
 	ShowUnitCounter();
 }
@@ -448,7 +440,7 @@ std::vector<Tile*> GameManager::PlaceableTiles() const {
 			// if unit can be placed on the tile then add it to the vector of valid tiles
 			// tile valid if: the placed unit can traverse the tile and no unit in the units vector is already on that tile
 			if (placing_unit_->CanTraverse(instance_.get_map().GetTile(Coord(column, row))) &&
-				std::find_if(units_placed_.begin(), units_placed_.end(), [this, column, row](Unit* unit) {return unit->get_map_coords() == Coord(column, row); }) == units_placed_.end()) { 
+				std::find_if(units_placed_.begin(), units_placed_.end(), [this, column, row](const std::unique_ptr<Unit> &unit) {return unit->get_map_coords() == Coord(column, row); }) == units_placed_.end()) { 
 				valid_tiles.push_back(instance_.get_map().GetTile(Coord(column, row)));
 			}
 		}
@@ -486,18 +478,18 @@ void GameManager::ResetTiles() {
 }
 
 // counts the number of units that have been placed by the current team
-int GameManager::CountUnits() {
-	return std::count_if(units_placed_.begin(), units_placed_.end(), [this](Unit* unit) {return unit->get_team() == team_placing_; });
+const int GameManager::CountUnits() const{
+	return std::count_if(units_placed_.begin(), units_placed_.end(), [this](const std::unique_ptr<Unit> &unit) {return unit->get_team() == team_placing_; });
 
 }
 
 // shows the number of units the team currently placing units has placed
-void GameManager::ShowUnitCounter() {
+void GameManager::ShowUnitCounter() const {
 	display_->GoTo(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset()));
 	std::cout << "Units: " << CountUnits() << " / " << team_size_;
 }
 
-void GameManager::FlashUnitCounter() {
+void GameManager::FlashUnitCounter() const{
 	// save current colour scheme to revert after
 	ColourScheme original_colour_scheme = display_->get_colour_scheme();
 	int num_flashes = 3;
@@ -517,7 +509,7 @@ void GameManager::FlashUnitCounter() {
 }
 
 // shows the type of unit that is currently being placed
-void GameManager::ShowPlacingUnit() {
+void GameManager::ShowPlacingUnit() const{
 	// first write blank spaces over the previous text
 	display_->GoTo(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 2));
 	std::cout << "                ";
@@ -536,7 +528,7 @@ void GameManager::SetPlacingUnit(Unit *placing_unit) {
 	// if there is already a unit being placed then remove it
 	RemovePlacingUnit();
 	// update the placing_unit to the input arg
-	placing_unit_ = placing_unit;
+	placing_unit_.reset(placing_unit);
 	// update the text informing the user of the unit currently being placed
 	ShowPlacingUnit();
 	// if the new unit being placed is not a nullptr then highlight the placable tiles
@@ -546,11 +538,10 @@ void GameManager::SetPlacingUnit(Unit *placing_unit) {
 }
 // removes the unit being placed and replaces with a nullptr, also resets the tiles
 void GameManager::RemovePlacingUnit(){
-	// if there is currently a unit being placed then delete it, reset the tiles, and set it to nullptr
+	// if there is currently a unit being placed then delete it, reset the tiles
 	if (placing_unit_) {
-		delete placing_unit_;
+		placing_unit_.reset();;
 		ResetTiles();
-		placing_unit_ = nullptr;
 		ShowPlacingUnit();
 	}
 }
@@ -576,10 +567,10 @@ void GameManager::HandleLeftMouseButtonDown(const Coord &window_location){
 		// if there is a unit on the tile then get that too (will be nullptr otherwise)
 		if (tile) { 
 			// iterator locaiton of unit at the tile coord, will be units_placed_.end() if no unit found at that coordinate
-			auto found_unit = std::find_if(units_placed_.begin(), units_placed_.end(), [this, tile](Unit* unit) {return unit->get_map_coords() == tile->get_map_coords(); });
+			auto found_unit = std::find_if(units_placed_.begin(), units_placed_.end(), [this, tile](const std::unique_ptr<Unit> &unit) {return unit->get_map_coords() == tile->get_map_coords(); });
 			// if the found unit iterator is not the units_placed_.end() then it will point to a unit at the tile coord so set unit to the dereferenced iterator
 			if (found_unit != units_placed_.end()) {
-				unit = *found_unit;
+				unit = found_unit->get();
 			}
 		}
 
@@ -589,13 +580,15 @@ void GameManager::HandleLeftMouseButtonDown(const Coord &window_location){
 			if (tile->get_highlighted()) {
 				// unhighlight the tiles
 				ResetTiles();
-				// set the units position to be that position on the map and add it to the vector of units
+				// set the units position to be that position on the map
 				placing_unit_->set_map_coords(tile->get_map_coords());
-				units_placed_.push_back(placing_unit_);
 				// render the unit at its placed location
 				placing_unit_->Render();
-				// just set placing_unit to nullptr instead of using RemovePlacingUnit() as dont want to delete the unit object after putting it in the units_placed_ vector
-				placing_unit_ = nullptr;
+				// add it to the vector of units
+				units_placed_.push_back(move(placing_unit_));
+				
+				// set placing_unit to nullptr
+				placing_unit_.reset();
 				// update the placing unit and unit counter texts
 				ShowPlacingUnit();
 				ShowUnitCounter();
@@ -604,12 +597,18 @@ void GameManager::HandleLeftMouseButtonDown(const Coord &window_location){
 		// if the user has clicked on a tile that has a unit on it and the unit belongs to the team currently placing units..
 		else if (unit) {
 			if (unit->get_team() == team_placing_) {
-				// remove the clicked on unit from the vector of units
-				units_placed_.erase(std::remove(units_placed_.begin(), units_placed_.end(), unit), units_placed_.end());
-				// set the unit as the unit being placed
-				SetPlacingUnit(unit);
-				// update the unit counter
+				// remove the current placing unit
+				RemovePlacingUnit();
+				// move unique pointer of unit in the units_placed_ vector to the placing unit
+				std::find_if(units_placed_.begin(), units_placed_.end(), [&unit](const std::unique_ptr<Unit> &vec_unit) {return vec_unit.get() == unit; })->swap(placing_unit_);
+				// remove the clicked on unit from the vector of units (is now nullptr after swapping in above line)
+				units_placed_.erase(std::remove_if(units_placed_.begin(), units_placed_.end(), [&unit](const std::unique_ptr<Unit> &vec_unit) {return vec_unit.get() == nullptr; }), units_placed_.end());
+				// highlight the placable tiles
+				HighlightPlaceableTiles();
+				// update the unit counter and placing unit text
 				ShowUnitCounter();
+				ShowPlacingUnit();
+				// note that SetPlacingUnit is not used here as need to move the unique pointer without deleting the unit object that is being pointed to.
 			}
 		}
 	}
@@ -623,8 +622,8 @@ void GameManager::PlayGame() {
 	display_->Clear();
 	// run the game
 	instance_.Run();
-	// delete the old game instance
-	//delete instance_;
+	// make a new instance
+	instance_ = GameInstance(*display_);
 	// on game exit go to the title menu
 	ShowTitleScreen();
 }

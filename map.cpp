@@ -26,16 +26,82 @@ Map::Map( const int &width, const int &height, const int &set_up_width) : map_wi
 	}
 }
 
+// copy ctor (does not make new units)
+Map::Map(const Map &map) : map_width_(map.map_width_), map_height_(map.map_height_), set_up_width_(map.set_up_width_){
+	// size vector of map tiles to match input
+	map_.resize(map_width_);
+	for (auto col_iter = map_.begin(); col_iter != map_.end(); col_iter++) {
+		col_iter->resize(map_height_);
+	}
+	// copy the tiles over from the input map (makes new tile objects)
+	for (int col = 0; col < map_width_; col++) {
+		for (int row = 0; row < map_height_; row++) {
+			if (map.map_[col][row]) {
+				map_[col][row] = map.map_[col][row]->clone();
+			}
+		}
+	}
+	// copy the units over from the input map ( does not make new unit objects as the map does not have ownership of the units)
+	for (auto unit_iter = map.units_.begin(); unit_iter != map.units_.end(); unit_iter++) {
+		units_.push_back(*unit_iter);
+	}
+}
+
+// move ctor
+Map::Map(Map &&map) : Map() {
+	std::swap(map_width_, map.map_width_);
+	std::swap(map_height_, map.map_height_);
+	std::swap(set_up_width_, map.set_up_width_);
+	std::swap(map_, map.map_);
+	std::swap(units_, map.units_);
+}
+
 // dtor. need to clear tiles in map when called
-Map::~Map(){
+Map::~Map() {
 	Clear();
+}
+
+// copy assigment
+Map& Map::operator=(const Map &map) {
+	// clear the current 2d tile vector
+	for (auto col_iter = map_.begin(); col_iter != map_.end(); col_iter++) {
+		col_iter->clear();
+	}
+	map_.clear();
+
+	// size vector of map tiles to match input
+	map_.resize(map_width_);
+	for (auto col_iter = map_.begin(); col_iter != map_.end(); col_iter++) {
+		col_iter->resize(map_height_);
+	}
+	// copy the tiles over from the input map (makes new tile objects)
+	for (int col = 0; col < map_width_; col++) {
+		for (int row = 0; row < map_height_; row++) {
+			if (map.map_[col][row]) {
+				map_[col][row] = map.map_[col][row]->clone();
+			}
+		}
+	}
+	// clear the current vector of units and copy the units over from the input map ( does not make new unit objects as the map does not have ownership of the units)
+	units_.clear();
+	for (auto unit_iter = map.units_.begin(); unit_iter != map.units_.end(); unit_iter++) {
+		units_.push_back(*unit_iter);
+	}
+	return *this;
+}
+// move assigment
+Map& Map::operator=(Map &&map) {
+	std::swap(map_width_, map.map_width_);
+	std::swap(map_height_, map.map_height_);
+	std::swap(set_up_width_, map.set_up_width_);
+	std::swap(map_, map.map_);
+	std::swap(units_, map.units_);
+
+	return *this;
 }
 
 void Map::Clear() {
 	for (auto iter_vec = map_.begin(); iter_vec != map_.end(); iter_vec++) {
-		for (auto iter_tile = iter_vec->begin(); iter_tile != iter_vec->end(); iter_tile++) {
-			delete (*iter_tile);
-		}
 		iter_vec->clear();
 	}
 	map_.clear();
@@ -55,22 +121,22 @@ void Map::LoadMap(const std::vector<std::vector<int>> &map) {
 			Coord coordinate = { column, row }; // output map is (x, y) i.e (column, row) but input is (row, column)
 			// 1 -> grass
 			if (map[row][column] == 1) {
-				Tile* new_tile = new GrassTile(*this, coordinate);
+				std::unique_ptr<Tile> new_tile(new GrassTile(*this, coordinate));
 				map_[coordinate.x][coordinate.y] = (std::move(new_tile));
 			}
 			// 2 -> forest
 			else if (map[row][column] == 2) {
-				Tile* new_tile = new ForestTile(*this, coordinate);
+				std::unique_ptr<Tile> new_tile(new ForestTile(*this, coordinate));
 				map_[coordinate.x][coordinate.y] = (std::move(new_tile));
 			}
 			// 3 -> mountian
 			else if (map[row][column] == 3) {
-				Tile* new_tile = new MountainTile(*this, coordinate);
+				std::unique_ptr<Tile> new_tile(new MountainTile(*this, coordinate));
 				map_[coordinate.x][coordinate.y] = (std::move(new_tile));
 			}
 			// 4 -> water
 			else if (map[row][column] == 4) {
-				Tile* new_tile = new WaterTile(*this, coordinate);
+				std::unique_ptr<Tile> new_tile(new WaterTile(*this, coordinate));
 				map_[coordinate.x][coordinate.y] = (std::move(new_tile));
 			}
 			// if any value is not 1,2,3,4 then print error message and abort
@@ -86,7 +152,7 @@ void Map::LoadMap(const std::vector<std::vector<int>> &map) {
 Tile* Map::GetTile(const Coord &position) const {
 	// if position is on the map then return the tile
 	if (position.x >= 0 && position.x < map_width_ && position.y >= 0 && position.y < map_height_) {
-		return map_[position.x][position.y];
+		return &*map_[position.x][position.y];
 	}
 	// otherwise return a null pointer
 	else {
@@ -172,14 +238,14 @@ void Map::AddUnit(Unit* new_unit, const Coord &position) {
 
 // remove a unit from the map
 void Map::RemoveUnit(Unit *unit) {
-	// use the Erase-Remove idiom to delete the unit from whichever array it is in
+	// use the Erase-Remove idiom to delete the unit
 	units_.erase(std::remove(units_.begin(), units_.end(), unit), units_.end());
 	// render the tile where the unit was to update it
 	Render(unit->get_map_coords());
 }
 
 // returns true if a unit is present on a given tile
-bool Map::UnitPresent(const Coord &position) const {
+const bool Map::UnitPresent(const Coord &position) const {
 	// iterate through the vector of weak pointers to the units
 	for (auto iterator = units_.begin(); iterator != units_.end(); iterator++) {
 		// if the coordinate of the unit is the same as the input then return true

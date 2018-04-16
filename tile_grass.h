@@ -4,6 +4,9 @@
 
 // class for grass terrain type
 class GrassTile : public Tile {
+protected:
+	// helper function returns a pointer to a copy of this object
+	GrassTile * clone_impl() const { return new GrassTile(*this); };
 public:
 	// ctor
 	GrassTile(Map &map, const Coord &map_coords);

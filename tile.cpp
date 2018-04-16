@@ -14,7 +14,7 @@ Tile::Tile(Map &map, const Coord &map_coords) : GameObject(), parent_map_(&map),
 Tile::~Tile() {};
 
 // get the colour scheme
-ColourScheme Tile::get_colour_scheme() const {
+const ColourScheme& Tile::get_colour_scheme() const {
 	if (highlighted_) {
 		return highlighted_colour_scheme_;
 	}
@@ -29,7 +29,7 @@ void Tile::set_highlighted(bool const &highlighted) {
 }
 
 // function to check if two tiles are adjacent
-bool Tile::AdjacencyTest(const Tile *test_tile) const {
+const bool Tile::AdjacencyTest(const Tile *test_tile) const {
 	std::vector<Tile*> adjacent_tiles = GameManager::game().get_instance().get_map().AdjacentTo(this);
 	return std::find(adjacent_tiles.begin(), adjacent_tiles.end(), test_tile) != adjacent_tiles.end();
 }

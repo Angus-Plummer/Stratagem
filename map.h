@@ -10,14 +10,14 @@ class Unit;
 // class for the game map. The map is constructed from terrain tiles
 class Map {
 protected:
-	// the map. A vector of shared pointers to terrain tiles
-	std::vector<std::vector<Tile*>> map_;
+	// the map. A vector of shared pointers to terrain tiles (map is sole owner the tiles so use unique_ptr)
+	std::vector<std::vector<std::unique_ptr<Tile>>> map_;
 	// map dimensions (number of tiles)
-	int const map_width_;
-	int const map_height_;
+	int map_width_;
+	int map_height_;
 	// width from edge of map that each player can set up in
-	int const set_up_width_;
-	// the list of units on the map
+	int set_up_width_;
+	// the list of units on the map (map just has access to the units but does not own them so use raw pointer)
 	std::vector<Unit*> units_;
 public:
 	// default ctor. makes empty map (just grass)
@@ -34,7 +34,7 @@ public:
 	// copy assigment
 	Map& operator=(const Map &map);
 	// move assigment
-	Map& operator=(const Map &&map);
+	Map& operator=(Map &&map);
 
 	// clears the map. (deletes all tiles and resets 2d map vector)
 	void Clear();
@@ -46,10 +46,10 @@ public:
 	void RemoveUnit(Unit *unit);
 
 	// Return number of rows and columns
-	int get_map_height() const { return map_height_; } 
-	int get_map_width() const { return map_width_; }
+	const int& get_map_height() const { return map_height_; } 
+	const int& get_map_width() const { return map_width_; }
 	// return width of setup region
-	int get_set_up_width() const { return set_up_width_; }
+	const int& get_set_up_width() const { return set_up_width_; }
 
 	// returns the terrain tile a map coordinate
 	Tile* GetTile(const Coord &position) const;
@@ -69,7 +69,7 @@ public:
 	void ResetTiles() const;
 
 	// returns true if a unit is present on a given tile
-	bool UnitPresent(const Coord &position) const;
+	const bool UnitPresent(const Coord &position) const;
 
 	// returns the unit on a given tile (if there is one, else returns null pointer)
 	Unit* GetUnit(const Coord &position) const;
