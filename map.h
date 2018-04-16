@@ -24,8 +24,17 @@ public:
 	Map();
 	// ctor for making map of specific dimensinos
 	Map(const int &width, const int &height, const int &set_up_width);
+	// copy ctor
+	Map(const Map &map);
+	// move ctor
+	Map(Map &&map);
 	// dtor
 	~Map();
+
+	// copy assigment
+	Map& operator=(const Map &map);
+	// move assigment
+	Map& operator=(const Map &&map);
 
 	// clears the map. (deletes all tiles and resets 2d map vector)
 	void Clear();

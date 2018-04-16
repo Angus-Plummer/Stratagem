@@ -40,7 +40,12 @@ public:
 	
 	GameInstance::GameInstance(); // default ctor
 	GameInstance(Window &display); // ctor taking a window as arg
+	// copy ctor
+	// move ctor
 	~GameInstance(); // dtor
+
+	// copy assignment
+	// move assignment
 	
 	// get access to the current game map, display and selected unit
 	Window& get_display() const { return *display_; }

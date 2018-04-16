@@ -17,8 +17,6 @@ GameManager::GameManager() {
 	current_map_num = 1;
 	placing_unit_ = nullptr;
 	team_placing_ = 1;
-	// create a default game instance with no display
-	instance_ = GameInstance();
 }
 // ctor with window to output to
 GameManager::GameManager(Window &display) : display_(&display){
@@ -28,8 +26,8 @@ GameManager::GameManager(Window &display) : display_(&display){
 	current_map_num = 1;
 	placing_unit_ = nullptr;
 	team_placing_ = 1;
-	// create an default game instance with the display
-	instance_ = GameInstance(display);
+	// set the display of the instance to be the display of the game manager
+	instance_.set_display(display);
 }
 
 GameManager::~GameManager(){
@@ -42,10 +40,11 @@ GameManager::~GameManager(){
 	if (placing_unit_) {
 		delete placing_unit_;
 	}
+	// delete display?
 }
 
 // initiate the static game object
-GameManager GameManager::game_ = GameManager();
+GameManager GameManager::game_;
 
 // set the window to display to
 void GameManager::set_display(Window &display) {
@@ -558,11 +557,9 @@ void GameManager::RemovePlacingUnit(){
 
 // handles a mouse down event (i.e. the user clicking somewhere on the window)
 void GameManager::HandleLeftMouseButtonDown(const Coord &window_location){
-	// double check mouse event was on the window
-	if (window_location.x == -1 && window_location.y == -1) {
-		// throw error as should not be able to get here
-		exit(1);
-	}
+	// mouse event location must
+	assert(window_location != Coord(-1,-1));
+
 	// go through the vector of menus and check if any contain the mouse event location. if so then handle the mouse event
 	for (auto button_iter = buttons_.begin(); button_iter != buttons_.end(); button_iter++) {
 		if (button_iter->Contains(window_location)) {

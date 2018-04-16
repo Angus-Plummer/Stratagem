@@ -7,13 +7,8 @@
 
 Tile::Tile(Map &map, const Coord &map_coords) : GameObject(), parent_map_(&map), highlighted_(false){
 	// check if the coordinates are valid on the map
-	if (map_coords.x >= 0 && map_coords.x < map.get_map_width() && map_coords.y >= 0 && map_coords.y < map.get_map_width()) {
-		map_coords_ = map_coords;
-	}
-	else {
-		// if not then throw error and exit
-		exit(1);
-	}
+	assert(map_coords.x >= 0 && map_coords.x < map.get_map_width() && map_coords.y >= 0 && map_coords.y < map.get_map_width());
+	map_coords_ = map_coords;
 }
 
 Tile::~Tile() {};

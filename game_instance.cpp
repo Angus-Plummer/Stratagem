@@ -33,7 +33,7 @@ GameInstance::GameInstance(Window &display): display_(&display){
 
 // dtor : NEED TO SET THIS UP PROPERLY
 GameInstance::~GameInstance(){
-	// delete game_map_;
+	delete game_map_;
 }
 
 // select the target unit
@@ -60,6 +60,7 @@ void GameInstance::DeselectUnit() {
 
 // load in a map from the 5 premade maps
 void GameInstance::LoadMap(const int &map_id) const {
+	assert(map_id >= 1 && map_id <=5);
 	// maps identified by an integer id
 	if (map_id == 1) {
 		game_map_->LoadMap(raw_map1);
@@ -75,10 +76,6 @@ void GameInstance::LoadMap(const int &map_id) const {
 	}
 	else if (map_id == 5) {
 		game_map_->LoadMap(raw_map5);
-	}
-	else {
-		exit(1);
-		//invalid map id, throw error...
 	}
 }
 // update the map
@@ -348,11 +345,9 @@ void GameInstance::ShowTurnChangeScreen() {
 
 // handles a mouse down event (i.e. the user clicking somewhere on the window)
 void GameInstance::HandleLeftMouseButtonDown(const Coord &window_location) { // Coord window_location is in terms of console cells over whole display
-																			 // check for no mouse click returns a Coord of {-1, -1}
-	if (window_location.x == -1 && window_location.y == -1) {
-		// throw error as should not be able to get here
-		exit(1);
-	}
+	// no mouse click returns a Coord of {-1, -1} so should only be here if coordinate is not -1,-1
+	assert(window_location != Coord(-1,-1));
+
 	// get pointers to the tile and unit at the click location. Will be nullptr if there isnt one at location (or clicked off of map)
 	Tile* tile = game_map_->GetTileFromConsoleCoord(window_location);
 	Unit* unit = nullptr;

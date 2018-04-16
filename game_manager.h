@@ -34,7 +34,12 @@ protected:
 public:
 	GameManager();
 	GameManager(Window &display);
+	// copy ctor
+	// move ctor
 	~GameManager();
+
+	// copy assignment
+	// move assignment
 
 	// global access to the current instance of the game
 	static GameManager& game() { return game_; }

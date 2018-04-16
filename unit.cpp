@@ -344,55 +344,50 @@ void Unit::AnimateMovement(const Tile* start_tile, const Tile* target_tile) cons
 	// save the colour scheme to reset at end of function
 	ColourScheme initial_colour_scheme = display.get_colour_scheme();
 	// if target tile is in adjacent to tile unit is on then animate movement
-	if (start_tile->AdjacencyTest(target_tile)) {
-		// get coordinate change of x and y 
-		Coord delta = target_tile->get_map_coords() - start_tile->get_map_coords();
-		int num_step;
-		if (delta.x != 0) {
-			num_step = display.get_tile_width();
-		}
-		else {
-			num_step = display.get_tile_height();
-		}
-		// get initial console cursor location of the unit
-		Coord initial_pos(display.get_map_x_offset() + start_tile->get_map_coords().x * display.get_tile_width() + (display.get_tile_width() / 2) - 1, // -1 as we take leftmost of the central tiles  
-						  display.get_map_y_offset() + start_tile->get_map_coords().y * display.get_tile_height() + (display.get_tile_height() / 2));
-		Coord current_pos = initial_pos;
-		for (int step = 0; step <= num_step ; step++) {
-			// got to the current position of the unit marker and replace the console cell with the tile marker using the tile colour scheme
-			display.GoTo(current_pos); // got to current position
-			// render the tile at the current console cell positions (unit marker is two cells)
-			for (int i = 0; i < 2; i++) {
-				// get tile occupied by one of the unit marker chars
-				Tile* tile = GameManager::game().get_instance().get_map().GetTileFromConsoleCoord(current_pos + Coord{i,0});
-				// render it
-				tile->Render();
-				// if the tile contains a unit
-				if (GameManager::game().get_instance().get_map().UnitPresent(tile->get_map_coords())) {
-					// and the unit is not this unit
-					if (GameManager::game().get_instance().get_map().GetUnit(tile->get_map_coords()) != this) {
-						GameManager::game().get_instance().get_map().GetUnit(tile->get_map_coords())->Render();
-					}
+	assert(start_tile->AdjacencyTest(target_tile));
+	// get coordinate change of x and y 
+	Coord delta = target_tile->get_map_coords() - start_tile->get_map_coords();
+	int num_step;
+	if (delta.x != 0) {
+		num_step = display.get_tile_width();
+	}
+	else {
+		num_step = display.get_tile_height();
+	}
+	// get initial console cursor location of the unit
+	Coord initial_pos(display.get_map_x_offset() + start_tile->get_map_coords().x * display.get_tile_width() + (display.get_tile_width() / 2) - 1, // -1 as we take leftmost of the central tiles  
+		display.get_map_y_offset() + start_tile->get_map_coords().y * display.get_tile_height() + (display.get_tile_height() / 2));
+	Coord current_pos = initial_pos;
+	for (int step = 0; step <= num_step; step++) {
+		// got to the current position of the unit marker and replace the console cell with the tile marker using the tile colour scheme
+		display.GoTo(current_pos); // got to current position
+		// render the tile at the current console cell positions (unit marker is two cells)
+		for (int i = 0; i < 2; i++) {
+			// get tile occupied by one of the unit marker chars
+			Tile* tile = GameManager::game().get_instance().get_map().GetTileFromConsoleCoord(current_pos + Coord{ i,0 });
+			// render it
+			tile->Render();
+			// if the tile contains a unit
+			if (GameManager::game().get_instance().get_map().UnitPresent(tile->get_map_coords())) {
+				// and the unit is not this unit
+				if (GameManager::game().get_instance().get_map().GetUnit(tile->get_map_coords()) != this) {
+					GameManager::game().get_instance().get_map().GetUnit(tile->get_map_coords())->Render();
 				}
 			}
-			// update the current console cell position
-			current_pos = initial_pos + delta * step;
-			// set cursor to new position, set colour scheme to unit colour scheme and output the units marker
-			display.GoTo(current_pos);
-			display.set_colour_scheme(get_colour_scheme());
-			std::cout << unit_marker_;
-			// sleep for a short time so can actually see the movement
-			if (delta.x != 0) {
-				Sleep(50);
-			}
-			else if (delta.y != 0) { // if moving in y direction sleep for twice as long because console cells are twice as high as they are wide
-				Sleep(100);
-			}
 		}
-	}
-	// if target tile is not adjacent to the unit then throw error and do nothing
-	else {
-		exit(1);
+		// update the current console cell position
+		current_pos = initial_pos + delta * step;
+		// set cursor to new position, set colour scheme to unit colour scheme and output the units marker
+		display.GoTo(current_pos);
+		display.set_colour_scheme(get_colour_scheme());
+		std::cout << unit_marker_;
+		// sleep for a short time so can actually see the movement
+		if (delta.x != 0) {
+			Sleep(50);
+		}
+		else if (delta.y != 0) { // if moving in y direction sleep for twice as long because console cells are twice as high as they are wide
+			Sleep(100);
+		}
 	}
 	// set colour scheme back to what it was at start of function
 	display.set_colour_scheme(initial_colour_scheme);
@@ -400,10 +395,8 @@ void Unit::AnimateMovement(const Tile* start_tile, const Tile* target_tile) cons
 
 // Move to a target tile (will not work for an invalid tile or when there is no legal movement to the tile)
 void Unit::MoveTo(Tile* target_tile) {
-	// if the target tile is not it the reachable tiles then return an error and exit, otherwise continue
-	if (!CanReach(target_tile)) {
-		exit(1);
-	}
+	// asser that the target tile is reachable by the unit
+	assert(CanReach(target_tile));
 
 	// mark this unit as having moved this turn
 	moved_this_turn_ = true;

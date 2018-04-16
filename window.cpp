@@ -12,10 +12,10 @@ Window::Window(const int &width, const int &height) : console_window_(GetConsole
 	RECT r; // rectangle to store window position and dimensions
 	// disable quick edit mode so that mouse input works
 	fdwMode_ = ENABLE_EXTENDED_FLAGS;
-	if (!SetConsoleMode(standard_in_handle_, fdwMode_)) { exit(1); }
+	SetConsoleMode(standard_in_handle_, fdwMode_);
 	// enable mouse input events
 	fdwMode_ = ENABLE_MOUSE_INPUT;
-	if (!SetConsoleMode(standard_in_handle_, fdwMode_)) { exit(1); }
+	SetConsoleMode(standard_in_handle_, fdwMode_);
 
 	//stores the console's current dimensions
 	GetWindowRect(console_window_, &r);
@@ -40,9 +40,7 @@ void Window::Clear() {
 	std::cout.flush();
 
 	// Figure out the current width and height of the console window
-	if (!GetConsoleScreenBufferInfo(standard_out_handle_, &buffer)) {
-		exit(1);
-	}
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
 	DWORD length = buffer.dwSize.X * buffer.dwSize.Y;
 
 	DWORD written;
@@ -61,17 +59,13 @@ void Window::Clear() {
 // get console window width and height in terms of rows and columns of console cells
 int Window::Width() const {
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
-	if (!GetConsoleScreenBufferInfo(standard_out_handle_, &buffer)) {
-		exit(1);
-	}
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
 	return buffer.srWindow.Right - buffer.srWindow.Left;
 
 }
 int Window::Height() const{
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
-	if (!GetConsoleScreenBufferInfo(standard_out_handle_, &buffer)) {
-		exit(1);
-	}
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
 	return buffer.srWindow.Bottom - buffer.srWindow.Top;
 }
 
@@ -89,17 +83,12 @@ void Window::GoTo(const Coord &in_coord) const {
 	COORD coord = { (SHORT)in_coord.x, (SHORT)in_coord.y };
 	SetConsoleCursorPosition(standard_out_handle_, coord);
 }
+
 Coord Window::CursorPosition() const {
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
-	// attempt to get buffer info
-	if (GetConsoleScreenBufferInfo(standard_out_handle_, &buffer)) {
-		return Coord(buffer.dwCursorPosition.X, buffer.dwCursorPosition.Y);
-	}
-	// if function fails then return -1, -1
-	else {
-		Coord fail = { -1, -1 };
-		return fail;
-	}
+	// get buffer info
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
+	return Coord(buffer.dwCursorPosition.X, buffer.dwCursorPosition.Y);
 }
 
 // gets the position (console cell location) of the mouse cursor if LMB is pressed clicked down. (acts like detecting a mouse up event)
@@ -108,8 +97,8 @@ Coord Window::MouseDownPosition() const {
 	Coord down_position = { -1,-1 };// defualt position, will be returned if no LMB down detected
 	DWORD num_read, i; //var to hold number of inputs detected and an interator value
 	INPUT_RECORD buffer_input_record[128]; // record of the inputs in the buffer
-	// perform read of input and print error message if error occurs in function
-	if (!ReadConsoleInput(standard_in_handle_, buffer_input_record, 128, &num_read)) { std::cout << "Error reading console input\n"; }
+	// perform read of input
+	ReadConsoleInput(standard_in_handle_, buffer_input_record, 128, &num_read);
 	// iterate through the record of the input buffer
 	for (i = 0; i < num_read; i++) {
 		// if there is a LMB mouse down event then update the position COORD with its location
@@ -123,8 +112,8 @@ Coord Window::MouseDownPosition() const {
 	if (detected_down) {
 		while (detected_down == true) {
 			detected_down = false; // set back to false, if it doesnt get set to true through the loop then continue
-			// perform read of input and print error message if error occurs in function
-			if (!ReadConsoleInput(standard_in_handle_, buffer_input_record, 128, &num_read)) { std::cout << "Error reading console input\n"; }
+			// perform read of input
+			ReadConsoleInput(standard_in_handle_, buffer_input_record, 128, &num_read);
 			// iterate through the record of the input buffer
 			for (i = 0; i < num_read; i++) {
 				// if there is a LMB mouse down event then update the position COORD with its location and set detected down to true
@@ -152,19 +141,15 @@ void Window::WaitForMouse() {
 void Window::set_colour_scheme(const ColourScheme &colour_scheme) const {
 	// determine the id number of the colour scheme (hexadecimal, first digit background, second text)
 	int colour_scheme_hex = colour_scheme.background_colour * 16 + colour_scheme.text_colour;
-	// if fails to do function then exit
-	if (!SetConsoleTextAttribute(standard_out_handle_, colour_scheme_hex)) {
-		exit(1);
-	}
+	// set the console text attribute
+	SetConsoleTextAttribute(standard_out_handle_, colour_scheme_hex);
 }
 
 // gets the current colour of the background
 ColourScheme Window::get_colour_scheme() const {
-	// attempt to get console Window buffer info and throw error if it fails
+	// get console window buffer info
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
-	if (!GetConsoleScreenBufferInfo(standard_out_handle_, &buffer)) {
-		exit(1);
-	}
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
 	// integer value of the colour scheme (hexadecimal first digit background, second digit text)
 	int colour_scheme = buffer.wAttributes;
 	// divide by 16 and ignore remainder to get background colour
