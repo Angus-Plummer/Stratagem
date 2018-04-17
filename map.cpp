@@ -270,35 +270,6 @@ Unit* Map::GetUnit(const Coord &position) const {
 	return nullptr;
 }
 
-// select an object on the map using right mouse button down
-Tile* Map::SelectTile() const {
-	Window display = GameManager::game().get_display();
-	// get location of mouse down ({-1,-1} if no mouse down detected)
-	Coord event_location = display.MouseDownPosition();
-	if (event_location.x != -1 && event_location.y != -1) {
-		return GetTileFromConsoleCoord(event_location); // return tile at the console coordinate position
-	}
-	// if no click then return a null pointer
-	return nullptr;
-}
-
-// select a unit on the map using the mouse
-Unit* Map::SelectUnit() const {
-	Window display = GameManager::game().get_display();
-	// get location of mouse down ({-1,-1} if no mouse down detected)
-	Coord event_location = display.MouseDownPosition();
-	if (event_location.x != -1 && event_location.y != -1) {
-		// if there is a tile at this location then..
-		if (GetTileFromConsoleCoord(event_location)) {
-			// if there is a unit present on the tile then return the unit
-			return GetUnit(GetTileFromConsoleCoord(event_location)->get_map_coords()); // returns nullptr if no unit there, otherwise returns unit
-		}
-		
-	}
-	// if found nothing at location of click then returns a null pointer
-	return nullptr;
-}
-
 // returns vector of pointers to tiles that are adjacent to the location
 std::vector<Tile*> Map::AdjacentTo(const Tile *tile) const {
 	

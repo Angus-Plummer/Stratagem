@@ -1,6 +1,8 @@
 #pragma once
 #include "stdafx.h"
 
+// this header file contains the help information
+
 std::vector<std::string> help_text = {
 	"-----------------------------------------------",
 	"Overview",

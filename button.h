@@ -2,8 +2,10 @@
 #include "ui_object.h"
 #include<functional>
 
+// forward declarations
 class Menu;
 
+// button class: allows users to click on a location on the screen and trigger a function to run. The function is declared at button creation
 class Button : public UIObject {
 protected:
 	// members
@@ -18,6 +20,7 @@ public:
 	Button();
 	// ctor for button with text and function
 	Button(std::string text, std::function<void()> function);
+	// dtor
 	~Button();
 
 	// render the button

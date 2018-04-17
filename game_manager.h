@@ -19,6 +19,7 @@ class Window;
 class Tile;
 class Unit;
 
+// game manager class handles the menu interaction for game setup as well as the title screen and help screen
 class GameManager{
 protected:
 	MenuState state_; // menu state
@@ -31,24 +32,8 @@ protected:
 	int team_placing_; // the team that is currently allowed to select and place units
 	std::unique_ptr<Unit> placing_unit_; // unit that is currently being placed on the map, this unit is owned by the game manager so use unique_ptr
 	std::vector<std::unique_ptr<Unit>> units_placed_; // vector of all units that have been placed so far (they do not get placed into the game instance so they can be managed separately), the units are owned by the game manager while they are being placed (so use unique_ptr)
-public:
-	// ctors
-	GameManager();
-	GameManager(Window &display);
-	// dtor
-	~GameManager();
 
-	// global access to the current instance of the game
-	static GameManager& game() { return game_; }
-
-	// get a reference to the current game instance
-	GameInstance& get_instance() { return instance_; }
-	
-	// get a reference to the display window
-	const Window& get_display() const { return *display_; }
-	
-	// set the display window
-	void set_display(Window &display);
+	// ---------- internal functions ---------- //
 
 	// clear all menus from the vector of menus
 	void ClearButtons();
@@ -92,7 +77,7 @@ public:
 
 	// counts the number of units that have been placed by the current team
 	const int CountUnits() const;
-	
+
 	// shows the number of units the team currently placing units has placed
 	void ShowUnitCounter() const;
 
@@ -108,13 +93,34 @@ public:
 	// removes the unit being placed and replaces with a nullptr, also resets the tiles
 	void RemovePlacingUnit();
 
-	// --------- end of unit placement functions ----------
+	// --------- end of unit placement functions ---------- //
 
 	// starts the actual game running
 	void PlayGame();
 
 	// handles a mouse down event (i.e. the user clicking somewhere on the window)
 	void HandleLeftMouseButtonDown(const Coord &window_location);
+
+	// ---------- end of internal functions ---------- //
+
+public:
+	// ctors
+	GameManager();
+	GameManager(Window &display);
+	// dtor
+	~GameManager();
+
+	// global access to the static game manager object
+	static GameManager& game() { return game_; }
+
+	// get a reference to the current game instance
+	GameInstance& get_instance() { return instance_; }
+	
+	// get a reference to the display window
+	const Window& get_display() const { return *display_; }
+	
+	// set the display window
+	void set_display(Window &display);
 
 	// runs the main game loop until the user quits the game
 	void Run();

@@ -4,7 +4,7 @@
 #include "window.h"
 #include "button.h"
 
-
+// ctor
 Menu::Menu() {
 	location_ = Coord{ 0,0 }; // default position is top left of window. must set to something
 	border_thickness_ = 1; // thickness of the menu's border
@@ -13,10 +13,11 @@ Menu::Menu() {
 	colour_scheme_ = ColourScheme(BLACK, WHITE); // white on black
 }
 
-
-Menu::~Menu(){ // CHECK IF NEED TO DELETE THE BUTTONS IN THE OPTIONS VECTOR DIRECTLY
+// dtor
+Menu::~Menu(){
 }
 
+// set the location of the top left of the menu (in console cell coordinates)
 void Menu::set_location(const Coord &position) {
 	location_ = position;
 	// iterate through the vector of buttons and update the location of each one
@@ -29,7 +30,7 @@ void Menu::set_location(const Coord &position) {
 	}
 }
 
-
+// render the menu and its buttons in the game window
 void Menu::Render() const {
 	// get the currently used window
 	Window display = GameManager::game().get_display();
@@ -51,25 +52,25 @@ void Menu::Render() const {
 	// top border
 	display.GoTo(location_); // cursor in top left of menu
 	std::cout << char(218); // top left corner (single: 218, double: 201, left double: 214, top double: 213)
-	for (int i = border_thickness_; i < width_ - border_thickness_; i++) {
+	for (int i = 1; i < width_ - 1; i++) {
 		std::cout << char(196); // horizontal (single: 196, double: 205)
 	}
 	std::cout << char(191); // top right corner (single: 191, double: 187, right double: 183, top double: 184)
 	
 	// side borders
-	for (int i = border_thickness_; i < height_ - border_thickness_; i++) {
+	for (int i = 1; i < height_ - 1; i++) {
 		// left side
 		display.GoTo(location_ + Coord{ 0, i });
 		std::cout << char(179); // vertical line (single: 179 double: 186)
 		// right side
-		display.GoTo(location_ + Coord{ width_ - border_thickness_, i });
+		display.GoTo(location_ + Coord{ width_ - 1, i });
 		std::cout << char(179); // vertical line (single: 179 double: 186)
 	}
 
 	// bottom border
-	display.GoTo(location_ + Coord{ 0, height_ - border_thickness_ });
+	display.GoTo(location_ + Coord{ 0, height_ - 1 });
 	std::cout << char(192); // bottom left corner (single: 192, double: 200, left double: 211, bottom double: 212)
-	for (int i = border_thickness_; i < width_ - border_thickness_; i++) {
+	for (int i = 1; i < width_ - 1; i++) {
 		std::cout << char(196); // horizontal (single: 196, double: 205)
 	}
 	std::cout << char(217); // bottom right corner (single: 217, double: 188, right double: 189, bottom double: 190)
@@ -110,22 +111,17 @@ void Menu::Clear() {
 	height_ = 2 * border_thickness_;
 }
 
+// handle a click at the consonle coordinate "coord", will trigger any button which contains the coordinate
 void Menu::HandleLeftMouseButtonDown(const Coord &coord) {
 	// check if the coordinate is contained in the menu 
 	if (Contains(coord)) {
-		bool in_border = true; // flag will remain true if none of the buttons contain the coord
 		// check which button contains the coordinate (if any)
 		for (auto iter = options_.begin(); iter != options_.end(); iter++) {
 			if (iter->Contains(coord)) {
 				// trigger the button and set in_border flag to false
 				iter->Trigger();
-				in_border = false;
 				break; // no need to to continue iterating through the options when we've found it
 			}
-		}
-		// if the event location in the menu but not any of the buttons then it was on the menu border
-		if (in_border) {
-			// do what happens for left / right click in border
 		}
 	}
 }

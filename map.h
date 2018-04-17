@@ -7,7 +7,7 @@
 class Tile;
 class Unit;
 
-// class for the game map. The map is constructed from terrain tiles
+// class for the game map. The map is constructed from terrain tiles and has access to the units on it
 class Map {
 protected:
 	// the map. A vector of shared pointers to terrain tiles (map is sole owner the tiles so use unique_ptr)
@@ -19,6 +19,8 @@ protected:
 	int set_up_width_;
 	// the list of units on the map (map just has access to the units but does not own them so use raw pointer)
 	std::vector<Unit*> units_;
+
+
 public:
 	// default ctor. makes empty map (just grass)
 	Map();
@@ -61,7 +63,6 @@ public:
 
 	// Renders the map on the console
 	void Render() const;
-
 	// Renders a specific tile the unit on it if there is one
 	void Render(Coord coord) const;
 
@@ -73,12 +74,6 @@ public:
 
 	// returns the unit on a given tile (if there is one, else returns null pointer)
 	Unit* GetUnit(const Coord &position) const;
-
-	// select a tile on the map using the mouse
-	Tile* SelectTile() const;
-
-	// select a unit on the map using the mouse
-	Unit* SelectUnit() const;
 
 	// returns a vector of pointers to the tiles that are adjacent to input tile coordinate
 	std::vector<Tile*> AdjacentTo(const Tile *tile) const;

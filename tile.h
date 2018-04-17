@@ -22,25 +22,24 @@ protected:
 	virtual Tile* clone_impl() const = 0;
 
 public:
-	// default ctor, has weak pointer to the tile map to avoid circular referancing
+	// constructor and destructor
 	Tile(Map &map, const Coord &map_coords);
-	// dtor
 	virtual ~Tile();
 
 	// get a unique pointer to a copy of the tile
 	std::unique_ptr<Tile> clone() const { return std::unique_ptr<Tile>(clone_impl()); }
 
-	// accessor functions
+	// accessor and mutator functions
 	const int& get_move_cost() const { return move_cost_; }
 	const int& get_def_modifier() const { return def_modifier_; }
 	const int& get_atk_modifier() const { return atk_modifier_; }
-	void set_highlighted(const bool &highglighted);
 	const bool& get_highlighted() const { return highlighted_; }
+	void set_highlighted(const bool &highglighted);
 
 	// get the colour scheme (highlighted scheme if highlighted is true)
 	const ColourScheme& get_colour_scheme() const;
 
-	// function to check if two tiles are adjacent
+	// function to check if two tiles are adjacent (MOVE TO MAP CLASS)
 	const bool AdjacencyTest(const Tile *test_tile) const;
 
 	// render the tile on the console

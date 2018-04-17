@@ -15,6 +15,7 @@ enum UnitState {
 class Tile;
 class MoveSequence;
 
+// abstract base class for units, the different unit types inherit from this class
 class Unit : public GameObject {
 protected:
 	UnitState state_; // the current state of the unit
@@ -34,10 +35,29 @@ protected:
 	ColourScheme acted_colour_scheme_; // colour scheme when unit has already acted on a turn
 	ColourScheme dead_colour_scheme_; // colour scheme when the unit is dead
 
+	// ---------- internal functions ---------- //
+
 	// get a deep copy of the unit
 	virtual Unit* clone_impl() const = 0;
 
+	// animates the unit moving to an adjacent tile
+	void AnimateMovement(const Tile* start_tile, const Tile* target_tile) const;
+
+	// returns a vector of all units that are currently attackable by this unit (MOVE TO MAP)
+	const std::vector<Unit*> AttackableUnits() const;
+
+	// returns a vector of pointers to the tiles (as movesequences) that can be reached by this unit
+	std::vector<Tile*> ReachableTiles() const;
+
+	// checks how many tiles away another unit is
+	const int DistanceTo(const Unit *target) const;
+
+	// get tile unit is currently on
+	Tile* GetTile() const;
+
+
 public:
+	// constructor and destructor
 	Unit(const int &team);
 	virtual ~Unit();
 
@@ -59,7 +79,6 @@ public:
 
 	// apply damage and healing
 	void AttackedBy(const Unit *target);
-	//void ApplyHeal(const int &heal);
 
 	// move unit to a new coordinate. 
 	void set_map_coords(const Coord &new_pos);
@@ -79,46 +98,29 @@ public:
 	// do unit death
 	void Kill();
 
-	// function return true if unit can move
+	// function return true if unit can move to any tiles
 	const bool CanMove() const;
-	// function return true if unit can attack
+	// returns true if the unit can legally reach the target tile in one movement
+	const bool CanReach(const Tile* target_tile);
+	// function return true if unit can attack (units in range and not attacked yet)
 	const bool CanAttack() const;
-
 	// check if a target unit is attackable by this unit
 	const bool CanAttackTarget(const Unit *target) const;
 
 	// attack another unit
 	void Attack(Unit *target);
 
-	// returns a vector of all units that are currently attackable by this unit
-	const std::vector<Unit*> AttackableUnits() const;
-
-	// highlights tiles/units that are attackable
+	// sets highlighted status for tiles/units that are attackable
 	void HighlightAttackableUnits(const bool &highlight) const;
-
-	// get tile unit is currently on
-	Tile* GetTile() const;
-
-	// checks how many tiles away another unit is
-	const int DistanceTo(const Unit *target) const;
 
 	// check if unit can traverse a given terrain
 	virtual const bool CanTraverse(const Tile *terrain_tile) const = 0;
 
-	// renders the unit in the console
+	// renders the unit in the console window
 	void Render() const;
 
-	// returns true if the unit can legally reach the target tile in one movement
-	const bool CanReach(const Tile* target_tile);
-
-	// returns a vector of pointers to the tiles (as movesequences) that can be reached by this unit
-	std::vector<Tile*> ReachableTiles() const;
-
-	// highlight the tiles that the unit can reach
+	// sets highlighted status for the tiles that the unit can reach
 	void Unit::HighlightReachableTiles(const bool &highlight) const;
-
-	// animates the unit moving to an adjacent tile
-	void AnimateMovement(const Tile* start_tile, const Tile* target_tile) const;
 
 	// Move to a target tile (will not work for an invalid tile or when there is no legal movement to the tile)
 	void MoveTo(Tile* target_tile);

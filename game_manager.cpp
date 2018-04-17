@@ -72,8 +72,8 @@ void GameManager::ShowTitleScreen() {
 	// set colour scheme to yellow on black
 	display_->set_colour_scheme(ColourScheme(BLACK, YELLOW));
 	// determine top left coord to output ascii art from (art is centred horizontally and placed 1/3 down from top of window)
-	int start_col = display_->Width() / 2 - (int)stratagem1[0].length() / 2;
-	int start_row = display_->Height() / 3 - (int)stratagem1.size() / 2;
+	int start_col = display_->Width() / 2 - (int)stratagem[0].length() / 2;
+	int start_row = display_->Height() / 3 - (int)stratagem.size() / 2;
 	// if end up with negative of either coordinate then set it to 0
 	if (start_col < 0) {
 		start_col = 0;
@@ -82,9 +82,9 @@ void GameManager::ShowTitleScreen() {
 		start_row = 0;
 	}
 	// go through the ascii art and print out each row (art is stored as vector of row strings)
-	for (int row = 0; row < (int)stratagem1.size(); row++) {
+	for (int row = 0; row < (int)stratagem.size(); row++) {
 		display_->GoTo(Coord{ start_col, start_row + row });
-		std::string row_str = stratagem1[row];
+		std::string row_str = stratagem[row];
 		std::cout << row_str;
 	}
 	// revert back to original colour scheme

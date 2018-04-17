@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "Menu.h" // have to include menu as the game instance contains menus (not just pointers to them)
 
+// enum for unique game instance states, the game instance may only be in one state at a time
 enum GameState {
 	STATE_SETUP, // pregame setup, before game starts running
 	STATE_SELECTING_UNIT, // no unit currently selected
@@ -18,6 +19,7 @@ class Window;
 class Map;
 class Unit;
 
+// game instance class handles the actual gameplay of the game
 class GameInstance{
 protected:
 
@@ -32,9 +34,45 @@ protected:
 	std::vector<std::unique_ptr<Unit>> p1_units_;
 	std::vector<std::unique_ptr<Unit>> p2_units_;
 	
-	GameState state_;
+	GameState state_; // game state
 	bool running_; // bool indicates whether this instance of the game is currently running
 	int player_turn_;	// int to keep track of whose turn it is
+
+	//---------- internal functions ----------//
+
+	// sets up the start of a new turn
+	void StartTurn();
+	// carries out the end of turn, changes team whos turn it is and begins a new turn
+	void EndTurn();
+	// checks if all the units on the current team have acted and ends turn if they have
+	void AutoEndTurn();
+
+	// handles game victory
+	void Victory(const int &team);
+
+	// handles entering and leaving the UNIT_SELECTING_ATTACK state 
+	// (could instead have state classes with enter and leave functions but this is adequate for now as states not that complex)
+	void ChooseAttack();
+	void UnChooseAttack();
+	// handles entering and leaving the UNIT_SELECTING_MOVEMENT state
+	void ChooseMovement();
+	void UnChooseMovement();
+	
+	// make and remove the context menu (context menu shows what options the currently selected unit has available to them)
+	void ShowContextMenu();
+	void RemoveContextMenu();
+
+	// show / update the label for who's turn it currently is
+	void ShowTurnLabel() const;
+	// show end turn button
+	void ShowEndTurnButton();
+	// show surrender button
+	void ShowSurrenderButton();
+	// show special screen on turn change so players cant miss that it has happened
+	void ShowTurnChangeScreen();
+
+	// handles a mouse down event (i.e. the user clicking somewhere on the window)
+	void HandleLeftMouseButtonDown(const Coord &location);
 
 public:
 	
@@ -60,7 +98,7 @@ public:
 
 	// load in a map from the 5 premade maps
 	void LoadMap(const int &map_id) const;
-	// render the whole map
+	// render the whole map (tiles + units)
 	void RenderMap() const;
 
 	// add a unit to the game
@@ -72,39 +110,6 @@ public:
 	void SelectUnit(Unit *unit);
 	// unselect the currently selected unit
 	void DeselectUnit();
-
-	// could instead have state classes with enter and leave functions but this is adequate for now as states not that complex
-	// handles entering and leaving the UNIT_SELECTING_ATTACK state 
-	void ChooseAttack();
-	void UnChooseAttack();
-	// handles entering and leaving the UNIT_SELECTING_MOVEMENT state
-	void ChooseMovement();
-	void UnChooseMovement();
-
-	// make and remove the context menu (context menu shows what options the currently selected unit has available to them)
-	void ShowContextMenu();
-	void RemoveContextMenu(); // MAKE SURE THIS DOESNT CAUSE MEMORY LEAKS
-
-	// sets up the start of a new turn
-	void StartTurn();
-	// carries out the end of turn, changes team whos turn it is and begins a new turn
-	void EndTurn();
-	// checks if all the units on the current team have acted and ends turn if they have
-	void AutoEndTurn();
-	// show / update the label for who's turn it currently is
-	void ShowTurnLabel() const;
-	// show end turn button
-	void ShowEndTurnButton();
-	// show surrender button
-	void ShowSurrenderButton();
-	// show special screen on turn change so players cant miss that it has happened
-	void ShowTurnChangeScreen();
-
-	// handles a mouse down event (i.e. the user clicking somewhere on the window)
-	void HandleLeftMouseButtonDown(const Coord &location);
-
-	// handles game victory
-	void Victory(const int &team);
 
 	// run the main game playing loop until the game ends
 	void Run();

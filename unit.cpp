@@ -91,11 +91,6 @@ void Unit::AttackedBy(const Unit *attacker) {
 	}
 }
 
-// apply heal value
-//void Unit::ApplyHeal(const int &heal) {
-//	set_current_hp(current_hp_ + heal);
-//}
-
 // find out if this unit can be selected (if it has either moved or attacked already and if it is its team's turn)
 const bool Unit::CanSelect() const {
 	return state_ == STATE_IDLE;
@@ -162,11 +157,11 @@ void Unit::Kill() {
 
 // function return true if unit can move
 const bool Unit::CanMove() const {
-	return ReachableTiles().size() > 0 && !moved_this_turn_;
+	return ReachableTiles().size() > 0 && !moved_this_turn_;// && (state_ == STATE_IDLE || state_ == STATE_SELECTED);
 }
 // function return true if unit can attack
 const bool Unit::CanAttack() const {
-	return AttackableUnits().size() > 0 && !attacked_this_turn_;
+	return AttackableUnits().size() > 0 && !attacked_this_turn_;// && (state_ == STATE_IDLE || state_ == STATE_SELECTED);
 }
 
 // check if a target unit is attackable by this unit

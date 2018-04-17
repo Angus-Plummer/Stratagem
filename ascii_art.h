@@ -3,7 +3,8 @@
 
 // note that any backslash has to be written twice which can make the art look unaligned here
 
-const std::vector<std::string> stratagem1 = {
+// stratagem title screen art
+const std::vector<std::string> stratagem = {
 "       __                   __                                          ",
 "      /\\ \\__               /\\ \\__                                       ",
 "  ____\\ \\ ,_\\  _ __    __  \\ \\ ,_\\    __       __      __    ___ ___    ",
@@ -13,15 +14,6 @@ const std::vector<std::string> stratagem1 = {
 " \\/___/   \\/__/ \\/_/ \\/__/\\/_/ \\/__/\\/__/\\/_/\\/___L\\ \\/____/\\/_/\\/_/\\/_/",
 "	                                          /\\____ /                     ",
 "	                                          \\/____/                      "
-
-};
-
-const std::vector<std::string> stratagem2 = {
-	"     _           _                     ",
-	" ___| |_ ___ ___| |_ ___ ___ ___ _____ ",
-	"|_ -|  _|  _| .'|  _| .'| . | -_|     |",
-	"|___|_| |_| |__,|_| |__,| _ |___|_|_|_|",
-	"                        |___|          " 
 
 };
 

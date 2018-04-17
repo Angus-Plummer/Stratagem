@@ -37,10 +37,4 @@ public:
 	// check if two move sequences point to the same map tile
 	const bool operator==(const MoveSequence &rhs);
 
-	// check which of two move sequence objects has lowest score
-	//bool operator<(const MoveSequence &rhs);
-
-	// copy assignment operator overloading
-	//void operator=(MoveSequence const &rhs);
-
 };

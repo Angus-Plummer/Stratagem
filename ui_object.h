@@ -1,13 +1,15 @@
 #pragma once
 #include "stdafx.h"
 
+// abstract base class from which all UI objects derive (menus and buttons)
 class UIObject{
 protected:
 	Coord location_; // location of the UI object (top left console cell)
-	int width_;
-	int height_;
-	ColourScheme colour_scheme_;
+	int width_; // width of UI object in console cells
+	int height_; // height of UI object in console cells
+	ColourScheme colour_scheme_; // default colour scheme of the UI object
 public:
+	// constructor and destructor
 	UIObject();
 	virtual ~UIObject();
 
