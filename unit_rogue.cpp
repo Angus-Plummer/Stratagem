@@ -1,9 +1,10 @@
-#include "unit_rogue.h"
+ #include "unit_rogue.h"
 #include "tile_grass.h"
 #include "tile_forest.h"
 #include "tile_mountain.h"
 #include "tile_water.h"
 
+// ctor
 Rogue::Rogue(const int &team) : Unit(team) {
 	// Rogue stats
 	max_hp_ = 25;
@@ -12,13 +13,14 @@ Rogue::Rogue(const int &team) : Unit(team) {
 	attack_damage_ = 9;
 	attack_range_ = 1;
 	armour_pierce_ = 0;
-	// set hp
+	// set starting
 	current_hp_ = max_hp_;
-	// game object properties
+	// output properties
 	unit_marker_ = "Rg";
 	type_ = "rogue";
 }
 
+// dtor
 Rogue::~Rogue(){
 }
 

@@ -4,7 +4,7 @@
 #include "tile_mountain.h"
 #include "tile_water.h"
 
-
+// ctor
 Warrior::Warrior(const int &team) : Unit(team) {
 	// warrior stats
 	max_hp_ = 30;
@@ -13,14 +13,14 @@ Warrior::Warrior(const int &team) : Unit(team) {
 	attack_damage_ = 8;
 	attack_range_ = 1;
 	armour_pierce_ = 1;
-	// set hp
+	// set starting hp
 	current_hp_ = max_hp_;
-	// game object properties
+	// output properties
 	unit_marker_ = "Wr";
 	type_ = "warrior";
 }
 
-
+// dtor
 Warrior::~Warrior(){
 }
 

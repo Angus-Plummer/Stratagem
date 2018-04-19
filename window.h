@@ -22,25 +22,27 @@ public:
 	Window(const int &width, const int &height);
 	~Window();
 
-	// clears the window
-	void Clear();
+	// tile width and height in  terms of console cells
+	const int& get_tile_width() const { return tile_width_; }
+	const int& get_tile_height() const { return tile_height_; }
+	// map x and y offset in terms of console cells
+	const int& get_map_x_offset() const { return map_x_offset_; }
+	const int& get_map_y_offset() const { return map_y_offset_; }
 
 	// get console window width and height in terms of rows and columns of console cells
 	const int Width() const;
 	const int Height() const;
-	// get width and height of tiles in terms of console cells
-	const int& get_tile_width() const;
-	const int& get_tile_height() const;
-	// get x and y offset of map
-	const int& get_map_x_offset() const;
-	const int& get_map_y_offset() const;
+
 	// get and set the colour scheme of the console
 	void set_colour_scheme(const ColourScheme &colour_scheme) const;
 	const ColourScheme get_colour_scheme() const;
 
 	// get and set the position of the console cursor
-	void GoTo(const Coord &coord) const;
 	const Coord CursorPosition() const;
+	void GoTo(const Coord &coord) const;
+
+	// clears the window
+	void Clear();
 
 	// gets the position (console cell location) of the mouse cursor if LMB is pressed clicked down. (acts like detecting a mouse up event)
 	const Coord MouseDownPosition() const;

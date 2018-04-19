@@ -9,6 +9,8 @@
 #include "tile_mountain.h"
 #include "tile_forest.h"
 
+// ---------- ctors, dtors, assignment overloading ---------- //
+
 // empty map with default map settings
 Map::Map() : map_width_(10), map_height_(10), set_up_width_(3) {
 	// size vector of map tiles to match 10x10
@@ -100,12 +102,16 @@ Map& Map::operator=(Map &&map) {
 	return *this;
 }
 
+// --------- public functions ---------- //
+
+// clears the map. (deletes all tiles and resets 2d map vector)
 void Map::Clear() {
 	for (auto iter_vec = map_.begin(); iter_vec != map_.end(); iter_vec++) {
 		iter_vec->clear();
 	}
 	map_.clear();
 }
+
 // clears any current map stored and loads a new one
 void Map::LoadMap(const std::vector<std::vector<int>> &map) {
 	// clear map
@@ -176,54 +182,6 @@ Tile* Map::GetTileFromConsoleCoord(const Coord &position) const {
 	return nullptr;
 }
 
-// Renders the map on a the console
-void Map::Render() const {
-	Window display = GameManager::game().get_display();
-	int tile_width = display.get_tile_width();
-	int tile_height = display.get_tile_height();
-	int map_x_offset = display.get_map_x_offset();
-	int map_y_offset = display.get_map_y_offset();
-
-	// print numbers above top row (in y_offset region)
-	for (int map_i = 0; map_i < map_width_; map_i++) {
-		display.GoTo({ map_i*tile_width + (int)floor(tile_width / 2) + map_x_offset, (int)floor(map_y_offset / 2) }); // places cursor centrally along width of the tile
-		std::cout << char(65 + map_i); // char(65) is ASCII code for A
-	}
-	// print alphabetic characters left of first column (in x_offset region)
-	for (int map_j = 0; map_j < map_height_; map_j++) {
-		display.GoTo({ (int)floor(map_x_offset / 2), map_j*tile_height + (int)floor(tile_height / 2) + map_y_offset }); // places cursor centrally along the height of the tile and the width of the x_offset
-		std::cout << map_j;
-	}
-	// print map
-	// iterate over the map tiles
-	for (int map_j = 0; map_j < map_height_; map_j++) {
-		for (int map_i = 0; map_i < map_width_; map_i++) {
-			Render(Coord{ map_i, map_j }); // will also render the unit on the tile if there is one
-		}
-	}
-}
-
-// Renders a specific tile the unit on it if there is one
-void Map::Render(Coord coord) const {
-	// check coord corresponds to a map coordinate
-	if (coord.x >= 0 && coord.x < map_width_ && coord.y >= 0 && coord.x < map_height_) {
-		// if the coordinate is on the map then render the corresponding tile
-		GetTile(coord)->Render();
-		// if there is a unit present on the tile then render that too.
-		if (UnitPresent(coord)) {
-			GetUnit(coord)->Render();
-		}
-	}
-}
-// unhiglights all tiles on the console
-void Map::ResetTiles() const {
-	for (auto iter_vec = map_.begin(); iter_vec != map_.end(); iter_vec++) {
-		for (auto iter_tile = iter_vec->begin(); iter_tile != iter_vec->end(); iter_tile++) {
-			(*iter_tile)->set_highlighted(false);
-		}
-	}
-}
-
 // adds a unit to the map. if unit is on tile or tile coordinate is not valid then it does nothing
 void Map::AddUnit(Unit* new_unit, const Coord &position) {
 	// check if coordinate is a valid position on the map
@@ -256,6 +214,7 @@ const bool Map::UnitPresent(const Coord &position) const {
 	// if gone through vector and no units found at that location then return false
 	return false;
 }
+
 // returns the unit on a given tile (if there is one, else returns null pointer?)
 Unit* Map::GetUnit(const Coord &position) const {
 	if (UnitPresent(position)) {
@@ -296,4 +255,53 @@ std::vector<Tile*> Map::AdjacentTo(const Tile *tile) const {
 		adjacent_tiles.push_back(GetTile(adjacent_position + Coord{ 0, -1 }));
 	}
 	return adjacent_tiles;
+}
+
+// Renders the map on a the console
+void Map::Render() const {
+	Window display = GameManager::game().get_display();
+	int tile_width = display.get_tile_width();
+	int tile_height = display.get_tile_height();
+	int map_x_offset = display.get_map_x_offset();
+	int map_y_offset = display.get_map_y_offset();
+
+	// print numbers above top row (in y_offset region)
+	for (int map_i = 0; map_i < map_width_; map_i++) {
+		display.GoTo({ map_i*tile_width + (int)floor(tile_width / 2) + map_x_offset, (int)floor(map_y_offset / 2) }); // places cursor centrally along width of the tile
+		std::cout << char(65 + map_i); // char(65) is ASCII code for A
+	}
+	// print alphabetic characters left of first column (in x_offset region)
+	for (int map_j = 0; map_j < map_height_; map_j++) {
+		display.GoTo({ (int)floor(map_x_offset / 2), map_j*tile_height + (int)floor(tile_height / 2) + map_y_offset }); // places cursor centrally along the height of the tile and the width of the x_offset
+		std::cout << map_j;
+	}
+	// print map
+	// iterate over the map tiles
+	for (int map_j = 0; map_j < map_height_; map_j++) {
+		for (int map_i = 0; map_i < map_width_; map_i++) {
+			Render(Coord{ map_i, map_j }); // will also render the unit on the tile if there is one
+		}
+	}
+}
+
+// Renders a specific tile the unit on it if there is one
+void Map::Render(Coord coord) const {
+	// check coord corresponds to a map coordinate
+	if (coord.x >= 0 && coord.x < map_width_ && coord.y >= 0 && coord.x < map_height_) {
+		// if the coordinate is on the map then render the corresponding tile
+		GetTile(coord)->Render();
+		// if there is a unit present on the tile then render that too.
+		if (UnitPresent(coord)) {
+			GetUnit(coord)->Render();
+		}
+	}
+}
+
+// unhiglights all tiles on the console
+void Map::ResetTiles() const {
+	for (auto iter_vec = map_.begin(); iter_vec != map_.end(); iter_vec++) {
+		for (auto iter_tile = iter_vec->begin(); iter_tile != iter_vec->end(); iter_tile++) {
+			(*iter_tile)->set_highlighted(false);
+		}
+	}
 }

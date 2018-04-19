@@ -20,6 +20,7 @@ class Unit : public GameObject {
 protected:
 	UnitState state_; // the current state of the unit
 	std::string unit_marker_; // string identifier (2 chars that are drawn on the map to represent the unit)
+	int team_; // what team the unit belongs to
 	int max_hp_; // maximum hit points of the unit
 	int current_hp_; // the current hit points of the unit
 	int armour_; // armor value ( reduces damage additatively)
@@ -30,7 +31,6 @@ protected:
 	int attack_range_; 	// default attack range
 	bool moved_this_turn_; // whether unit has/hasnt moved yet
 	bool attacked_this_turn_; // whether unit has/hasnt attacked yet
-	int team_; // what team the unit belongs to
 
 	ColourScheme acted_colour_scheme_; // colour scheme when unit has already acted on a turn
 	ColourScheme dead_colour_scheme_; // colour scheme when the unit is dead
@@ -40,20 +40,20 @@ protected:
 	// get a deep copy of the unit
 	virtual Unit* clone_impl() const = 0;
 
-	// animates the unit moving to an adjacent tile
-	void AnimateMovement(const Tile* start_tile, const Tile* target_tile) const;
+	// checks how many tiles away another unit is
+	const int DistanceTo(const Unit *target) const;
 
 	// returns a vector of all units that are currently attackable by this unit (MOVE TO MAP)
 	const std::vector<Unit*> AttackableUnits() const;
 
+	// get tile unit is currently on
+	Tile* GetTile() const;
+
 	// returns a vector of pointers to the tiles (as movesequences) that can be reached by this unit
 	std::vector<Tile*> ReachableTiles() const;
 
-	// checks how many tiles away another unit is
-	const int DistanceTo(const Unit *target) const;
-
-	// get tile unit is currently on
-	Tile* GetTile() const;
+	// animates the unit moving to an adjacent tile
+	void AnimateMovement(const Tile* start_tile, const Tile* target_tile) const;
 
 
 public:
@@ -65,23 +65,26 @@ public:
 	std::unique_ptr<Unit> clone() const { return std::unique_ptr<Unit>(clone_impl()); }
 
 	// accessors and mutators
-	int get_max_hp() const { return max_hp_; }
-	int get_current_hp() const { return current_hp_; }
-	void set_current_hp(int const &hp); // will set to 0 if < 0 and max_hp if > max_hp
-	double get_armour() const { return armour_; }
-	int get_move_distance() const { return move_range_; }
-	const int get_team() const { return team_; }
 	bool has_moved_this_turn() const { return moved_this_turn_; }
 	bool has_attacked_this_turn() const { return attacked_this_turn_; }
+	const int get_team() const { return team_; }
+
+	// set hp (will set to 0 if < 0 and max_hp if > max_hp)
+	void set_current_hp(int const &hp);
 
 	// get the appropriate colour scheme for the unit
 	const ColourScheme& get_colour_scheme() const;
 
-	// apply damage and healing
-	void AttackedBy(const Unit *target);
-
 	// move unit to a new coordinate. 
 	void set_map_coords(const Coord &new_pos);
+
+	// check if unit can traverse a given terrain
+	virtual const bool CanTraverse(const Tile *terrain_tile) const = 0;
+
+	// reset the has_moved_this_turn and has_attacked_this_turn flags to false and set the state to idle
+	void EnableActions();
+	// set the flags to true and state to asleep
+	void DisableActions();
 
 	// find out if this unit can be selected (if it has either moved or attacked already)
 	const bool CanSelect() const;
@@ -89,11 +92,6 @@ public:
 	void SelectUnit();
 	// deselect this unit
 	void DeselectUnit();
-
-	// reset the has_moved_this_turn and has_attacked_this_turn flags to false and set the state to idle
-	void EnableActions();
-	// set the flags to true and state to asleep
-	void DisableActions();
 
 	// do unit death
 	void Kill();
@@ -109,15 +107,11 @@ public:
 
 	// attack another unit
 	void Attack(Unit *target);
+	// apply damage and healing
+	void AttackedBy(const Unit *target);
 
 	// sets highlighted status for tiles/units that are attackable
 	void HighlightAttackableUnits(const bool &highlight) const;
-
-	// check if unit can traverse a given terrain
-	virtual const bool CanTraverse(const Tile *terrain_tile) const = 0;
-
-	// renders the unit in the console window
-	void Render() const;
 
 	// sets highlighted status for the tiles that the unit can reach
 	void Unit::HighlightReachableTiles(const bool &highlight) const;
@@ -125,4 +119,6 @@ public:
 	// Move to a target tile (will not work for an invalid tile or when there is no legal movement to the tile)
 	void MoveTo(Tile* target_tile);
 
+	// renders the unit in the console window
+	void Render() const;
 };

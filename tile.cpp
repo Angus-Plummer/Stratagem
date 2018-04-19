@@ -5,13 +5,19 @@
 #include "window.h"
 #include "map.h"
 
+// ---------- ctor and dtor ---------- //
+
+// ctor
 Tile::Tile(Map &map, const Coord &map_coords) : GameObject(), parent_map_(&map), highlighted_(false){
 	// check if the coordinates are valid on the map
 	assert(map_coords.x >= 0 && map_coords.x < map.get_map_width() && map_coords.y >= 0 && map_coords.y < map.get_map_width());
 	map_coords_ = map_coords;
 }
 
+// dtor
 Tile::~Tile() {};
+
+// ---------- public functions ---------- //
 
 // get the colour scheme
 const ColourScheme& Tile::get_colour_scheme() const {
@@ -23,14 +29,11 @@ const ColourScheme& Tile::get_colour_scheme() const {
 	}
 }
 
-// set and get highlighted
-void Tile::set_highlighted(bool const &highlighted) {
-	highlighted_ = highlighted;
-}
-
 // function to check if two tiles are adjacent
 const bool Tile::AdjacencyTest(const Tile *test_tile) const {
+	// get vector of adjacent tiles
 	std::vector<Tile*> adjacent_tiles = GameManager::game().get_instance().get_map().AdjacentTo(this);
+	// if go through vector without finding the test_tile then return false, else return true
 	return std::find(adjacent_tiles.begin(), adjacent_tiles.end(), test_tile) != adjacent_tiles.end();
 }
 

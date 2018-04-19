@@ -17,7 +17,7 @@ public:
 	// accessors
 	const std::string& get_type() const { return type_; }
 	const Coord& get_map_coords() const { return map_coords_; }
-	const ColourScheme& get_colour_scheme() const { return default_colour_scheme_; }
+	virtual const ColourScheme& get_colour_scheme() const = 0;// will return the colour scheme correct for the current state of the object
 
 	// render the object on the console
 	void virtual Render() const = 0;

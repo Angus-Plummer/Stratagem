@@ -16,18 +16,15 @@ public:
 	MoveSequence(Tile *tile);
 	~MoveSequence();
 	
-	// accessors and mutators for parent in chain
+	// accessors and mutators
 	void set_parent(MoveSequence &new_parent);
 	const MoveSequence* get_parent() const;
-
-	// get the tile that this MoveSequence component belongs to
-	Tile* get_tile() const;
+	Tile* get_tile() const; // get tile that the movesequence object corresponds to
+	const int& get_cost() const; // cost_to_here
 
 	// set the heuristic for this tile
 	void set_heuristic_to(const Tile *target_tile);
 
-	// get the cost to reach this tile
-	const int& get_cost() const;
 	// get the score of the tile (cost to reach tile + heuristic to reach target tile)
 	const int get_score() const;
 

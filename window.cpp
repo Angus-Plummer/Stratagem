@@ -2,12 +2,14 @@
 #include "Window.h"
 #include "colour_scheme.h"
 
+// ---------- ctor and dtor ---------- //
 
+// ctor (creates window of specific pixel dimensions with locked size, removes scrollbar, enables mouse input)
 Window::Window(const int &width, const int &height) : console_window_(GetConsoleWindow()),
-													standard_in_handle_(GetStdHandle(STD_INPUT_HANDLE)),
-													standard_out_handle_(GetStdHandle(STD_OUTPUT_HANDLE)),
-													tile_width_(6), tile_height_(3),
-													map_x_offset_(3), map_y_offset_(1)
+standard_in_handle_(GetStdHandle(STD_INPUT_HANDLE)),
+standard_out_handle_(GetStdHandle(STD_OUTPUT_HANDLE)),
+tile_width_(6), tile_height_(3),
+map_x_offset_(3), map_y_offset_(1)
 {
 	RECT r; // rectangle to store window position and dimensions
 	// disable quick edit mode so that mouse input works
@@ -26,12 +28,82 @@ Window::Window(const int &width, const int &height) : console_window_(GetConsole
 	GetConsoleCursorInfo(standard_out_handle_, &cursor_info);
 	cursor_info.bVisible = false;
 	SetConsoleCursorInfo(standard_out_handle_, &cursor_info);
+
+	// disable console window resizing (resizing caused rendering issues until everything was rerendered)
+	LONG window_style = GetWindowLongPtr(console_window_, GWL_STYLE);
+		// grey out and disable maximise button and manual drag resizing
+	window_style = window_style & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX;
+	SetWindowLongPtr(console_window_, GWL_STYLE, window_style);
+
+	// set console buffer size to the number of cells visible in the window.
+		// get buffer info
+	CONSOLE_SCREEN_BUFFER_INFO buffer;
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
+	// coord to hold new buffer size, set to the size of the console screen buffer
+	COORD console_buffer_size;
+	console_buffer_size.X = buffer.dwSize.X;
+	console_buffer_size.Y = Height() +1;
+	// set the buffer size
+	SetConsoleScreenBufferSize(standard_out_handle_, console_buffer_size);
 }
 
-
+// dtor
 Window::~Window(){
 }
 
+// get console window width in terms of columns of console cells
+const int Window::Width() const {
+	CONSOLE_SCREEN_BUFFER_INFO buffer;
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
+	return buffer.srWindow.Right - buffer.srWindow.Left;
+
+}
+
+// get console window height in terms of rows of console cells
+const int Window::Height() const{
+	CONSOLE_SCREEN_BUFFER_INFO buffer;
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
+	return buffer.srWindow.Bottom - buffer.srWindow.Top;
+}
+
+// sets the colour scheme
+void Window::set_colour_scheme(const ColourScheme &colour_scheme) const {
+	// determine the id number of the colour scheme (hexadecimal, first digit background, second text)
+	int colour_scheme_hex = colour_scheme.background_colour * 16 + colour_scheme.text_colour;
+	// set the console text attribute
+	SetConsoleTextAttribute(standard_out_handle_, colour_scheme_hex);
+}
+
+// gets the current colour scheme of the console output
+const ColourScheme Window::get_colour_scheme() const {
+	// get console window buffer info
+	CONSOLE_SCREEN_BUFFER_INFO buffer;
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
+	// integer value of the colour scheme (hexadecimal first digit background, second digit text)
+	int colour_scheme = buffer.wAttributes;
+	// divide by 16 and ignore remainder to get background colour
+	ConsoleColour background_colour = static_cast<ConsoleColour>(colour_scheme / 16);
+	// text colour is remainder of the division by 16
+	ConsoleColour text_colour = static_cast<ConsoleColour>(colour_scheme % 16);
+	return ColourScheme(background_colour, text_colour);
+}
+
+// get the position of the console cursor
+const Coord Window::CursorPosition() const {
+	CONSOLE_SCREEN_BUFFER_INFO buffer;
+	// get buffer info
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
+	return Coord(buffer.dwCursorPosition.X, buffer.dwCursorPosition.Y);
+}
+
+// set the position of the console cursor
+void Window::GoTo(const Coord &in_coord) const {
+	std::cout.flush();
+	COORD coord = { (SHORT)in_coord.x, (SHORT)in_coord.y };
+	SetConsoleCursorPosition(standard_out_handle_, coord);
+}
+
+// clears the window
 void Window::Clear() {
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
 	COORD top_left = { 0, 0 };
@@ -54,41 +126,6 @@ void Window::Clear() {
 
 	// Move the cursor back to the top left for the next sequence of writes
 	SetConsoleCursorPosition(standard_out_handle_, top_left);
-}
-
-// get console window width and height in terms of rows and columns of console cells
-const int Window::Width() const {
-	CONSOLE_SCREEN_BUFFER_INFO buffer;
-	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
-	return buffer.srWindow.Right - buffer.srWindow.Left;
-
-}
-const int Window::Height() const{
-	CONSOLE_SCREEN_BUFFER_INFO buffer;
-	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
-	return buffer.srWindow.Bottom - buffer.srWindow.Top;
-}
-
-// tile width and height in  terms of console cells
-const int& Window::get_tile_width() const { return tile_width_; }
-const int& Window::get_tile_height() const { return tile_height_;}
-// map x and y offset in terms of console cells
-const int& Window::get_map_x_offset() const { return map_x_offset_; }
-const int& Window::get_map_y_offset() const { return map_y_offset_; }
-
-
-// get and set the position of the console cursor
-void Window::GoTo(const Coord &in_coord) const {
-	std::cout.flush();
-	COORD coord = { (SHORT)in_coord.x, (SHORT)in_coord.y };
-	SetConsoleCursorPosition(standard_out_handle_, coord);
-}
-
-const Coord Window::CursorPosition() const {
-	CONSOLE_SCREEN_BUFFER_INFO buffer;
-	// get buffer info
-	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
-	return Coord(buffer.dwCursorPosition.X, buffer.dwCursorPosition.Y);
 }
 
 // gets the position (console cell location) of the mouse cursor if LMB is pressed clicked down. (acts like detecting a mouse up event)
@@ -135,26 +172,4 @@ void Window::WaitForMouse() const {
 	while (mouse_down_pos == Coord{ -1,-1 }) {
 		mouse_down_pos = MouseDownPosition();
 	}
-}
-
-// sets the colour scheme to the input background and text colours
-void Window::set_colour_scheme(const ColourScheme &colour_scheme) const {
-	// determine the id number of the colour scheme (hexadecimal, first digit background, second text)
-	int colour_scheme_hex = colour_scheme.background_colour * 16 + colour_scheme.text_colour;
-	// set the console text attribute
-	SetConsoleTextAttribute(standard_out_handle_, colour_scheme_hex);
-}
-
-// gets the current colour of the background
-const ColourScheme Window::get_colour_scheme() const {
-	// get console window buffer info
-	CONSOLE_SCREEN_BUFFER_INFO buffer;
-	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
-	// integer value of the colour scheme (hexadecimal first digit background, second digit text)
-	int colour_scheme = buffer.wAttributes;
-	// divide by 16 and ignore remainder to get background colour
-	ConsoleColour background_colour = static_cast<ConsoleColour>(colour_scheme / 16);
-	// text colour is remainder of the division by 16
-	ConsoleColour text_colour = static_cast<ConsoleColour>(colour_scheme % 16);
-	return ColourScheme(background_colour, text_colour);
 }

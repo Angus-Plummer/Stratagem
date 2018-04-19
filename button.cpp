@@ -6,7 +6,7 @@
 
 // ctor for empty button
 Button::Button() :
-	text_(""), result_([]() {}), // no button text and null function
+	text_(""), button_function_([]() {}), // no button text and null function
 	parent_menu_(nullptr), enabled_(false), // no parent menu and button disabled
 	disabled_colour_scheme_(ColourScheme(BLACK, DARK_GREY)) // grey on black
 {
@@ -18,7 +18,7 @@ Button::Button() :
 
 // ctor for button with text and funtion
 Button::Button(std::string text, std::function<void()> function): 
-	text_(text), result_(function), 
+	text_(text), button_function_(function), 
 	parent_menu_(nullptr), enabled_(true), disabled_colour_scheme_(ColourScheme(BLACK, DARK_GREY)) // this colour scheme is grey on black
 {
 	width_ = text_.length(); // width is just the number of chars in the text
@@ -51,14 +51,16 @@ void Button::Render() const {
 	// revert the colour scheme back to what it was at start
 	display.set_colour_scheme(original_colour_scheme);
 }
+
 // on button interaction invoke the buttons function
 void Button::Trigger() {
 	// if the button is enabled then trigger its function
 	if (enabled_) { 
-		result_(); 
+		button_function_(); 
 	}
 }
 
+// update the width of the button (used when the width of a parent menu changes)
 void Button::UpdateWidth() {
 	if (parent_menu_) {
 		width_ = parent_menu_->get_width() - 2 * parent_menu_->get_border_thickness();

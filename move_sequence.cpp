@@ -1,8 +1,9 @@
 #include "move_sequence.h"
 #include "tile.h"
 
+// ---------- ctor, dtor, and operator overloading ---------- //
 
-
+// ctor
 MoveSequence::MoveSequence(Tile *tile) {//: tile_(tile){
 	tile_ = tile;
 	parent_ = nullptr;
@@ -10,27 +11,36 @@ MoveSequence::MoveSequence(Tile *tile) {//: tile_(tile){
 	heuristic_to_target = 0;
 }
 
-
+// dtor
 MoveSequence::~MoveSequence(){
 }
+
+// check if two move sequences point to the same map tile
+const bool MoveSequence::operator==(const MoveSequence &rhs) {
+	return (tile_ == rhs.tile_);
+}
+
+// ---------- accessors and mutators ---------- //
 
 // accessors and mutators for parent in chain
 void MoveSequence::set_parent(MoveSequence &new_parent){
 	parent_ = &new_parent;
 	Update();
 }
+
 const MoveSequence* MoveSequence::get_parent() const{
 	return parent_;
 }
 
-// get the tile that this MoveSequence component belongs to
-Tile* MoveSequence::get_tile() const{
+Tile* MoveSequence::get_tile() const {
 	return tile_;
 }
-// get the cost of reaching this tile from the intial tile
+
 const int& MoveSequence::get_cost() const {
 	return cost_to_here_;
 }
+
+// ---------- other public functions ---------- //
 
 // get the score of the tile (cost to reach tile + heuristic to reach target tile)
 const int MoveSequence::get_score() const {
@@ -54,9 +64,4 @@ void MoveSequence::Update() {
 	else {
 		cost_to_here_ = 0;
 	}
-}
-
-// check if two move sequences point to the same map tile
-const bool MoveSequence::operator==(const MoveSequence &rhs){
-	return (tile_ == rhs.tile_);
 }

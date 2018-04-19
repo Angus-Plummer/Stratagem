@@ -34,7 +34,7 @@ protected:
 	std::vector<std::unique_ptr<Unit>> p1_units_;
 	std::vector<std::unique_ptr<Unit>> p2_units_;
 	
-	GameState state_; // game state
+	GameState state_; // current game state (enums defined above)
 	bool running_; // bool indicates whether this instance of the game is currently running
 	int player_turn_;	// int to keep track of whose turn it is
 

@@ -2,6 +2,7 @@
 
 // console colours and colour scheme, this header is included in the precompiled header as it is used by many other files
 
+// enum for the hexadecimal code of the different colours availabale on the windows console
 enum ConsoleColour {
 	BLACK,
 	DARK_BLUE,
@@ -39,8 +40,3 @@ struct ColourScheme {
 	// copy assignment
 	ColourScheme& operator=(const ColourScheme &colour_scheme) { background_colour = colour_scheme.background_colour; text_colour = colour_scheme.text_colour; return *this; }
 };
-
-// equality operator
-//bool operator==(const ColourScheme &lhs, const ColourScheme &rhs) { return lhs.background_colour == rhs.background_colour && lhs.text_colour == rhs.text_colour; }
-// inequality operator
-//bool operator!=(const ColourScheme &lhs, const ColourScheme &rhs) { return !(lhs == rhs); }

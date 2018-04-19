@@ -37,6 +37,7 @@ struct Coord{
 	Coord& operator=(const Coord &coord) { x = coord.x; y = coord.y; return *this; }
 
 	// friend operator overloads (defined in .cpp file)
+	// equality operator
 	friend const bool operator==(const Coord &lhs, const Coord &rhs);
 	// inequality operator
 	friend const bool operator!=(const Coord &lhs, const Coord &rhs);

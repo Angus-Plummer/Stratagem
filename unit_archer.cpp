@@ -1,10 +1,10 @@
 #include "unit_archer.h"
-
 #include "tile_grass.h"
 #include "tile_forest.h"
 #include "tile_mountain.h"
 #include "tile_water.h"
 
+// ctor
 Archer::Archer(const int &team) : Unit(team) {
 	// archer stats
 	max_hp_ = 20;
@@ -13,14 +13,14 @@ Archer::Archer(const int &team) : Unit(team) {
 	attack_damage_ = 8;
 	attack_range_ = 2;
 	armour_pierce_ = 3;
-	// set hp
+	// set starting hp
 	current_hp_ = max_hp_;
-	// game object properties
+	// output properties
 	unit_marker_ = "Ar";
 	type_ = "archer";
 }
 
-
+// dtor
 Archer::~Archer()
 {
 }

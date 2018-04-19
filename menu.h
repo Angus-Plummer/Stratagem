@@ -20,14 +20,14 @@ public:
 	// set the location of the top left of the menu (in console cell coordinates)
 	void set_location(const Coord &position);
 
-	// render the menu and its buttons in the game window
-	void Render() const;
+	// clears all the buttons from the menu
+	void Clear();
 
 	// add a button to the menu
 	void AddButton(Button &button);
 
-	// clears all the buttons from the menu
-	void Clear();
+	// render the menu and its buttons in the game window
+	void Render() const;
 
 	// handle a click at the consonle coordinate "coord", will trigger any button which contains the coordinate
 	void HandleLeftMouseButtonDown(const Coord &coord);

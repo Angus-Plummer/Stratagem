@@ -37,7 +37,7 @@ protected:
 
 	// clear all menus from the vector of menus
 	void ClearButtons();
-	// render all menus
+	// render all buttons in the window
 	void RenderButtons() const;
 
 	// moves the game into the title screen state (shows ascii art and updates menus)
@@ -54,6 +54,12 @@ protected:
 
 	// move the game into the selecting teams size state
 	void StartTeamSizeSelection();
+
+	// starts the actual game running
+	void PlayGame();
+
+	// handles a mouse down event (i.e. the user clicking somewhere on the window)
+	void HandleLeftMouseButtonDown(const Coord &window_location);
 
 	// --------- unit placement functions ------------
 
@@ -93,15 +99,6 @@ protected:
 	// removes the unit being placed and replaces with a nullptr, also resets the tiles
 	void RemovePlacingUnit();
 
-	// --------- end of unit placement functions ---------- //
-
-	// starts the actual game running
-	void PlayGame();
-
-	// handles a mouse down event (i.e. the user clicking somewhere on the window)
-	void HandleLeftMouseButtonDown(const Coord &window_location);
-
-	// ---------- end of internal functions ---------- //
 
 public:
 	// ctors
