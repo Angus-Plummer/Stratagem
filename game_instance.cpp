@@ -12,7 +12,6 @@
 
 // default ctor
 GameInstance::GameInstance() {
-	display_ = new Window(700, 700); // default window size
 	game_map_ = std::unique_ptr<Map>(new Map()); // create empty map
 	selected_unit_ = nullptr; // no unit selected
 	context_menu_ = Menu(); // context menu not showing
@@ -23,21 +22,8 @@ GameInstance::GameInstance() {
 	state_ = STATE_SETUP; // set initial state is setup 
 }
 
-// ctor with window as input arg
-GameInstance::GameInstance(Window &display): display_(&display){
-	game_map_ = std::unique_ptr<Map>(new Map()); // create empty map
-	selected_unit_ = nullptr; // no unit selected
-	context_menu_ = Menu(); // context menu not showing
-	end_turn_button_ = Button(); // start with end turn button not 
-	surrender_button_ = Button(); // start with no surrender button showing
-	player_turn_ = 1; // start with player 1's turn
-	running_ = false; // game initiates not running
-	state_ = STATE_SETUP; // set initial state is setup 
-}
-
 // copy ctor
 GameInstance::GameInstance(const GameInstance &instance) {
-	display_ = instance.display_;
 	selected_unit_ = instance.selected_unit_;
 	context_menu_ = instance.context_menu_;
 	end_turn_button_ = instance.end_turn_button_;
@@ -60,7 +46,6 @@ GameInstance::GameInstance(const GameInstance &instance) {
 
 // move ctor
 GameInstance::GameInstance(GameInstance &&instance) : GameInstance() {
-	std::swap(display_, instance.display_);
 	std::swap(game_map_, instance.game_map_);
 	std::swap(p1_units_, instance.p1_units_);
 	std::swap(p2_units_, instance.p2_units_);
@@ -96,7 +81,6 @@ GameInstance& GameInstance::operator=(const GameInstance &instance) {
 }
 // move assignment
 GameInstance& GameInstance::operator=(GameInstance &&instance) {
-	std::swap(display_, instance.display_);
 	std::swap(game_map_, instance.game_map_);
 	std::swap(p1_units_, instance.p1_units_);
 	std::swap(p2_units_, instance.p2_units_);
@@ -113,10 +97,6 @@ GameInstance& GameInstance::operator=(GameInstance &&instance) {
 
 // ---------- accessors and mutators ---------- //
 
-// display
-const Window& GameInstance::get_display() const { return *display_; }
-void GameInstance::set_display(Window &display) { display_ = &display; }
-
 // map
 Map& GameInstance::get_map() const { return *game_map_; }
 Unit& GameInstance::get_selected_unit() const { return *selected_unit_; }
@@ -129,7 +109,7 @@ const int& GameInstance::get_player_turn() const { return player_turn_; }
 // carries out the beginning of a turn
 void GameInstance::StartTurn() {
 	// clear the console and render the game map again, show the end turn button and end turn label
-	display_->Clear();
+	GameManager::game().get_display().Clear();
 	game_map_->Render();
 	ShowTurnLabel();
 	ShowEndTurnButton();
@@ -174,7 +154,7 @@ void GameInstance::EndTurn() {
 	// run an animation to show turn change (as easy to miss the current turn label)
 	ShowTurnChangeScreen();
 	// wait for mouse click and then start the next turn
-	display_->WaitForMouse();
+	GameManager::game().get_display().WaitForMouse();
 	StartTurn();
 }
 
@@ -206,6 +186,9 @@ void GameInstance::AutoEndTurn() {
 
 // handles game victory
 void GameInstance::Victory(const int &team) {
+	// get currently used window
+	Window display = GameManager::game().get_display();
+
 	state_ = STATE_VICTORY; // set state
 							// iterate through the units and remove any remaining from the game
 	for (auto unit_iter = p1_units_.begin(); unit_iter != p1_units_.end(); unit_iter++) {
@@ -218,10 +201,10 @@ void GameInstance::Victory(const int &team) {
 	p1_units_.clear();
 
 	// show victory message / screen
-	display_->Clear();
+	GameManager::game().get_display().Clear();
 	// determine top left coord to output ascii art from (art is centred horizontally and placed 1/3 down from top of window)
-	int start_col = display_->Width() / 2 - fireworks[0].length() / 2;
-	int start_row = display_->Height() / 3 - (int)fireworks.size() / 2;
+	int start_col = display.Width() / 2 - fireworks[0].length() / 2;
+	int start_row = display.Height() / 3 - (int)fireworks.size() / 2;
 	// if end up with negative of either coordinate then set it to 0
 	if (start_col < 0) {
 		start_col = 0;
@@ -231,14 +214,14 @@ void GameInstance::Victory(const int &team) {
 	}
 	// go through the ascii art and print out each row (art is stored as vector of row strings)
 	for (int row = 0; row < (int)fireworks.size(); row++) {
-		display_->GoTo(Coord{ start_col, start_row + row });
+		display.GoTo(Coord{ start_col, start_row + row });
 		std::string row_str = fireworks[row];
 		std::cout << row_str;
 	}
 	// print victory message
-	display_->GoTo(Coord{ display_->Width() / 2 - 25 / 2, start_row + (int)fireworks.size() + 2 }); // 25 is length of congratulations string below
+	display.GoTo(Coord{ display.Width() / 2 - 25 / 2, start_row + (int)fireworks.size() + 2 }); // 25 is length of congratulations string below
 	std::cout << "CONGRATULATIONS PLAYER " << team << "!";
-	display_->GoTo(Coord{ display_->Width() / 2 - 8 / 2, start_row + (int)fireworks.size() + 3 }); // 4 is length of you won string below
+	display.GoTo(Coord{ display.Width() / 2 - 8 / 2, start_row + (int)fireworks.size() + 3 }); // 4 is length of you won string below
 	std::cout << "YOU WON!";
 }
 
@@ -295,13 +278,13 @@ void GameInstance::ShowContextMenu() {
 	context_menu_.AddButton(end_cancel_button);
 
 	// if selected unit is in any but the last two map columns then set menu position as to right of unit
-	Coord top_left_of_cell_to_right = Coord(display_->get_map_x_offset() + (selected_unit_->get_map_coords().x + 1) * display_->get_tile_width(),
-		display_->get_map_y_offset() + selected_unit_->get_map_coords().y * display_->get_tile_height());
+	Coord top_left_of_cell_to_right = Coord(game_map_->get_map_x_offset() + (selected_unit_->get_map_coords().x + 1) * game_map_->get_tile_width(),
+		game_map_->get_map_y_offset() + selected_unit_->get_map_coords().y * game_map_->get_tile_height());
 	if (selected_unit_->get_map_coords().x < game_map_->get_map_width() - 2) {
 		context_menu_.set_location(top_left_of_cell_to_right);
 	}
 	else {
-		context_menu_.set_location(top_left_of_cell_to_right - Coord{ display_->get_tile_width() + context_menu_.get_width(), 0 }); // go left 1 tile width + the width of the menu
+		context_menu_.set_location(top_left_of_cell_to_right - Coord{ game_map_->get_tile_width() + context_menu_.get_width(), 0 }); // go left 1 tile width + the width of the menu
 	}
 
 	// render the menu
@@ -312,7 +295,7 @@ void GameInstance::RemoveContextMenu() {
 	// fill the are occupied by the context menu with blank cells (this will mean any area which never otherwise has anything ouput on it will get reset back to being empty)
 	for (int i = 0; i < context_menu_.get_width(); i++) {
 		for (int j = 0; j < context_menu_.get_height(); j++) {
-			display_->GoTo(context_menu_.get_location() + Coord{ i,j });
+			GameManager::game().get_display().GoTo(context_menu_.get_location() + Coord{ i,j });
 			std::cout << ' ';
 		}
 	}
@@ -322,8 +305,8 @@ void GameInstance::RemoveContextMenu() {
 																			// get top-left-most tile covered by menu
 		Coord top_left = game_map_->GetTileFromConsoleCoord(context_menu_.get_location())->get_map_coords();
 		// for all tiles that are covered by any amount by the context menu...
-		for (int i = 0; i < context_menu_.get_width() / display_->get_tile_width() + 1; i++) { // the width of the menu / width of the tile gives number of tiles that the menu covers horizontally (rounded down, hence add 1)
-			for (int j = 0; j < context_menu_.get_height() / display_->get_tile_height() + 1; j++) { // the height of the menu / height of the tile gives number of tiles that the menu covers vertically (rounded down, hence add 1)
+		for (int i = 0; i < context_menu_.get_width() / game_map_->get_tile_width() + 1; i++) { // the width of the menu / width of the tile gives number of tiles that the menu covers horizontally (rounded down, hence add 1)
+			for (int j = 0; j < context_menu_.get_height() / game_map_->get_tile_height() + 1; j++) { // the height of the menu / height of the tile gives number of tiles that the menu covers vertically (rounded down, hence add 1)
 																									 // if there is a tile at this coordinate then render the tile, if not then there is nothing to render
 				if (game_map_->GetTile(top_left + Coord{ i,j })) {
 					// render the tile (will also render any unit on the tile
@@ -338,21 +321,22 @@ void GameInstance::RemoveContextMenu() {
 
 // show / update the label for who's turn it currently is
 void GameInstance::ShowTurnLabel() const {
+	Window display = GameManager::game().get_display();
 	// save the current colour scheme to revert back after
-	ColourScheme original_colour_scheme = display_->get_colour_scheme();
+	ColourScheme original_colour_scheme = display.get_colour_scheme();
 	// go to top right next to map
-	display_->GoTo(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * game_map_->get_map_width() + 1,1 });
+	display.GoTo(Coord{ game_map_->get_map_x_offset() + game_map_->get_tile_width() * game_map_->get_map_width() + 1,1 });
 	// if player 1s turn set colour scheme to blue, player 2s turn then red
 	if (player_turn_ == 1) {
-		display_->set_colour_scheme(ColourScheme(DARK_BLUE, WHITE));
+		display.set_colour_scheme(ColourScheme(DARK_BLUE, WHITE));
 	}
 	else if (player_turn_ == 2) {
-		display_->set_colour_scheme(ColourScheme(DARK_RED, WHITE));
+		display.set_colour_scheme(ColourScheme(DARK_RED, WHITE));
 	}
 	// print out message saying whos turn it is
 	std::cout << " Player " << player_turn_ << "'s turn ";
 	// revert back to original colour scheme
-	display_->set_colour_scheme(original_colour_scheme);
+	display.set_colour_scheme(original_colour_scheme);
 }
 
 // add / redo end turn button
@@ -361,7 +345,7 @@ void GameInstance::ShowEndTurnButton() {
 	end_turn_button_ = Button(" End turn ", []() {GameManager::game().get_instance().EndTurn(); });
 
 	// menu position is top right, next to map but below the current players turn label
-	end_turn_button_.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * game_map_->get_map_width() + 1, 3 });
+	end_turn_button_.set_location(Coord{ game_map_->get_map_x_offset() + game_map_->get_tile_width() * game_map_->get_map_width() + 1, 3 });
 
 	// render the menu
 	end_turn_button_.Render();
@@ -378,22 +362,23 @@ void GameInstance::ShowSurrenderButton() {
 	});
 
 	// menu position is bottom right, next to map, far from other buttons
-	surrender_button_.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * game_map_->get_map_width() + 1,
-		display_->get_map_y_offset() + display_->get_tile_height() * game_map_->get_map_height() - surrender_button_.get_height() });
+	surrender_button_.set_location(Coord{ game_map_->get_map_x_offset() + game_map_->get_tile_width() * game_map_->get_map_width() + 1,
+		game_map_->get_map_y_offset() + game_map_->get_tile_height() * game_map_->get_map_height() - surrender_button_.get_height() });
 
 	// render the menu
 	surrender_button_.Render();
 }
 
 void GameInstance::ShowTurnChangeScreen() {
+	Window display = GameManager::game().get_display();
 	// completely clear the console
-	display_->Clear();
+	display.Clear();
 
 	// at centre of where the window print a statement indicating the change in turn
-	Coord window_centre(display_->Width() / 2, display_->Height() / 2);
-	display_->GoTo(window_centre + Coord{ -7, -1 }); // -7 as ~half the output immediately below so it is centred
+	Coord window_centre(display.Width() / 2, display.Height() / 2);
+	display.GoTo(window_centre + Coord{ -7, -1 }); // -7 as ~half the output immediately below so it is centred
 	std::cout << "Player " << player_turn_ << "'s turn"; // length of this output is 15 chars
-	display_->GoTo(window_centre + Coord{ -13, 1 }); // go left 13 chars (half out ouput immediately below)
+	display.GoTo(window_centre + Coord{ -13, 1 }); // go left 13 chars (half out ouput immediately below)
 	std::cout << "click anywhere to continue"; // length of 26 chars
 }
 
@@ -616,7 +601,7 @@ void GameInstance::Run() {
 	running_ = true; // will set to false if user clicks quit button or somone wins
 	while (running_) {
 		// get location of mouse click
-		Coord mouse_down_pos = display_->MouseDownPosition();
+		Coord mouse_down_pos = GameManager::game().get_display().MouseDownPosition();
 		// if mouse click was on the window then handle it
 		if (mouse_down_pos != Coord{ -1,-1 }) {
 			HandleLeftMouseButtonDown(mouse_down_pos);

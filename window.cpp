@@ -7,9 +7,7 @@
 // ctor (creates window of specific pixel dimensions with locked size, removes scrollbar, enables mouse input)
 Window::Window(const int &width, const int &height) : console_window_(GetConsoleWindow()),
 standard_in_handle_(GetStdHandle(STD_INPUT_HANDLE)),
-standard_out_handle_(GetStdHandle(STD_OUTPUT_HANDLE)),
-tile_width_(6), tile_height_(3),
-map_x_offset_(3), map_y_offset_(1)
+standard_out_handle_(GetStdHandle(STD_OUTPUT_HANDLE))
 {
 	RECT r; // rectangle to store window position and dimensions
 	// disable quick edit mode so that mouse input works
@@ -49,15 +47,6 @@ map_x_offset_(3), map_y_offset_(1)
 
 // dtor
 Window::~Window(){}
-
-// --------- accessors -------- //
-
-// tile width and height in  terms of console cells
-const int& Window::get_tile_width() const { return tile_width_; }
-const int& Window::get_tile_height() const { return tile_height_; }
-// map x and y offset in terms of console cells
-const int& Window::get_map_x_offset() const { return map_x_offset_; }
-const int& Window::get_map_y_offset() const { return map_y_offset_; }
 
 // ---------- public functions ---------- //
 
@@ -114,7 +103,7 @@ void Window::GoTo(const Coord &in_coord) const {
 }
 
 // clears the window
-void Window::Clear() {
+void Window::Clear() const {
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
 	COORD top_left = { 0, 0 };
 

@@ -28,8 +28,6 @@ GameManager::GameManager(Window &display) : display_(&display){
 	current_map_num = 1;
 	placing_unit_ = std::unique_ptr<Unit>(nullptr);
 	team_placing_ = 1;
-	// set the display of the instance to be the display of the game manager
-	instance_.set_display(display);
 }
 
 // dtor
@@ -45,6 +43,9 @@ GameInstance& GameManager::get_instance() { return instance_; }
 
 // get a reference to the display window
 const Window& GameManager::get_display() const { return *display_; }
+
+// set the window to the display
+void GameManager::set_display(Window &display) { display_ = &display; }
 
 // ---------- internal (protected) functions ---------- //
 
@@ -204,7 +205,8 @@ void GameManager::StartMapSelection() {
 		instance_.RenderMap();
 	});
 	// button at top right of map
-	next_button.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1 , 1 });
+
+	next_button.set_location(Coord{ instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1 , 1 });
 	buttons_.push_back(next_button);
 
 	// add previous map button ( cycle back to previous map)
@@ -218,7 +220,7 @@ void GameManager::StartMapSelection() {
 		instance_.RenderMap();
 	});
 	// button at top right of map (below the next map button)
-	previous_button.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, 3 });
+	previous_button.set_location(Coord{ instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, 3 });
 	buttons_.push_back(previous_button);
 
 	// add confirm map button ( move on to unit placement with current map)
@@ -226,14 +228,14 @@ void GameManager::StartMapSelection() {
 	Button confirm_button(button_text, [this]() {StartTeamSizeSelection(); });
 
 	// button at bottom right of window
-	confirm_button.set_location(Coord{ display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, 5 });
+	confirm_button.set_location(Coord{ instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, 5 });
 	buttons_.push_back(confirm_button);
 
 	// back button
 	button_text = " Back ";
 	Button back_button(button_text, [this]() { ShowTitleScreen(); });
-	back_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1,
-		display_->get_map_y_offset() + display_->get_tile_height() * instance_.get_map().get_map_height() - 1));
+	back_button.set_location(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1,
+		instance_.get_map().get_map_y_offset() + instance_.get_map().get_tile_height() * instance_.get_map().get_map_height() - 1));
 	buttons_.push_back(back_button);
 
 	// render the buttons
@@ -268,8 +270,8 @@ void GameManager::StartTeamSizeSelection() {
 	// back button
 	std::string button_text = " Back ";
 	Button back_button(button_text, [this]() { StartMapSelection(); });
-	back_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1,
-		display_->get_map_y_offset() + display_->get_tile_height() * instance_.get_map().get_map_height() - 1));
+	back_button.set_location(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1,
+		instance_.get_map().get_map_y_offset() + instance_.get_map().get_tile_height() * instance_.get_map().get_map_height() - 1));
 	buttons_.push_back(back_button);
 	// render all the buttons
 	RenderButtons();
@@ -284,7 +286,7 @@ void GameManager::PlayGame() {
 	// run the game
 	instance_.Run();
 	// make a new instance
-	instance_ = GameInstance(*display_);
+	instance_ = GameInstance();
 	// on game exit go to the title menu
 	ShowTitleScreen();
 }
@@ -396,7 +398,7 @@ void GameManager::StartUnitPlacement() {
 		}
 	});
 	// place button underneath the unit counter and show placing unit text
-	add_warrior_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 4));
+	add_warrior_button.set_location(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, instance_.get_map().get_map_y_offset() + 4));
 	buttons_.push_back(add_warrior_button);
 
 	// button to add rogue
@@ -412,7 +414,7 @@ void GameManager::StartUnitPlacement() {
 		}
 	});
 	// place button under the add warrior button
-	add_rogue_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 6));
+	add_rogue_button.set_location(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, instance_.get_map().get_map_y_offset() + 6));
 	buttons_.push_back(add_rogue_button);
 
 	// button to add archer
@@ -428,7 +430,7 @@ void GameManager::StartUnitPlacement() {
 		}
 	});
 	// place button under the add rogue button
-	add_archer_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 8));
+	add_archer_button.set_location(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, instance_.get_map().get_map_y_offset() + 8));
 	buttons_.push_back(add_archer_button);
 
 	// button to reset unit placement
@@ -439,7 +441,7 @@ void GameManager::StartUnitPlacement() {
 		ClearUnits();
 	});
 	// button goes below add unit buttons
-	reset_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 12));
+	reset_button.set_location(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, instance_.get_map().get_map_y_offset() + 12));
 	buttons_.push_back(reset_button);
 
 	// button to confirm unit placement
@@ -447,7 +449,7 @@ void GameManager::StartUnitPlacement() {
 	// buttons runs the confirm unit placement function which let the next player place units or move onto the game
 	Button confirm_button(button_text, [this]() {ConfirmUnitPlacement(); });
 	// location is below the reset button
-	confirm_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 14));
+	confirm_button.set_location(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, instance_.get_map().get_map_y_offset() + 14));
 	buttons_.push_back(confirm_button);
 
 	// back button
@@ -462,8 +464,8 @@ void GameManager::StartUnitPlacement() {
 		StartTeamSizeSelection();
 	});
 	// place back button at bottom right, next to map
-	back_button.set_location(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1,
-		display_->get_map_y_offset() + display_->get_tile_height() * instance_.get_map().get_map_height() - 1));
+	back_button.set_location(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1,
+		instance_.get_map().get_map_y_offset() + instance_.get_map().get_tile_height() * instance_.get_map().get_map_height() - 1));
 	buttons_.push_back(back_button);
 
 	// render all the buttons
@@ -576,7 +578,7 @@ const int GameManager::CountUnits() const {
 
 // shows the number of units the team currently placing units has placed
 void GameManager::ShowUnitCounter() const {
-	display_->GoTo(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset()));
+	display_->GoTo(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, instance_.get_map().get_map_y_offset()));
 	std::cout << "Units: " << CountUnits() << " / " << team_size_;
 }
 
@@ -602,10 +604,10 @@ void GameManager::FlashUnitCounter() const {
 // shows the type of unit that is currently being placed
 void GameManager::ShowPlacingUnit() const {
 	// first write blank spaces over the previous text
-	display_->GoTo(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 2));
+	display_->GoTo(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, instance_.get_map().get_map_y_offset() + 2));
 	std::cout << "                ";
 	// if there is a unit being placed then print its type, otherwies instruct user to select a unit
-	display_->GoTo(Coord(display_->get_map_x_offset() + display_->get_tile_width() * instance_.get_map().get_map_width() + 1, display_->get_map_y_offset() + 2));
+	display_->GoTo(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, instance_.get_map().get_map_y_offset() + 2));
 	if (placing_unit_) {
 		std::cout << "Placing: " << placing_unit_->get_type();
 	}
@@ -639,12 +641,6 @@ void GameManager::RemovePlacingUnit() {
 }
 
 // ---------- public functions ---------- //
-
-// set the window to the display
-void GameManager::set_display(Window &display) {
-	display_ = &display;
-	instance_.set_display(display);
-}
 
 // runs the main game loop until the user quits the game
 void GameManager::Run() {

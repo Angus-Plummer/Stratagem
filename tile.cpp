@@ -60,9 +60,9 @@ void Tile::Render() const {
 	// set colour scheme for tyle type
 	display.set_colour_scheme(get_colour_scheme());
 	// iterate over console cells for tile width and height
-	for (int tile_j = 0; tile_j < display.get_tile_height(); tile_j++) {
-		for (int tile_i = 0; tile_i < display.get_tile_width(); tile_i++) {
-			Coord tile_component = { display.get_map_x_offset() + map_coords_.x * display.get_tile_width() + tile_i, display.get_map_y_offset() + map_coords_.y * display.get_tile_height() + tile_j };
+	for (int tile_j = 0; tile_j < parent_map_->get_tile_height(); tile_j++) {
+		for (int tile_i = 0; tile_i < parent_map_->get_tile_width(); tile_i++) {
+			Coord tile_component = { parent_map_->get_map_x_offset() + map_coords_.x * parent_map_->get_tile_width() + tile_i, parent_map_->get_map_y_offset() + map_coords_.y * parent_map_->get_tile_height() + tile_j };
 			// set console cursor position to given tile component
 			display.GoTo(tile_component);
 			// output the tile marker

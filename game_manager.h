@@ -115,7 +115,7 @@ public:
 	
 	// get a reference to the display window
 	const Window& get_display() const;
-	
+
 	// set the display window
 	void set_display(Window &display);
 

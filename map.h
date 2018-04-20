@@ -19,6 +19,13 @@ protected:
 	// the list of units on the map (map just has access to the units but does not own them so use raw pointer)
 	std::vector<Unit*> units_;
 
+	// height and width of game map tiles in console cells
+	int tile_width_;
+	int tile_height_;
+	// offset of tiles from edge of window (to fit in row and columns labels) in cosonle cells
+	int map_x_offset_;
+	int map_y_offset_;
+
 
 public:
 	// default ctor. makes empty map (just grass)
@@ -42,6 +49,10 @@ public:
 	const int& get_map_width() const;
 	const int& get_set_up_width() const;
 	const std::vector<Unit*> get_units() const;
+	const int& get_tile_width() const;
+	const int& get_tile_height() const;
+	const int& get_map_x_offset() const;
+	const int& get_map_y_offset() const;
 
 	// clears the map. (deletes all tiles and resets 2d map vector)
 	void Clear();

@@ -23,7 +23,6 @@ class Unit;
 class GameInstance{
 protected:
 
-	Window* display_; // window that game is output to
 	std::unique_ptr<Map> game_map_; // game map
 	Unit* selected_unit_; // the currently selected unit (nullptr if no unit selected)
 	Menu context_menu_; // the context menu
@@ -77,7 +76,6 @@ protected:
 public:
 	
 	GameInstance::GameInstance(); // default ctor
-	GameInstance(Window &display); // ctor taking a window as arg
 	GameInstance(const GameInstance &instance); // copy ctor
 	GameInstance(GameInstance &&instance); // move ctor
 	~GameInstance(); // dtor
@@ -88,8 +86,6 @@ public:
 	GameInstance& operator=(GameInstance &&instance);
 	
 	// accessors and mutators
-	const Window& get_display() const;
-	void set_display(Window &display);
 	Map& get_map() const;
 	Unit& get_selected_unit() const;
 	const int& get_player_turn() const;

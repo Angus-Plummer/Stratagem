@@ -133,6 +133,7 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 // animates the unit moving to an adjacent tile (does not move unit to the tile, just animates it)
 void Unit::AnimateMovement(const Tile* start_tile, const Tile* target_tile) const {
 	Window display = GameManager::game().get_display();
+	Map map = GameManager::game().get_instance().get_map();
 	// save the colour scheme to reset at end of function
 	ColourScheme initial_colour_scheme = display.get_colour_scheme();
 	// if target tile is in adjacent to tile unit is on then animate movement
@@ -141,14 +142,14 @@ void Unit::AnimateMovement(const Tile* start_tile, const Tile* target_tile) cons
 	Coord delta = target_tile->get_map_coords() - start_tile->get_map_coords();
 	int num_step;
 	if (delta.x != 0) {
-		num_step = display.get_tile_width();
+		num_step = map.get_tile_width();
 	}
 	else {
-		num_step = display.get_tile_height();
+		num_step = map.get_tile_height();
 	}
 	// get initial console cursor location of the unit
-	Coord initial_pos(display.get_map_x_offset() + start_tile->get_map_coords().x * display.get_tile_width() + (display.get_tile_width() / 2) - 1, // -1 as we take leftmost of the central tiles  
-		display.get_map_y_offset() + start_tile->get_map_coords().y * display.get_tile_height() + (display.get_tile_height() / 2));
+	Coord initial_pos(map.get_map_x_offset() + start_tile->get_map_coords().x * map.get_tile_width() + (map.get_tile_width() / 2) - 1, // -1 as we take leftmost of the central tiles  
+		map.get_map_y_offset() + start_tile->get_map_coords().y * map.get_tile_height() + (map.get_tile_height() / 2));
 	Coord current_pos = initial_pos;
 	for (int step = 0; step <= num_step; step++) {
 		// got to the current position of the unit marker and replace the console cell with the tile marker using the tile colour scheme
@@ -302,8 +303,12 @@ void Unit::Kill() {
 	unit_marker_ = "  ";
 	Render();
 	Sleep(50);
+	// get tile under the unit to render after removing unit
+	Tile* tile_on = GetTile();
 	// now remove the unit from the game
 	GameManager::game().get_instance().RemoveUnit(this);
+	// render the tile that was under the unit
+	tile_on->Render();
 }
 
 
@@ -489,17 +494,18 @@ void Unit::MoveTo(Tile* target_tile) {
 // renders the unit in the console window
 void Unit::Render() const {
 	Window display = GameManager::game().get_display();
+	Map map = GameManager::game().get_instance().get_map();
 	ColourScheme original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back late
 																	   // set colour scheme of unit
 	display.set_colour_scheme(get_colour_scheme());
 	// set console cursor position to central tile component
-	display.GoTo(Coord(display.get_map_x_offset() + map_coords_.x * display.get_tile_width() + (display.get_tile_width() / 2) - 1, // -1 as want left of the two centre cells
-		display.get_map_y_offset() + map_coords_.y * display.get_tile_height() + (display.get_tile_height() / 2)));
+	display.GoTo(Coord(map.get_map_x_offset() + map_coords_.x * map.get_tile_width() + (map.get_tile_width() / 2) - 1, // -1 as want left of the two centre cells
+		map.get_map_y_offset() + map_coords_.y * map.get_tile_height() + (map.get_tile_height() / 2)));
 	// output the tile marker
 	std::cout << unit_marker_;
 	// set console cursor to bottom right of tile
-	display.GoTo(Coord(display.get_map_x_offset() + map_coords_.x * display.get_tile_width() + display.get_tile_width() - 1,
-		display.get_map_y_offset() + map_coords_.y * display.get_tile_height() + display.get_tile_height() - 1));
+	display.GoTo(Coord(map.get_map_x_offset() + map_coords_.x * map.get_tile_width() + map.get_tile_width() - 1,
+		map.get_map_y_offset() + map_coords_.y * map.get_tile_height() + map.get_tile_height() - 1));
 	// if hp is >= 10 then need 2 cells to display so start printing from 1 tile to left
 	if (current_hp_ >= 10) {
 		display.GoTo(display.CursorPosition() + Coord{ -1, 0 });

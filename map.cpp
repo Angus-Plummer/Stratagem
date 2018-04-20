@@ -12,7 +12,8 @@
 // ---------- ctors, dtors, assignment overloading ---------- //
 
 // empty map with default map settings
-Map::Map() : map_width_(10), map_height_(10), set_up_width_(3) {
+Map::Map() : map_width_(10), map_height_(10), set_up_width_(3),
+			tile_width_(6), tile_height_(3), map_x_offset_(3), map_y_offset_(1) {
 	// size vector of map tiles to match 10x10
 	map_.resize(map_width_);
 	for (auto iterator = map_.begin(); iterator != map_.end(); iterator++) {
@@ -20,7 +21,8 @@ Map::Map() : map_width_(10), map_height_(10), set_up_width_(3) {
 	}
 }
 // load map from 2d array (1=grass, 2=forest, 3=mountain, 4=water)
-Map::Map( const int &width, const int &height, const int &set_up_width) : map_width_(width), map_height_(height), set_up_width_(set_up_width) {
+Map::Map( const int &width, const int &height, const int &set_up_width) : map_width_(width), map_height_(height), set_up_width_(set_up_width), 
+																			tile_width_(6), tile_height_(3), map_x_offset_(3), map_y_offset_(1) {
 	// size vector of map tiles to match input
 	map_.resize(map_width_);
 	for (auto iterator = map_.begin(); iterator != map_.end(); iterator++) {
@@ -29,7 +31,8 @@ Map::Map( const int &width, const int &height, const int &set_up_width) : map_wi
 }
 
 // copy ctor (does not make new units)
-Map::Map(const Map &map) : map_width_(map.map_width_), map_height_(map.map_height_), set_up_width_(map.set_up_width_){
+Map::Map(const Map &map) : map_width_(map.map_width_), map_height_(map.map_height_), set_up_width_(map.set_up_width_), 
+							tile_width_(map.tile_width_), tile_height_(map.tile_height_), map_x_offset_(map.map_x_offset_), map_y_offset_(map.map_y_offset_) {
 	// size vector of map tiles to match input
 	map_.resize(map_width_);
 	for (auto col_iter = map_.begin(); col_iter != map_.end(); col_iter++) {
@@ -54,6 +57,10 @@ Map::Map(Map &&map) : Map() {
 	std::swap(map_width_, map.map_width_);
 	std::swap(map_height_, map.map_height_);
 	std::swap(set_up_width_, map.set_up_width_);
+	std::swap(tile_width_, map.tile_width_);
+	std::swap(tile_height_, map.tile_height_);
+	std::swap(map_x_offset_, map.map_x_offset_);
+	std::swap(map_y_offset_, map.map_y_offset_);
 	std::swap(map_, map.map_);
 	std::swap(units_, map.units_);
 }
@@ -65,6 +72,16 @@ Map::~Map() {
 
 // copy assigment
 Map& Map::operator=(const Map &map) {
+
+	// copy simple member variables
+	map_width_ = map.map_width_;
+	map_height_ = map.map_height_;
+	set_up_width_ = map.set_up_width_;
+	tile_width_ = map.tile_width_;
+	tile_height_ = map.tile_height_;
+	map_x_offset_ = map.map_x_offset_;
+	map_y_offset_ = map.map_y_offset_;
+
 	// clear the current 2d tile vector
 	for (auto col_iter = map_.begin(); col_iter != map_.end(); col_iter++) {
 		col_iter->clear();
@@ -89,13 +106,19 @@ Map& Map::operator=(const Map &map) {
 	for (auto unit_iter = map.units_.begin(); unit_iter != map.units_.end(); unit_iter++) {
 		units_.push_back(*unit_iter);
 	}
+
 	return *this;
 }
 // move assigment
 Map& Map::operator=(Map &&map) {
+	// swap all member variables
 	std::swap(map_width_, map.map_width_);
 	std::swap(map_height_, map.map_height_);
 	std::swap(set_up_width_, map.set_up_width_);
+	std::swap(tile_width_, map.tile_width_);
+	std::swap(tile_height_, map.tile_height_);
+	std::swap(map_x_offset_, map.map_x_offset_);
+	std::swap(map_y_offset_, map.map_y_offset_);
 	std::swap(map_, map.map_);
 	std::swap(units_, map.units_);
 
@@ -111,8 +134,16 @@ const int& Map::get_map_width() const { return map_width_; }
 // set up width
 const int& Map::get_set_up_width() const { return set_up_width_; }
 
-// uunits on the map
+// units on the map
 const std::vector<Unit*> Map::get_units() const { return units_; }
+
+// tile width and height in  terms of console cells
+const int& Map::get_tile_width() const { return tile_width_; }
+const int& Map::get_tile_height() const { return tile_height_; }
+
+// map x and y offset in terms of console cells
+const int& Map::get_map_x_offset() const { return map_x_offset_; }
+const int& Map::get_map_y_offset() const { return map_y_offset_; }
 
 // --------- public functions ---------- //
 
@@ -183,8 +214,8 @@ Tile* Map::GetTileFromConsoleCoord(const Coord &position) const {
 	Window display = GameManager::game().get_display();
 	Coord map_location;	// corresponding map tile
 	// correct for map offset and convert into tile location
-	map_location.x = (position.x - display.get_map_x_offset()) / display.get_tile_width();
-	map_location.y = (position.y - display.get_map_y_offset()) / display.get_tile_height();
+	map_location.x = (position.x - map_x_offset_) / tile_width_;
+	map_location.y = (position.y - map_y_offset_) / tile_height_;
 	// if tile is on the map..
 	if (map_location.x >= 0 && map_location.x < map_width_ && map_location.y >= 0 && map_location.y < map_height_) {
 		// return the tile
@@ -272,19 +303,15 @@ std::vector<Tile*> Map::AdjacentTo(const Tile *tile) const {
 // Renders the map on a the console
 void Map::Render() const {
 	Window display = GameManager::game().get_display();
-	int tile_width = display.get_tile_width();
-	int tile_height = display.get_tile_height();
-	int map_x_offset = display.get_map_x_offset();
-	int map_y_offset = display.get_map_y_offset();
 
 	// print numbers above top row (in y_offset region)
 	for (int map_i = 0; map_i < map_width_; map_i++) {
-		display.GoTo({ map_i*tile_width + (int)floor(tile_width / 2) + map_x_offset, (int)floor(map_y_offset / 2) }); // places cursor centrally along width of the tile
+		display.GoTo({ map_i*tile_width_ + (int)floor(tile_width_ / 2) + map_x_offset_, (int)floor(map_y_offset_ / 2) }); // places cursor centrally along width of the tile
 		std::cout << char(65 + map_i); // char(65) is ASCII code for A
 	}
 	// print alphabetic characters left of first column (in x_offset region)
 	for (int map_j = 0; map_j < map_height_; map_j++) {
-		display.GoTo({ (int)floor(map_x_offset / 2), map_j*tile_height + (int)floor(tile_height / 2) + map_y_offset }); // places cursor centrally along the height of the tile and the width of the x_offset
+		display.GoTo({ (int)floor(map_x_offset_ / 2), map_j*tile_height_ + (int)floor(tile_height_ / 2) + map_y_offset_ }); // places cursor centrally along the height of the tile and the width of the x_offset
 		std::cout << map_j;
 	}
 	// print map
