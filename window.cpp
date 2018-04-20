@@ -34,15 +34,7 @@ standard_out_handle_(GetStdHandle(STD_OUTPUT_HANDLE))
 	SetWindowLongPtr(console_window_, GWL_STYLE, window_style);
 
 	// set console buffer size to the number of cells visible in the window.
-		// get buffer info
-	CONSOLE_SCREEN_BUFFER_INFO buffer;
-	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
-	// coord to hold new buffer size, set to the size of the console screen buffer
-	COORD console_buffer_size;
-	console_buffer_size.X = buffer.dwSize.X;
-	console_buffer_size.Y = Height() +1;
-	// set the buffer size
-	SetConsoleScreenBufferSize(standard_out_handle_, console_buffer_size);
+	ResetBufferSize();
 }
 
 // dtor
@@ -100,6 +92,29 @@ void Window::GoTo(const Coord &in_coord) const {
 	std::cout.flush();
 	COORD coord = { (SHORT)in_coord.x, (SHORT)in_coord.y };
 	SetConsoleCursorPosition(standard_out_handle_, coord);
+}
+
+// set the buffer size to input number of lines (will do nothing if lines < window height)
+void Window::SetBufferSize(const int &lines) const {
+	CONSOLE_SCREEN_BUFFER_INFO buffer;
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
+	// coord to hold new buffer size, set to the size of the console screen buffer
+	COORD console_buffer_size;
+	console_buffer_size.X = buffer.dwSize.X;
+	console_buffer_size.Y = lines;
+	// set the buffer size
+	SetConsoleScreenBufferSize(standard_out_handle_, console_buffer_size);
+}
+// set the buffer size to fit the window size exactly
+void Window::ResetBufferSize() const {
+	CONSOLE_SCREEN_BUFFER_INFO buffer;
+	GetConsoleScreenBufferInfo(standard_out_handle_, &buffer);
+	// coord to hold new buffer size, set to the size of the console screen buffer
+	COORD console_buffer_size;
+	console_buffer_size.X = buffer.dwSize.X;
+	console_buffer_size.Y = Height() + 1;
+	// set the buffer size
+	SetConsoleScreenBufferSize(standard_out_handle_, console_buffer_size);
 }
 
 // clears the window

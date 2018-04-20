@@ -27,6 +27,11 @@ public:
 	const Coord CursorPosition() const;
 	void GoTo(const Coord &coord) const;
 
+	// set the buffer size to input number of lines (will do nothing if lines < window height)
+	void SetBufferSize(const int &lines) const ;
+	// set the buffer size to fit the window size exactly
+	void ResetBufferSize() const;
+
 	// clears the window
 	void Clear() const;
 

@@ -133,6 +133,9 @@ void GameManager::ShowHelpScreen() {
 	ClearButtons();
 	display_->Clear();
 
+	// set temporary buffer size (if changing screen size or just help text in general will need to change this manually or write something to count the lines required)
+	display_->SetBufferSize(85);
+
 	// write the help text starting from coordinate 0,0
 	display_->GoTo(Coord());
 	for (int line = 0; line < (int)help_text.size(); line++) {
@@ -141,9 +144,9 @@ void GameManager::ShowHelpScreen() {
 	// record what row the help text ends at
 	int last_text_row = display_->CursorPosition().y;
 
-	// add back button ( to take back to title screen) at top of help screen
+	// add back button ( to reset buffer size and take back to title screen) at top of help screen
 	std::string button_text(" Back ");
-	Button back_button(button_text, [this]() {ShowTitleScreen(); });
+	Button back_button(button_text, [this]() {display_->ResetBufferSize(); ShowTitleScreen(); });
 	// button at top right if window (with 2 cell wide, 1 cell high margin)
 	back_button.set_location(Coord{ display_->Width() - (int)std::string(button_text).length() - 2, 1 });
 	buttons_.push_back(back_button);
