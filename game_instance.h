@@ -87,14 +87,12 @@ public:
 	// move assignment
 	GameInstance& operator=(GameInstance &&instance);
 	
-	// get access to the current game map, display and selected unit
-	const Window& get_display() const { return *display_; }
-	void set_display(Window &display) { display_ = &display; }
-	Map& get_map() const { return *game_map_; }
-	Unit& get_selected_unit() const { return *selected_unit_; }
-
-	// get whos turn it currently is
-	const int& get_player_turn() const { return player_turn_; }
+	// accessors and mutators
+	const Window& get_display() const;
+	void set_display(Window &display);
+	Map& get_map() const;
+	Unit& get_selected_unit() const;
+	const int& get_player_turn() const;
 
 	// load in a map from the 5 premade maps
 	void LoadMap(const int &map_id) const;

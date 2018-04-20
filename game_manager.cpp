@@ -9,7 +9,7 @@
 #include "ascii_art.h"
 #include "help_text.h"
 
-// ---------- ctors, dtors, assignment overloading ---------- //
+// ---------- ctors and dtors ---------- //
 
 // ctor with no window to output to
 GameManager::GameManager() {
@@ -35,8 +35,16 @@ GameManager::GameManager(Window &display) : display_(&display){
 // dtor
 GameManager::~GameManager(){}
 
-// initiate the static game object
+// initiate the static GameManager object
 GameManager GameManager::game_;
+
+// ---------- accessors ---------- //
+
+// get a reference to the current game instance
+GameInstance& GameManager::get_instance() { return instance_; }
+
+// get a reference to the display window
+const Window& GameManager::get_display() const { return *display_; }
 
 // ---------- internal (protected) functions ---------- //
 

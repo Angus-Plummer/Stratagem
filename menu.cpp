@@ -16,10 +16,14 @@ Menu::Menu() {
 }
 
 // dtor
-Menu::~Menu(){
-}
+Menu::~Menu(){}
 
-// ----------- public functions --------- //
+// ---------- accessors ---------- //
+
+// menu border thickness
+const int& Menu::get_border_thickness() const { return border_thickness_; }
+
+// ---------- public functions --------- //
 
 // set the location of the top left of the menu (in console cell coordinates)
 void Menu::set_location(const Coord &position) {

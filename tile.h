@@ -25,15 +25,15 @@ public:
 	Tile(Map &map, const Coord &map_coords);
 	virtual ~Tile();
 
-	// get a unique pointer to a copy of the tile
-	std::unique_ptr<Tile> clone() const { return std::unique_ptr<Tile>(clone_impl()); }
-
 	// accessor and mutator functions
-	const int& get_move_cost() const { return move_cost_; }
-	const int& get_def_modifier() const { return def_modifier_; }
-	const int& get_atk_modifier() const { return atk_modifier_; }
-	const bool& get_highlighted() const { return highlighted_; }
-	void set_highlighted(const bool &highlighted) { highlighted_ = highlighted; }
+	const int& get_move_cost() const;
+	const int& get_def_modifier() const;
+	const int& get_atk_modifier() const;
+	const bool& get_highlighted() const;
+	void set_highlighted(const bool &highlighted);
+
+	// get a unique pointer to a copy of the tile
+	std::unique_ptr<Tile> clone() const;
 
 	// get the colour scheme (highlighted scheme if highlighted is true)
 	const ColourScheme& get_colour_scheme() const;

@@ -4,7 +4,8 @@
 // dervied unit class for rogue units
 class Rogue : public Unit {
 protected:
-	Rogue * clone_impl() const { return new Rogue(*this); }
+	// clone helper function returns a new rogue
+	Rogue* clone_impl() const;
 public:
 	// ctor and dtor
 	Rogue(const int &team);

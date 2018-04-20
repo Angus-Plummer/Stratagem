@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "tile_grass.h"
 
-
+// ctor
 GrassTile::GrassTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) {
 	// tile output info
 	type_ = "plains";
@@ -14,6 +14,8 @@ GrassTile::GrassTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) 
 	atk_modifier_ = 0;
 }
 
+// dtor
+GrassTile::~GrassTile(){}
 
-GrassTile::~GrassTile(){
-}
+// helper function returns a pointer to a copy of this object
+GrassTile* GrassTile::clone_impl() const { return new GrassTile(*this); }

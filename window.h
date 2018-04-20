@@ -22,12 +22,13 @@ public:
 	Window(const int &width, const int &height);
 	~Window();
 
+	// accessors
 	// tile width and height in  terms of console cells
-	const int& get_tile_width() const { return tile_width_; }
-	const int& get_tile_height() const { return tile_height_; }
+	const int& get_tile_width() const;
+	const int& get_tile_height() const;
 	// map x and y offset in terms of console cells
-	const int& get_map_x_offset() const { return map_x_offset_; }
-	const int& get_map_y_offset() const { return map_y_offset_; }
+	const int& get_map_x_offset() const;
+	const int& get_map_y_offset() const;
 
 	// get console window width and height in terms of rows and columns of console cells
 	const int Width() const;

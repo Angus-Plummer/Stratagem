@@ -48,8 +48,18 @@ map_x_offset_(3), map_y_offset_(1)
 }
 
 // dtor
-Window::~Window(){
-}
+Window::~Window(){}
+
+// --------- accessors -------- //
+
+// tile width and height in  terms of console cells
+const int& Window::get_tile_width() const { return tile_width_; }
+const int& Window::get_tile_height() const { return tile_height_; }
+// map x and y offset in terms of console cells
+const int& Window::get_map_x_offset() const { return map_x_offset_; }
+const int& Window::get_map_y_offset() const { return map_y_offset_; }
+
+// ---------- public functions ---------- //
 
 // get console window width in terms of columns of console cells
 const int Window::Width() const {

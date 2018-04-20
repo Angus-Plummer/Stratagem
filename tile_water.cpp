@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "tile_water.h"
 
+// ctor
 WaterTile::WaterTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) {
 	// tile output info
 	type_ = "water";
@@ -13,6 +14,9 @@ WaterTile::WaterTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) 
 	atk_modifier_ = -5;
 }
 
+// dtor
+WaterTile::~WaterTile() {}
 
-WaterTile::~WaterTile(){
-}
+// helper function returns a pointer to a copy of this object
+WaterTile* WaterTile::clone_impl() const { return new WaterTile(*this); }
+

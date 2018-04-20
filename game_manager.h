@@ -111,10 +111,10 @@ public:
 	static GameManager& game() { return game_; }
 
 	// get a reference to the current game instance
-	GameInstance& get_instance() { return instance_; }
+	GameInstance& get_instance();
 	
 	// get a reference to the display window
-	const Window& get_display() const { return *display_; }
+	const Window& get_display() const;
 	
 	// set the display window
 	void set_display(Window &display);

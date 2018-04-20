@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "tile_forest.h"
 
+// ctor
 ForestTile::ForestTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) {
 // tile output info
 type_ = "forest";
@@ -13,7 +14,8 @@ def_modifier_ = 2;
 atk_modifier_ = 0;
 }
 
+// dtor
+ForestTile::~ForestTile(){}
 
-ForestTile::~ForestTile()
-{
-}
+// helper function returns a pointer to a copy of this object
+ForestTile* ForestTile::clone_impl() const { return new ForestTile(*this); }

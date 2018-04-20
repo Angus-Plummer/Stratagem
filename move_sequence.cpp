@@ -22,23 +22,18 @@ const bool MoveSequence::operator==(const MoveSequence &rhs) {
 
 // ---------- accessors and mutators ---------- //
 
-// accessors and mutators for parent in chain
+// parent in chain
 void MoveSequence::set_parent(MoveSequence &new_parent){
 	parent_ = &new_parent;
 	Update();
 }
+const MoveSequence* MoveSequence::get_parent() const{ return parent_;}
 
-const MoveSequence* MoveSequence::get_parent() const{
-	return parent_;
-}
+// the tile this object corresponds to
+Tile* MoveSequence::get_tile() const { return tile_;}
 
-Tile* MoveSequence::get_tile() const {
-	return tile_;
-}
-
-const int& MoveSequence::get_cost() const {
-	return cost_to_here_;
-}
+// cost to reach this tile from the starting tile
+const int& MoveSequence::get_cost() const { return cost_to_here_;}
 
 // ---------- other public functions ---------- //
 

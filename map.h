@@ -38,10 +38,10 @@ public:
 	Map& operator=(Map &&map);
 
 	// accessors and mutators
-	const int& get_map_height() const { return map_height_; }
-	const int& get_map_width() const { return map_width_; }
-	const int& get_set_up_width() const { return set_up_width_; }
-	const std::vector<Unit*> get_units() const { return units_; }
+	const int& get_map_height() const;
+	const int& get_map_width() const;
+	const int& get_set_up_width() const;
+	const std::vector<Unit*> get_units() const;
 
 	// clears the map. (deletes all tiles and resets 2d map vector)
 	void Clear();

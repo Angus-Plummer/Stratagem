@@ -4,6 +4,8 @@
 #include "menu.h"
 #include "window.h"
 
+// --------- ctor and dtor --------- //
+
 // ctor for empty button
 Button::Button() :
 	text_(""), button_function_([]() {}), // no button text and null function
@@ -26,10 +28,21 @@ Button::Button(std::string text, std::function<void()> function):
 	colour_scheme_ = ColourScheme(WHITE, BLACK); // white on black
 }
 
+// dtor
+Button::~Button() {}
 
-Button::~Button()
-{
-}
+// --------- accesssors and mutators ---------- //
+
+// enable or disable button
+void Button::set_enabled(const bool &enabled) { enabled_ = enabled; }
+
+// set the colour scheme of the button when disables
+void Button::set_disabled_colour_scheme(const ColourScheme &colour_scheme) { disabled_colour_scheme_ = colour_scheme; }
+
+// set the parent menu of the button
+void Button::set_menu(Menu *menu) { parent_menu_ = menu; }
+
+// --------- other public functions ---------- //
 
 // renders the button on the console
 void Button::Render() const {

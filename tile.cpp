@@ -17,7 +17,23 @@ Tile::Tile(Map &map, const Coord &map_coords) : GameObject(), parent_map_(&map),
 // dtor
 Tile::~Tile() {};
 
+// --------- accessors and mutators --------- //
+
+// movement cost to enter the tile
+const int& Tile::get_move_cost() const { return move_cost_; }
+
+// attack and defense modifiers
+const int& Tile::get_def_modifier() const { return def_modifier_; }
+const int& Tile::get_atk_modifier() const { return atk_modifier_; }
+
+// get and set the highlighted state of the tile
+const bool& Tile::get_highlighted() const { return highlighted_; }
+void Tile::set_highlighted(const bool &highlighted) { highlighted_ = highlighted; }
+
 // ---------- public functions ---------- //
+
+// get a unique pointer to a copy of the tile
+std::unique_ptr<Tile> Tile::clone() const { return std::unique_ptr<Tile>(clone_impl()); }
 
 // get the colour scheme
 const ColourScheme& Tile::get_colour_scheme() const {

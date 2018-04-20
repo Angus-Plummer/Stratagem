@@ -111,7 +111,20 @@ GameInstance& GameInstance::operator=(GameInstance &&instance) {
 	return *this;
 }
 
-//---------- internal (protected) functions ----------//
+// ---------- accessors and mutators ---------- //
+
+// display
+const Window& GameInstance::get_display() const { return *display_; }
+void GameInstance::set_display(Window &display) { display_ = &display; }
+
+// map
+Map& GameInstance::get_map() const { return *game_map_; }
+Unit& GameInstance::get_selected_unit() const { return *selected_unit_; }
+
+// player turn
+const int& GameInstance::get_player_turn() const { return player_turn_; }
+
+// ---------- internal (protected) functions ----------//
 
 // carries out the beginning of a turn
 void GameInstance::StartTurn() {

@@ -61,13 +61,13 @@ public:
 	Unit(const int &team);
 	virtual ~Unit();
 
-	// get a unique pointer to a copy of this object
-	std::unique_ptr<Unit> clone() const { return std::unique_ptr<Unit>(clone_impl()); }
+	// accessors 
+	bool has_moved_this_turn() const;
+	bool has_attacked_this_turn() const;
+	const int get_team() const;
 
-	// accessors and mutators
-	bool has_moved_this_turn() const { return moved_this_turn_; }
-	bool has_attacked_this_turn() const { return attacked_this_turn_; }
-	const int get_team() const { return team_; }
+	// get a unique pointer to a copy of this object
+	std::unique_ptr<Unit> clone() const;
 
 	// set hp (will set to 0 if < 0 and max_hp if > max_hp)
 	void set_current_hp(int const &hp);

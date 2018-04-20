@@ -15,8 +15,8 @@ public:
 	virtual ~GameObject();
 
 	// accessors
-	const std::string& get_type() const { return type_; }
-	const Coord& get_map_coords() const { return map_coords_; }
+	const std::string& get_type() const;
+	const Coord& get_map_coords() const;
 	virtual const ColourScheme& get_colour_scheme() const = 0;// will return the colour scheme correct for the current state of the object
 
 	// render the object on the console

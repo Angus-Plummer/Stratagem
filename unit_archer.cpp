@@ -21,10 +21,10 @@ Archer::Archer(const int &team) : Unit(team) {
 }
 
 // dtor
-Archer::~Archer()
-{
-}
+Archer::~Archer(){}
 
+// clone helper function returns a new archer
+Archer* Archer::clone_impl() const { return new Archer(*this); }
 
 // returns true if unit can cross a terrain tile. ( archer cant cross water or mountains)
 const bool Archer::CanTraverse(const Tile *terrain_tile) const {

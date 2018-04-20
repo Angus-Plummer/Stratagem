@@ -15,7 +15,7 @@ public:
 	~Menu();
 
 	// accessor for border thickness
-	const int& get_border_thickness() const { return border_thickness_; }
+	const int& get_border_thickness() const;
 
 	// set the location of the top left of the menu (in console cell coordinates)
 	void set_location(const Coord &position);

@@ -102,6 +102,18 @@ Map& Map::operator=(Map &&map) {
 	return *this;
 }
 
+// -------- accessors --------- //
+
+// map dimensions
+const int& Map::get_map_height() const { return map_height_; }
+const int& Map::get_map_width() const { return map_width_; }
+
+// set up width
+const int& Map::get_set_up_width() const { return set_up_width_; }
+
+// uunits on the map
+const std::vector<Unit*> Map::get_units() const { return units_; }
+
 // --------- public functions ---------- //
 
 // clears the map. (deletes all tiles and resets 2d map vector)

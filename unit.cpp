@@ -27,6 +27,12 @@ Unit::Unit(const int &team): GameObject(), team_(team), state_(STATE_ASLEEP){
 // dtor
 Unit::~Unit(){}
 
+// ---------- accessors ---------- //
+
+bool Unit::has_moved_this_turn() const { return moved_this_turn_; }
+bool Unit::has_attacked_this_turn() const { return attacked_this_turn_; }
+const int Unit::get_team() const { return team_; }
+
 // ---------- internal (protected) functions ---------- //
 
 // finds distance to target unit (manhattan distance)
@@ -180,6 +186,9 @@ void Unit::AnimateMovement(const Tile* start_tile, const Tile* target_tile) cons
 }
 
 // ---------- public functions --------- //
+
+// get a unique pointer to a copy of this object
+std::unique_ptr<Unit> Unit::clone() const { return std::unique_ptr<Unit>(clone_impl()); }
 
 // set hp (will set to 0 if < 0 and max_hp if > max_hp)
 void Unit::set_current_hp(const int &hp) {  // will set to 0 if < 0 and max_hp if > max_hp

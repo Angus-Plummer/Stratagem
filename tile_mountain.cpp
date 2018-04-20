@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "tile_mountain.h"
 
+// ctor
 MountainTile::MountainTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) {
 	// tile output info
 	type_ = "mountains";
@@ -13,7 +14,8 @@ MountainTile::MountainTile(Map &map, const Coord &map_coords) : Tile(map, map_co
 	atk_modifier_ = -1;
 }
 
+// dtor
+MountainTile::~MountainTile(){}
 
-MountainTile::~MountainTile()
-{
-}
+// helper function returns a pointer to a copy of this object
+MountainTile* MountainTile::clone_impl() const { return new MountainTile(*this); }

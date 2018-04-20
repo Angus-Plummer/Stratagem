@@ -24,9 +24,9 @@ public:
 	~Button();
 
 	// mutators
-	void set_enabled(const bool &enabled) { enabled_ = enabled; }
-	void set_disabled_colour_scheme(const ColourScheme &colour_scheme) { disabled_colour_scheme_ = colour_scheme; }
-	void set_menu(Menu *menu) { parent_menu_ = menu; }
+	void set_enabled(const bool &enabled);
+	void set_disabled_colour_scheme(const ColourScheme &colour_scheme);
+	void set_menu(Menu *menu);
 
 	// render the button
 	void Render() const;
