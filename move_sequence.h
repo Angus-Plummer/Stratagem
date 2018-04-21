@@ -22,13 +22,13 @@ public:
 	Tile* get_tile() const; // get tile that the movesequence object corresponds to
 	const int& get_cost() const; // cost_to_here
 
-	// set the heuristic for this tile
-	void set_heuristic_to(const Tile *target_tile);
+	// set the heuristic for this tile to the target tile
+	void Target(const Tile *target_tile);
 
 	// get the score of the tile (cost to reach tile + heuristic to reach target tile)
-	const int get_score() const;
+	const int Score() const;
 
-	// updates the cost for this tile
+	// updates the cost for this tile ( if parent has been changed etc)
 	void Update();
 
 	// check if two move sequences point to the same map tile

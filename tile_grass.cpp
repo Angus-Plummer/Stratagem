@@ -18,4 +18,4 @@ GrassTile::GrassTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) 
 GrassTile::~GrassTile(){}
 
 // helper function returns a pointer to a copy of this object
-GrassTile* GrassTile::clone_impl() const { return new GrassTile(*this); }
+GrassTile* GrassTile::CloneHelper() const { return new GrassTile(*this); }

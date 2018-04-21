@@ -47,7 +47,7 @@ void Button::set_menu(Menu *menu) { parent_menu_ = menu; }
 // renders the button on the console
 void Button::Render() const {
 	// get the currently used display
-	Window display = GameManager::game().get_display();
+	Window display = GameManager::Game().get_display();
 	// save the current colour scheme to rest bacck after rendering
 	ColourScheme original_colour_scheme = display.get_colour_scheme();
 	// if the button is enabled then set the colour scheme to the default colour scheme

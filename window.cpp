@@ -11,7 +11,7 @@ standard_out_handle_(GetStdHandle(STD_OUTPUT_HANDLE))
 {
 	RECT r; // rectangle to store window position and dimensions
 	// disable quick edit mode so that mouse input works
-	fdwMode_ = ENABLE_EXTENDED_FLAGS;
+	DWORD fdwMode_ = ENABLE_EXTENDED_FLAGS;
 	SetConsoleMode(standard_in_handle_, fdwMode_);
 	// enable mouse input events
 	fdwMode_ = ENABLE_MOUSE_INPUT;
@@ -89,6 +89,7 @@ const Coord Window::CursorPosition() const {
 
 // set the position of the console cursor
 void Window::GoTo(const Coord &in_coord) const {
+	assert(in_coord.x >= 0 && in_coord.x <= Width() && in_coord.y >= 0 && in_coord.y <= Height());
 	std::cout.flush();
 	COORD coord = { (SHORT)in_coord.x, (SHORT)in_coord.y };
 	SetConsoleCursorPosition(standard_out_handle_, coord);
@@ -142,8 +143,8 @@ void Window::Clear() const {
 	SetConsoleCursorPosition(standard_out_handle_, top_left);
 }
 
-// gets the position (console cell location) of the mouse cursor if LMB is pressed clicked down. (acts like detecting a mouse up event)
-const Coord Window::MouseDownPosition() const {
+// gets the position (console cell location) of the mouse cursor if LMB is pressed clicked. (actually acts like detecting a mouse up event)
+const Coord Window::MouseClickPosition() const {
 	bool detected_down = false;
 	Coord down_position = { -1,-1 };// defualt position, will be returned if no LMB down detected
 	DWORD num_read, i; //var to hold number of inputs detected and an interator value
@@ -181,9 +182,9 @@ const Coord Window::MouseDownPosition() const {
 
 // wait for mouse input (function will keep looping until a click is detected)
 void Window::WaitForMouse() const {
-	Coord mouse_down_pos{ -1,-1 }; // {-1,-1 is returned from MouseDownPosition if no click is detected}
+	Coord mouse_down_pos{ -1,-1 }; // {-1,-1 is returned from MouseClickPosition if no click is detected}
 								   // keep getting the mouse down position until it returns an a value corresponding to a click
 	while (mouse_down_pos == Coord{ -1,-1 }) {
-		mouse_down_pos = MouseDownPosition();
+		mouse_down_pos = MouseClickPosition();
 	}
 }

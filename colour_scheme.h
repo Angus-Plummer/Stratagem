@@ -38,5 +38,9 @@ struct ColourScheme {
 	ColourScheme(const ColourScheme & colour_scheme): background_colour(colour_scheme.background_colour), text_colour(colour_scheme.text_colour) {};
 
 	// copy assignment
-	ColourScheme& operator=(const ColourScheme &colour_scheme) { background_colour = colour_scheme.background_colour; text_colour = colour_scheme.text_colour; return *this; }
+	ColourScheme& operator=(const ColourScheme &colour_scheme) { 
+		background_colour = colour_scheme.background_colour; 
+		text_colour = colour_scheme.text_colour; 
+		return *this; 
+	}
 };

@@ -18,5 +18,5 @@ WaterTile::WaterTile(Map &map, const Coord &map_coords) : Tile(map, map_coords) 
 WaterTile::~WaterTile() {}
 
 // helper function returns a pointer to a copy of this object
-WaterTile* WaterTile::clone_impl() const { return new WaterTile(*this); }
+WaterTile* WaterTile::CloneHelper() const { return new WaterTile(*this); }
 

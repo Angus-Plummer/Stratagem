@@ -13,7 +13,7 @@
 
 // empty map with default map settings
 Map::Map() : map_width_(10), map_height_(10), set_up_width_(3),
-			tile_width_(6), tile_height_(3), map_x_offset_(3), map_y_offset_(1) {
+			tile_width_(6), tile_height_(3), map_x_offset_(2), map_y_offset_(1) {
 	// size vector of map tiles to match 10x10
 	map_.resize(map_width_);
 	for (auto iterator = map_.begin(); iterator != map_.end(); iterator++) {
@@ -22,7 +22,7 @@ Map::Map() : map_width_(10), map_height_(10), set_up_width_(3),
 }
 // load map from 2d array (1=grass, 2=forest, 3=mountain, 4=water)
 Map::Map( const int &width, const int &height, const int &set_up_width) : map_width_(width), map_height_(height), set_up_width_(set_up_width), 
-																			tile_width_(6), tile_height_(3), map_x_offset_(3), map_y_offset_(1) {
+																			tile_width_(6), tile_height_(3), map_x_offset_(2), map_y_offset_(1) {
 	// size vector of map tiles to match input
 	map_.resize(map_width_);
 	for (auto iterator = map_.begin(); iterator != map_.end(); iterator++) {
@@ -42,7 +42,7 @@ Map::Map(const Map &map) : map_width_(map.map_width_), map_height_(map.map_heigh
 	for (int col = 0; col < map_width_; col++) {
 		for (int row = 0; row < map_height_; row++) {
 			if (map.map_[col][row]) {
-				map_[col][row] = map.map_[col][row]->clone();
+				map_[col][row] = map.map_[col][row]->Clone();
 			}
 		}
 	}
@@ -97,7 +97,7 @@ Map& Map::operator=(const Map &map) {
 	for (int col = 0; col < map_width_; col++) {
 		for (int row = 0; row < map_height_; row++) {
 			if (map.map_[col][row]) {
-				map_[col][row] = map.map_[col][row]->clone();
+				map_[col][row] = map.map_[col][row]->Clone();
 			}
 		}
 	}
@@ -168,30 +168,39 @@ void Map::LoadMap(const std::vector<std::vector<int>> &map) {
 	for (int row = 0; row < map_height_; row++) {
 		for (int column = 0; column < map_width_; column++) {
 			Coord coordinate = { column, row }; // output map is (x, y) i.e (column, row) but input is (row, column)
-			// 1 -> grass
-			if (map[row][column] == 1) {
+			switch (map[row][column]) {
+				// 1 -> grass
+			case 1: {
 				std::unique_ptr<Tile> new_tile(new GrassTile(*this, coordinate));
 				map_[coordinate.x][coordinate.y] = (std::move(new_tile));
+				break;
 			}
-			// 2 -> forest
-			else if (map[row][column] == 2) {
+
+					// 2 -> forest
+			case 2: {
+
 				std::unique_ptr<Tile> new_tile(new ForestTile(*this, coordinate));
 				map_[coordinate.x][coordinate.y] = (std::move(new_tile));
+				break;
 			}
-			// 3 -> mountian
-			else if (map[row][column] == 3) {
+
+					// 3 -> mountian
+			case 3: {
 				std::unique_ptr<Tile> new_tile(new MountainTile(*this, coordinate));
 				map_[coordinate.x][coordinate.y] = (std::move(new_tile));
+				break;
 			}
-			// 4 -> water
-			else if (map[row][column] == 4) {
+
+					// 4 -> water
+			case  4: {
 				std::unique_ptr<Tile> new_tile(new WaterTile(*this, coordinate));
 				map_[coordinate.x][coordinate.y] = (std::move(new_tile));
+				break;
 			}
+
 			// if any value is not 1,2,3,4 then print error message and abort
-			else {
-				std::cout << "Error: Map contains invalid tile IDs." << std::endl;
-				exit(1);
+			std::cout << "Error: Map contains invalid tile IDs." << std::endl;
+			exit(1);
 			}
 		}
 	}
@@ -211,7 +220,7 @@ Tile* Map::GetTile(const Coord &position) const {
 
 // returns the tile at a console coordinate
 Tile* Map::GetTileFromConsoleCoord(const Coord &position) const {
-	Window display = GameManager::game().get_display();
+	Window display = GameManager::Game().get_display();
 	Coord map_location;	// corresponding map tile
 	// correct for map offset and convert into tile location
 	map_location.x = (position.x - map_x_offset_) / tile_width_;
@@ -258,7 +267,7 @@ const bool Map::UnitPresent(const Coord &position) const {
 	return false;
 }
 
-// returns the unit on a given tile (if there is one, else returns null pointer?)
+// returns the unit on a given tile (if there is one, else returns null pointer)
 Unit* Map::GetUnit(const Coord &position) const {
 	if (UnitPresent(position)) {
 		for (auto iterator = units_.begin(); iterator != units_.end(); iterator++) {
@@ -302,18 +311,8 @@ std::vector<Tile*> Map::AdjacentTo(const Tile *tile) const {
 
 // Renders the map on a the console
 void Map::Render() const {
-	Window display = GameManager::game().get_display();
+	Window display = GameManager::Game().get_display();
 
-	// print numbers above top row (in y_offset region)
-	for (int map_i = 0; map_i < map_width_; map_i++) {
-		display.GoTo({ map_i*tile_width_ + (int)floor(tile_width_ / 2) + map_x_offset_, (int)floor(map_y_offset_ / 2) }); // places cursor centrally along width of the tile
-		std::cout << char(65 + map_i); // char(65) is ASCII code for A
-	}
-	// print alphabetic characters left of first column (in x_offset region)
-	for (int map_j = 0; map_j < map_height_; map_j++) {
-		display.GoTo({ (int)floor(map_x_offset_ / 2), map_j*tile_height_ + (int)floor(tile_height_ / 2) + map_y_offset_ }); // places cursor centrally along the height of the tile and the width of the x_offset
-		std::cout << map_j;
-	}
 	// print map
 	// iterate over the map tiles
 	for (int map_j = 0; map_j < map_height_; map_j++) {

@@ -6,7 +6,7 @@
 class Warrior : public Unit {
 protected:
 	// clone helper function returns a new warrior
-	Warrior* clone_impl() const;
+	Warrior* CloneHelper() const;
 public:
 	// ctor and dtor
 	Warrior(const int &team);

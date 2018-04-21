@@ -30,6 +30,6 @@ public:
 	void Render() const;
 
 	// handle a click at the consonle coordinate "coord", will trigger any button which contains the coordinate
-	void HandleLeftMouseButtonDown(const Coord &coord);
+	void HandleMouseClick(const Coord &coord);
 };
 

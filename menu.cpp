@@ -68,7 +68,7 @@ void Menu::AddButton(Button &button) {
 // render the menu and its buttons in the game window
 void Menu::Render() const {
 	// get the currently used window
-	Window display = GameManager::game().get_display();
+	Window display = GameManager::Game().get_display();
 	
 	// get original colour scheme to revert back at end
 	ColourScheme original_colour_scheme = display.get_colour_scheme();
@@ -120,7 +120,7 @@ void Menu::Render() const {
 }
 
 // handle a click at the consonle coordinate "coord", will trigger any button which contains the coordinate
-void Menu::HandleLeftMouseButtonDown(const Coord &coord) {
+void Menu::HandleMouseClick(const Coord &coord) {
 	// check if the coordinate is contained in the menu 
 	if (Contains(coord)) {
 		// check which button contains the coordinate (if any)

@@ -33,7 +33,7 @@ void Tile::set_highlighted(const bool &highlighted) { highlighted_ = highlighted
 // ---------- public functions ---------- //
 
 // get a unique pointer to a copy of the tile
-std::unique_ptr<Tile> Tile::clone() const { return std::unique_ptr<Tile>(clone_impl()); }
+std::unique_ptr<Tile> Tile::Clone() const { return std::unique_ptr<Tile>(CloneHelper()); }
 
 // get the colour scheme
 const ColourScheme& Tile::get_colour_scheme() const {
@@ -48,14 +48,14 @@ const ColourScheme& Tile::get_colour_scheme() const {
 // function to check if two tiles are adjacent
 const bool Tile::AdjacencyTest(const Tile *test_tile) const {
 	// get vector of adjacent tiles
-	std::vector<Tile*> adjacent_tiles = GameManager::game().get_instance().get_map().AdjacentTo(this);
+	std::vector<Tile*> adjacent_tiles = GameManager::Game().get_instance().get_map().AdjacentTo(this);
 	// if go through vector without finding the test_tile then return false, else return true
 	return std::find(adjacent_tiles.begin(), adjacent_tiles.end(), test_tile) != adjacent_tiles.end();
 }
 
 // render the tile
 void Tile::Render() const {
-	Window display = GameManager::game().get_display();
+	Window display = GameManager::Game().get_display();
 	ColourScheme original_colour_scheme = display.get_colour_scheme(); // save original colour scheme to set back later
 	// set colour scheme for tyle type
 	display.set_colour_scheme(get_colour_scheme());

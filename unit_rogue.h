@@ -5,7 +5,7 @@
 class Rogue : public Unit {
 protected:
 	// clone helper function returns a new rogue
-	Rogue* clone_impl() const;
+	Rogue* CloneHelper() const;
 public:
 	// ctor and dtor
 	Rogue(const int &team);

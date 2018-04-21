@@ -18,4 +18,4 @@ MountainTile::MountainTile(Map &map, const Coord &map_coords) : Tile(map, map_co
 MountainTile::~MountainTile(){}
 
 // helper function returns a pointer to a copy of this object
-MountainTile* MountainTile::clone_impl() const { return new MountainTile(*this); }
+MountainTile* MountainTile::CloneHelper() const { return new MountainTile(*this); }

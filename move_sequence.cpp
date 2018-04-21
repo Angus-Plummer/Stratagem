@@ -38,12 +38,12 @@ const int& MoveSequence::get_cost() const { return cost_to_here_;}
 // ---------- other public functions ---------- //
 
 // get the score of the tile (cost to reach tile + heuristic to reach target tile)
-const int MoveSequence::get_score() const {
+const int MoveSequence::Score() const {
 	return cost_to_here_ + heuristic_to_target;
 }
 
 // get the heuristic for this tile. uses manhattan distance
-void MoveSequence::set_heuristic_to(const Tile *target_tile) {
+void MoveSequence::Target(const Tile *target_tile) {
 	int x_delta = target_tile->get_map_coords().x - tile_->get_map_coords().x;
 	int y_delta = target_tile->get_map_coords().y - tile_->get_map_coords().y;
 	heuristic_to_target =  abs(x_delta) + abs(y_delta);

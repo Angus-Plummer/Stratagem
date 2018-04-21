@@ -38,6 +38,9 @@ GameManager GameManager::game_;
 
 // ---------- accessors ---------- //
 
+// get the current state of the game manager
+const MenuState& GameManager::get_state() const { return state_; }
+
 // get a reference to the current game instance
 GameInstance& GameManager::get_instance() { return instance_; }
 
@@ -49,7 +52,7 @@ void GameManager::set_display(Window &display) { display_ = &display; }
 
 // ---------- internal (protected) functions ---------- //
 
-// clear all buttons from the vector of menus (SHOULD I CLEAR THE SCREEN IN THIS FUNCTION AS WELL?)
+// clear all buttons from the vector of menus 
 void GameManager::ClearButtons() {
 	//clears the buttons vector
 	buttons_.clear();
@@ -64,7 +67,7 @@ void GameManager::RenderButtons() const {
 }
 
 // moves the game into the title window state (shows ascii art and updates menus)
-void GameManager::ShowTitleScreen() {
+void GameManager::StartTitleScreen() {
 	// set state to title window
 	state_ = STATE_TITLE_SCREEN;
 
@@ -108,7 +111,7 @@ void GameManager::ShowTitleScreen() {
 
 	// help button (player moves to help screen)
 	button_text = " Help ";
-	Button help_button(button_text, [this]() {ShowHelpScreen(); });
+	Button help_button(button_text, [this]() {StartHelpScreen(); });
 	// button located 1/3rd along the window
 	help_button.set_location(Coord{ display_->Width() / 3 - (int)std::string(button_text).length() / 2, display_->Height() / 2 + 4 });
 	buttons_.push_back(help_button);
@@ -125,7 +128,7 @@ void GameManager::ShowTitleScreen() {
 }
 
 // moves the game into the help screen state
-void GameManager::ShowHelpScreen() {
+void GameManager::StartHelpScreen() {
 	// set state to help window
 	state_ = STATE_HELP_SCREEN;
 
@@ -146,7 +149,7 @@ void GameManager::ShowHelpScreen() {
 
 	// add back button ( to reset buffer size and take back to title screen) at top of help screen
 	std::string button_text(" Back ");
-	Button back_button(button_text, [this]() {display_->ResetBufferSize(); ShowTitleScreen(); });
+	Button back_button(button_text, [this]() {display_->ResetBufferSize(); StartTitleScreen(); });
 	// button at top right if window (with 2 cell wide, 1 cell high margin)
 	back_button.set_location(Coord{ display_->Width() - (int)std::string(button_text).length() - 2, 1 });
 	buttons_.push_back(back_button);
@@ -236,7 +239,7 @@ void GameManager::StartMapSelection() {
 
 	// back button
 	button_text = " Back ";
-	Button back_button(button_text, [this]() { ShowTitleScreen(); });
+	Button back_button(button_text, [this]() { StartTitleScreen(); });
 	back_button.set_location(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1,
 		instance_.get_map().get_map_y_offset() + instance_.get_map().get_tile_height() * instance_.get_map().get_map_height() - 1));
 	buttons_.push_back(back_button);
@@ -247,13 +250,13 @@ void GameManager::StartMapSelection() {
 
 void GameManager::StartTeamSizeSelection() {
 	// set the state
-	state_ = STATE_TEAM_SIZE_SELECT;
+	state_ = STATE_TEAM_SIZE_SELECTION;
 	// clear the console and the buttons
 	display_->Clear();
 	ClearButtons();
 	// ask user how many units they want to play with
 	std::string question("How many units do you want on each team?");
-	display_->GoTo(Coord(display_->Width() / 2 - question.length() / 2, display_->Height() / 2 - 3));
+	display_->GoTo(Coord(display_->Width() / 2 - question.length() / 2, display_->Height() / 2 - 3)); // ~ centred veritcally and horizontally
 	std::cout << question;
 	int min_team_size = 2; // minimum size of teams
 	int max_team_size = 5; // maximum size of teams
@@ -291,11 +294,11 @@ void GameManager::PlayGame() {
 	// make a new instance
 	instance_ = GameInstance();
 	// on game exit go to the title menu
-	ShowTitleScreen();
+	StartTitleScreen();
 }
 
 // handles a mouse down event (i.e. the user clicking somewhere on the window)
-void GameManager::HandleLeftMouseButtonDown(const Coord &window_location) {
+void GameManager::HandleMouseClick(const Coord &window_location) {
 	// mouse event location must
 	assert(window_location != Coord(-1, -1));
 
@@ -485,6 +488,7 @@ void GameManager::ConfirmUnitPlacement() {
 			StartUnitPlacement();
 		}
 		// if current player is team 2 then move the placed units to the game and play the game
+		// this transfers ownership of the units from the GameManager to the GameInstance
 		else if (team_placing_ == 2) {
 			for (auto unit_iter = units_placed_.begin(); unit_iter != units_placed_.end(); unit_iter++) {
 				instance_.AddUnit(std::move(*unit_iter), (*unit_iter)->get_map_coords());
@@ -553,7 +557,7 @@ void GameManager::HighlightPlaceableTiles() {
 	}
 }
 
-// reset tiles (sets all to unhighlighted and renders. also renders the units on the current players team)
+// reset tiles (sets all highlighted to unhighlighted and renders again)
 void GameManager::ResetTiles() {
 	// iterate over hight of map and setup width
 	for (int width = 0; width < instance_.get_map().get_set_up_width(); width++) {
@@ -585,6 +589,7 @@ void GameManager::ShowUnitCounter() const {
 	std::cout << "Units: " << CountUnits() << " / " << team_size_;
 }
 
+// flashes the unit counter red
 void GameManager::FlashUnitCounter() const {
 	// save current colour scheme to revert after
 	ColourScheme original_colour_scheme = display_->get_colour_scheme();
@@ -647,13 +652,13 @@ void GameManager::RemovePlacingUnit() {
 
 // runs the main game loop until the user quits the game
 void GameManager::Run() {
-	ShowTitleScreen();
+	StartTitleScreen();
 	while (state_ != STATE_QUITTING) {
 		// if there was a mouse event on the window (no click on window then coordinate is (-1,-1))
-		Coord mouse_down_pos = display_->MouseDownPosition();
+		Coord mouse_down_pos = display_->MouseClickPosition();
 		if (mouse_down_pos != Coord{ -1,-1 }) {
 			// handle the mouse down at that location
-			HandleLeftMouseButtonDown(mouse_down_pos);
+			HandleMouseClick(mouse_down_pos);
 		}
 	}
 }

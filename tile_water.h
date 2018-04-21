@@ -6,7 +6,7 @@
 class WaterTile : public Tile {
 protected:
 	// helper function returns a pointer to a copy of this object
-	WaterTile* clone_impl() const;
+	WaterTile* CloneHelper() const;
 public:
 	// ctor and dtor
 	WaterTile(Map &map, const Coord &map_coords);

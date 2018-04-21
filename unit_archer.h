@@ -6,7 +6,7 @@
 class Archer : public Unit {
 protected:
 	// clone helper function returns a new archer
-	Archer * clone_impl() const;
+	Archer * CloneHelper() const;
 public:
 	// ctor and dtor
 	Archer(const int &team);

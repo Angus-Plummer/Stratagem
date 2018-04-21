@@ -18,4 +18,4 @@ atk_modifier_ = 0;
 ForestTile::~ForestTile(){}
 
 // helper function returns a pointer to a copy of this object
-ForestTile* ForestTile::clone_impl() const { return new ForestTile(*this); }
+ForestTile* ForestTile::CloneHelper() const { return new ForestTile(*this); }

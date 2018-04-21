@@ -8,7 +8,7 @@ enum MenuState {
 	STATE_TITLE_SCREEN,
 	STATE_HELP_SCREEN,
 	STATE_MAP_SELECTION,
-	STATE_TEAM_SIZE_SELECT,
+	STATE_TEAM_SIZE_SELECTION,
 	STATE_UNIT_PLACEMENT,
 	STATE_GAME_RUNNING,
 	STATE_QUITTING
@@ -41,10 +41,10 @@ protected:
 	void RenderButtons() const;
 
 	// moves the game into the title screen state (shows ascii art and updates menus)
-	void ShowTitleScreen();
+	void StartTitleScreen();
 
 	// moves the game into the help screen state
-	void ShowHelpScreen();
+	void StartHelpScreen();
 
 	// helper function to wrap help text in window
 	std::string WrapString(std::string& str) const;
@@ -59,7 +59,7 @@ protected:
 	void PlayGame();
 
 	// handles a mouse down event (i.e. the user clicking somewhere on the window)
-	void HandleLeftMouseButtonDown(const Coord &window_location);
+	void HandleMouseClick(const Coord &window_location);
 
 	// --------- unit placement functions ------------
 
@@ -108,7 +108,10 @@ public:
 	~GameManager();
 
 	// global access to the static game manager object
-	static GameManager& game() { return game_; }
+	static GameManager& Game() { return game_; }
+
+	// get the current state of the game manager
+	const MenuState& get_state() const;
 
 	// get a reference to the current game instance
 	GameInstance& get_instance();

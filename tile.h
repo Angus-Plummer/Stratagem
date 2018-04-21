@@ -14,11 +14,11 @@ protected:
 	int move_cost_; // cost of movement across the tile (if unit can traverse the tile)
 	int def_modifier_; // additive defensive modifier. Affects damage recieved by a unit on this tile.
 	int atk_modifier_; // additive attack modifier. Affects damage dealt by a unit on this tile.
-	bool highlighted_; // if tile is currently highlighted for movement then this is true, otherwise false
+	bool highlighted_; // if tile is currently highlighted (changes colour scheme of tile)
 	Map* parent_map_; // pointer to the map that this tile belongs to
 
 	// helper function returns a pointer to a copy of the object
-	virtual Tile* clone_impl() const = 0;
+	virtual Tile* CloneHelper() const = 0;
 
 public:
 	// constructor and destructor
@@ -33,7 +33,7 @@ public:
 	void set_highlighted(const bool &highlighted);
 
 	// get a unique pointer to a copy of the tile
-	std::unique_ptr<Tile> clone() const;
+	std::unique_ptr<Tile> Clone() const;
 
 	// get the colour scheme (highlighted scheme if highlighted is true)
 	const ColourScheme& get_colour_scheme() const;

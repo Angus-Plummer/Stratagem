@@ -6,7 +6,7 @@
 // current state of the unit
 enum UnitState {
 	STATE_IDLE, // unit is unselected and can still be used
-	STATE_ASLEEP, // unit is unselected and has already acted this turn
+	STATE_ASLEEP, // unit is unselected and has already acted this turn, or it is currently the opposing team's turn
 	STATE_DEAD, // unit is dead
 	STATE_SELECTED // unit is selected
 };
@@ -38,21 +38,21 @@ protected:
 	// ---------- internal functions ---------- //
 
 	// get a deep copy of the unit
-	virtual Unit* clone_impl() const = 0;
+	virtual Unit* CloneHelper() const = 0;
 
 	// checks how many tiles away another unit is
 	const int DistanceTo(const Unit *target) const;
 
-	// returns a vector of all units that are currently attackable by this unit (MOVE TO MAP)
+	// returns a vector of all units that are currently attackable by this unit
 	const std::vector<Unit*> AttackableUnits() const;
 
-	// get tile unit is currently on
+	// get pointer to the tile unit is currently on
 	Tile* GetTile() const;
 
 	// returns a vector of pointers to the tiles (as movesequences) that can be reached by this unit
 	std::vector<Tile*> ReachableTiles() const;
 
-	// animates the unit moving to an adjacent tile
+	// animates the unit moving from a starting tile to and adjacent tile
 	void AnimateMovement(const Tile* start_tile, const Tile* target_tile) const;
 
 
@@ -67,7 +67,7 @@ public:
 	const int get_team() const;
 
 	// get a unique pointer to a copy of this object
-	std::unique_ptr<Unit> clone() const;
+	std::unique_ptr<Unit> Clone() const;
 
 	// set hp (will set to 0 if < 0 and max_hp if > max_hp)
 	void set_current_hp(int const &hp);
@@ -111,7 +111,7 @@ public:
 	void AttackedBy(const Unit *target);
 
 	// sets highlighted status for tiles/units that are attackable
-	void HighlightAttackableUnits(const bool &highlight) const;
+	void HighlightAttackableTiles(const bool &highlight) const;
 
 	// sets highlighted status for the tiles that the unit can reach
 	void Unit::HighlightReachableTiles(const bool &highlight) const;

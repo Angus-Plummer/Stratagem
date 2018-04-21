@@ -22,7 +22,7 @@ protected:
 	// height and width of game map tiles in console cells
 	int tile_width_;
 	int tile_height_;
-	// offset of tiles from edge of window (to fit in row and columns labels) in cosonle cells
+	// offset of tiles from edge of window in console cells
 	int map_x_offset_;
 	int map_y_offset_;
 

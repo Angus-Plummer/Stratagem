@@ -71,7 +71,7 @@ protected:
 	void ShowTurnChangeScreen();
 
 	// handles a mouse down event (i.e. the user clicking somewhere on the window)
-	void HandleLeftMouseButtonDown(const Coord &location);
+	void HandleMouseClick(const Coord &location);
 
 public:
 	
@@ -90,12 +90,12 @@ public:
 	Unit& get_selected_unit() const;
 	const int& get_player_turn() const;
 
-	// load in a map from the 5 premade maps
+	// load in a map from the 5 premade maps using an integer map id
 	void LoadMap(const int &map_id) const;
 	// render the whole map (tiles + units)
 	void RenderMap() const;
 
-	// add a unit to the game
+	// add a unit to the game (takes unique pointer as transferring ownership)
 	void AddUnit(std::unique_ptr<Unit> new_unit, const Coord &pos);
 	// remove a unit from the game
 	void RemoveUnit(Unit *unit);

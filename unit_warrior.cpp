@@ -24,7 +24,7 @@ Warrior::Warrior(const int &team) : Unit(team) {
 Warrior::~Warrior(){}
 
 // clone helper function returns a new warrior
-Warrior* Warrior::clone_impl() const { return new Warrior(*this); }
+Warrior* Warrior::CloneHelper() const { return new Warrior(*this); }
 
 // returns true if the warrior can cross the terrain. (warrior cant enter water or mountains)
 const bool Warrior::CanTraverse(const Tile *terrain_tile) const {

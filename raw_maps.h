@@ -2,6 +2,11 @@
 #include "stdafx.h" 
 
 // this header file contains the raw data for the game maps
+// 
+// 1 = grass
+// 2 = forest
+// 3 = mountains
+// 4 = water
 
 std::vector<std::vector<int>> const raw_map1 = {
 	{ 4, 4, 4, 4, 4, 2, 2, 2, 3, 3 },

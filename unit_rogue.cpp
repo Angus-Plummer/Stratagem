@@ -24,7 +24,7 @@ Rogue::Rogue(const int &team) : Unit(team) {
 Rogue::~Rogue(){}
 
 // clone helper function returns a new rogue
-Rogue* Rogue::clone_impl() const { return new Rogue(*this); }
+Rogue* Rogue::CloneHelper() const { return new Rogue(*this); }
 
 // returns true if unit can cross a terrain tile. ( rogue cant cross water)
 const bool Rogue::CanTraverse(const Tile *terrain_tile) const {
