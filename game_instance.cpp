@@ -108,6 +108,7 @@ const int& GameInstance::get_player_turn() const { return player_turn_; }
 
 // carries out the beginning of a turn
 void GameInstance::StartTurn() {
+	assert(state_ == STATE_SETUP || state_ == STATE_BETWEEN_TURNS);
 	// clear the console and render the game map again, show the end turn button and end turn label
 	GameManager::Game().get_display().Clear();
 	game_map_->Render();
@@ -132,8 +133,9 @@ void GameInstance::StartTurn() {
 
 // carries out the end of turn and begins a new turn
 void GameInstance::EndTurn() {
+	assert(state_ == STATE_SELECTING_UNIT || state_ == STATE_UNIT_SELECTING_ACTION);
 	// deselect any currently selected unit (shouldnt be one but just in case)
-	DeselectUnit();
+	DeselectUnit(); // state -> STATE_SELECTING_UNIT
 	// set state state to being between turns
 	state_ = STATE_BETWEEN_TURNS;
 	// change the player turn variable
@@ -186,6 +188,7 @@ void GameInstance::AutoEndTurn() {
 
 // handles game victory
 void GameInstance::Victory(const int &team) {
+	assert(state_ = STATE_SELECTING_UNIT);
 	// get currently used window
 	Window display = GameManager::Game().get_display();
 
@@ -230,12 +233,14 @@ void GameInstance::Victory(const int &team) {
 
 // handles entering the UNIT_SELECTING_ATTACK state
 void GameInstance::ChooseAttack() {
+	assert(state_ == STATE_UNIT_SELECTING_ACTION);
 	RemoveContextMenu();
 	state_ = STATE_UNIT_SELECTING_ATTACK;
 	selected_unit_->HighlightAttackableTiles(true);
 }
 // handles leaving the UNIT_SELECTING_ATTACK state
 void GameInstance::UnChooseAttack() {
+	assert(state_ == STATE_UNIT_SELECTING_ATTACK);
 	state_ = STATE_UNIT_SELECTING_ACTION;
 	selected_unit_->HighlightAttackableTiles(false);
 	ShowContextMenu();
@@ -243,12 +248,14 @@ void GameInstance::UnChooseAttack() {
 
 // handles entering the UNIT_SELECTING_MOVEMENT state
 void GameInstance::ChooseMovement() {
+	assert(state_ == STATE_UNIT_SELECTING_ACTION);
 	RemoveContextMenu();
 	state_ = STATE_UNIT_SELECTING_MOVEMENT;
 	selected_unit_->HighlightReachableTiles(true);
 }
 // handles leaving the UNIT_SELECTING_MOVEMENT state
 void GameInstance::UnChooseMovement() {
+	assert(state_ == STATE_UNIT_SELECTING_MOVEMENT);
 	state_ = STATE_UNIT_SELECTING_ACTION;
 	selected_unit_->HighlightReachableTiles(false);
 	ShowContextMenu();
@@ -256,6 +263,7 @@ void GameInstance::UnChooseMovement() {
 
 // make and remove the context menu (context menu shows what options the currently selected unit has available to them)
 void GameInstance::ShowContextMenu() {
+	assert(state_ == STATE_UNIT_SELECTING_ACTION);
 	// clear the current buttons from the menu
 	context_menu_.Clear();
 
@@ -280,16 +288,20 @@ void GameInstance::ShowContextMenu() {
 	Button end_cancel_button(end_cancel_button_name, []() {GameManager::Game().get_instance().DeselectUnit(); });
 	context_menu_.AddButton(end_cancel_button);
 
-	// if selected unit is in any but the last two map columns then set menu position as to right of unit
-	Coord top_left_of_cell_to_right = Coord(game_map_->get_map_x_offset() + (selected_unit_->get_map_coords().x + 1) * game_map_->get_tile_width(),
+	// default menu position is starting at top left of tile to the right of the unit's tile
+	Coord top_left_of_menu = Coord(game_map_->get_map_x_offset() + (selected_unit_->get_map_coords().x + 1) * game_map_->get_tile_width(),
 		game_map_->get_map_y_offset() + selected_unit_->get_map_coords().y * game_map_->get_tile_height());
-	if (selected_unit_->get_map_coords().x < game_map_->get_map_width() - 2) {
-		context_menu_.set_location(top_left_of_cell_to_right);
+	
+	// if the menu would go off the right edge of the map, then move the menu to the left of the unit
+	if (!game_map_->GetTileFromConsoleCoord(top_left_of_menu + Coord{ context_menu_.get_width(), 0 })) {
+		top_left_of_menu.x -= game_map_->get_tile_width() + context_menu_.get_width(); // go left 1 tile width + the width of the menu
 	}
-	// else context menu is to left of unit
-	else {
-		context_menu_.set_location(top_left_of_cell_to_right - Coord{ game_map_->get_tile_width() + context_menu_.get_width(), 0 }); // go left 1 tile width + the width of the menu
+	// if the menu would go off the bottom edge of the map, then move the menu up until it is not off the map
+	if (!game_map_->GetTileFromConsoleCoord(top_left_of_menu + Coord{ 0, context_menu_.get_height() })) {
+		int bottom_row_of_map = game_map_->get_map_y_offset() + game_map_->get_map_height() * game_map_->get_tile_height();
+		top_left_of_menu.y = bottom_row_of_map - context_menu_.get_height();
 	}
+	context_menu_.set_location(top_left_of_menu);
 
 	// render the menu
 	context_menu_.Render();
@@ -374,6 +386,7 @@ void GameInstance::ShowSurrenderButton() {
 }
 
 void GameInstance::ShowTurnChangeScreen() {
+	assert(state_ == STATE_BETWEEN_TURNS);
 	Window display = GameManager::Game().get_display();
 	// completely clear the console
 	display.Clear();
@@ -389,7 +402,7 @@ void GameInstance::ShowTurnChangeScreen() {
 
 // handles a mouse down event (i.e. the user clicking somewhere on the window)
 void GameInstance::HandleMouseClick(const Coord &window_location) { // Coord window_location is in terms of console cells over whole display
-																			 // no mouse click returns a Coord of {-1, -1} so should only be here if coordinate is not -1,-1
+	// no mouse click returns a Coord of {-1, -1} so should only be here if coordinate is not -1,-1
 	assert(window_location != Coord(-1, -1));
 
 	// get pointers to the tile and unit at the click location. Will be nullptr if there isnt one at location (or clicked off of map)
@@ -525,7 +538,7 @@ void GameInstance::HandleMouseClick(const Coord &window_location) { // Coord win
 
 // load in a map from the 5 premade maps
 void GameInstance::LoadMap(const int &map_id) const {
-	assert(map_id >= 1 && map_id <= 5);
+	assert(map_id >= 1 && map_id <= 5 && state_ == STATE_SETUP);
 	// maps identified by an integer id
 	if (map_id == 1) {
 		game_map_->LoadMap(raw_map1);
@@ -550,6 +563,7 @@ void GameInstance::RenderMap() const {
 
 // add a unit to the game
 void GameInstance::AddUnit(std::unique_ptr<Unit> new_unit, const Coord &pos) {
+	assert(state_ == STATE_SETUP);
 	game_map_->AddUnit(new_unit.get(), pos);
 	if (new_unit->get_team() == 1) {
 		p1_units_.push_back(std::move(new_unit));
@@ -602,6 +616,7 @@ void GameInstance::DeselectUnit() {
 
 // run the main game loop until the user quits
 void GameInstance::Run() {
+	assert(state_ == STATE_SETUP);
 	// set up the start of the first turn
 	StartTurn();
 	running_ = true; // will set to false if user clicks quit button or somone wins

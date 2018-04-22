@@ -68,6 +68,7 @@ void GameManager::RenderButtons() const {
 
 // moves the game into the title window state (shows ascii art and updates menus)
 void GameManager::StartTitleScreen() {
+	assert(state_ == STATE_TITLE_SCREEN || state_ == STATE_MAP_SELECTION || state_ == STATE_HELP_SCREEN || state_ == STATE_GAME_RUNNING);
 	// set state to title window
 	state_ = STATE_TITLE_SCREEN;
 
@@ -129,6 +130,7 @@ void GameManager::StartTitleScreen() {
 
 // moves the game into the help screen state
 void GameManager::StartHelpScreen() {
+	assert(state_ == STATE_TITLE_SCREEN);
 	// set state to help window
 	state_ = STATE_HELP_SCREEN;
 
@@ -189,6 +191,7 @@ std::string GameManager::WrapString(std::string& str) const {
 
 // moved the game into the map selection state
 void GameManager::StartMapSelection() {
+	assert(state_ == STATE_TITLE_SCREEN || state_ == STATE_TEAM_SIZE_SELECTION);
 	// set the state
 	state_ = STATE_MAP_SELECTION;
 	// clear the console and the buttons
@@ -249,6 +252,7 @@ void GameManager::StartMapSelection() {
 }
 
 void GameManager::StartTeamSizeSelection() {
+	assert(state_ == STATE_MAP_SELECTION || state_ == STATE_UNIT_PLACEMENT);
 	// set the state
 	state_ = STATE_TEAM_SIZE_SELECTION;
 	// clear the console and the buttons
@@ -285,6 +289,7 @@ void GameManager::StartTeamSizeSelection() {
 
 // starts the actual game running
 void GameManager::PlayGame() {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	// change state
 	state_ = STATE_GAME_RUNNING;
 	// clear the console
@@ -299,7 +304,7 @@ void GameManager::PlayGame() {
 
 // handles a mouse down event (i.e. the user clicking somewhere on the window)
 void GameManager::HandleMouseClick(const Coord &window_location) {
-	// mouse event location must
+	// mouse event location must not be -1,-1 as that means the mouse was not actually clicked
 	assert(window_location != Coord(-1, -1));
 
 	// go through the vector of menus and check if any contain the mouse event location. if so then handle the mouse event
@@ -370,6 +375,7 @@ void GameManager::HandleMouseClick(const Coord &window_location) {
 
 // moves the game into the unit placement state
 void GameManager::StartUnitPlacement() {
+	assert(state_ == STATE_TEAM_SIZE_SELECTION || state_ == STATE_UNIT_PLACEMENT);
 	// set the state
 	state_ = STATE_UNIT_PLACEMENT;
 	// clear the console and the buttons
@@ -480,6 +486,7 @@ void GameManager::StartUnitPlacement() {
 
 // confirms the current unit placement (if the correct number of units have been placed)
 void GameManager::ConfirmUnitPlacement() {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	// if the number of units placed by the team is equal to the required amount on each team..
 	if (CountUnits() == team_size_) {
 		// if current player is team 1 then swap to team 2 and begin their unit placement
@@ -508,6 +515,7 @@ void GameManager::ConfirmUnitPlacement() {
 
 // remove all units of a team from the game map (allows them to try placing again. also run for both teams when backing out of unit selection)
 void GameManager::ClearUnits() {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	// iterate through units and delete any that are on the team that is currently selecting units, then replace the pointer with a nullptr
 	for (auto unit_iter = units_placed_.begin(); unit_iter != units_placed_.end(); unit_iter++) {
 		if ((*unit_iter)->get_team() == team_placing_) {
@@ -524,6 +532,7 @@ void GameManager::ClearUnits() {
 
 // returns a vector of the tiles that placing_unit_ can be placed on
 std::vector<Tile*> GameManager::PlaceableTiles() const {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	std::vector<Tile*> valid_tiles;
 	// iterate through the tiles that are within the set up wdith of the sides of the map
 	for (int width = 0; width < instance_.get_map().get_set_up_width(); width++) {
@@ -550,6 +559,7 @@ std::vector<Tile*> GameManager::PlaceableTiles() const {
 
 // highlight placable tiles (sets placable tiles to highlighted and renders them)
 void GameManager::HighlightPlaceableTiles() {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	std::vector<Tile*> placeable_tiles = PlaceableTiles();
 	for (auto tile_iter = placeable_tiles.begin(); tile_iter != placeable_tiles.end(); tile_iter++) {
 		(*tile_iter)->set_highlighted(true);
@@ -559,6 +569,7 @@ void GameManager::HighlightPlaceableTiles() {
 
 // reset tiles (sets all highlighted to unhighlighted and renders again)
 void GameManager::ResetTiles() {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	// iterate over hight of map and setup width
 	for (int width = 0; width < instance_.get_map().get_set_up_width(); width++) {
 		for (int row = 0; row < instance_.get_map().get_map_height(); row++) {
@@ -579,18 +590,21 @@ void GameManager::ResetTiles() {
 
 // counts the number of units that have been placed by the current team
 const int GameManager::CountUnits() const {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	return std::count_if(units_placed_.begin(), units_placed_.end(), [this](const std::unique_ptr<Unit> &unit) {return unit->get_team() == team_placing_; });
 
 }
 
 // shows the number of units the team currently placing units has placed
 void GameManager::ShowUnitCounter() const {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	display_->GoTo(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, instance_.get_map().get_map_y_offset()));
 	std::cout << "Units: " << CountUnits() << " / " << team_size_;
 }
 
 // flashes the unit counter red
 void GameManager::FlashUnitCounter() const {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	// save current colour scheme to revert after
 	ColourScheme original_colour_scheme = display_->get_colour_scheme();
 	int num_flashes = 3;
@@ -611,6 +625,7 @@ void GameManager::FlashUnitCounter() const {
 
 // shows the type of unit that is currently being placed
 void GameManager::ShowPlacingUnit() const {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	// first write blank spaces over the previous text
 	display_->GoTo(Coord(instance_.get_map().get_map_x_offset() + instance_.get_map().get_tile_width() * instance_.get_map().get_map_width() + 1, instance_.get_map().get_map_y_offset() + 2));
 	std::cout << "                ";
@@ -626,6 +641,7 @@ void GameManager::ShowPlacingUnit() const {
 
 // select a new unit to be placed
 void GameManager::SetPlacingUnit(Unit *placing_unit) {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	// if there is already a unit being placed then remove it
 	RemovePlacingUnit();
 	// update the placing_unit to the input arg
@@ -640,6 +656,7 @@ void GameManager::SetPlacingUnit(Unit *placing_unit) {
 
 // removes the unit being placed and replaces with a nullptr, also resets the tiles
 void GameManager::RemovePlacingUnit() {
+	assert(state_ == STATE_UNIT_PLACEMENT);
 	// if there is currently a unit being placed then delete it, reset the tiles
 	if (placing_unit_) {
 		placing_unit_.reset();;

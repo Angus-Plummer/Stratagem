@@ -89,7 +89,6 @@ const Coord Window::CursorPosition() const {
 
 // set the position of the console cursor
 void Window::GoTo(const Coord &in_coord) const {
-	assert(in_coord.x >= 0 && in_coord.x <= Width() && in_coord.y >= 0 && in_coord.y <= Height());
 	std::cout.flush();
 	COORD coord = { (SHORT)in_coord.x, (SHORT)in_coord.y };
 	SetConsoleCursorPosition(standard_out_handle_, coord);

@@ -17,7 +17,7 @@ public:
 	// accessor for border thickness
 	const int& get_border_thickness() const;
 
-	// set the location of the top left of the menu (in console cell coordinates)
+	// set the location of the top left of the menu (in console cell coordinates) (overrides UIOBject as need to update all the buttons too)
 	void set_location(const Coord &position);
 
 	// clears all the buttons from the menu

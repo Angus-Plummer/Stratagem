@@ -66,7 +66,7 @@ std::vector<Tile*> Unit::ReachableTiles() const {
 	std::list<MoveSequence> open; // tiles that have yet to be inspected
 
 								  // start with the tile the unit is currently on, add to the vector of open tiles
-	MoveSequence initial_tile(GetTile()); // maybe need to make a copy assignment operator to use this
+	MoveSequence initial_tile(GetTile());
 	open.push_back(initial_tile);
 
 	std::vector<Tile*> adjacent_tiles;
