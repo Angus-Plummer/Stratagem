@@ -188,7 +188,7 @@ void GameInstance::AutoEndTurn() {
 
 // handles game victory
 void GameInstance::Victory(const int &team) {
-	assert(state_ == STATE_SELECTING_UNIT);
+	//assert(state_ == STATE_SELECTING_UNIT);
 	// get currently used window
 	Window display = GameManager::Game().get_display();
 
